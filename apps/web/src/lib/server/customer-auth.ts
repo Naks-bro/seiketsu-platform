@@ -3,11 +3,11 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { jwtVerify, SignJWT } from "jose";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
-import { consentEvents, customers, getDb, otpChallenges } from "@seiketsu/db";
-import { generateOtp, hashOtp, otpMatches } from "@seiketsu/core/messaging";
+import { consentEvents, customers, getDb, messageLog, otpChallenges } from "@seiketsu/db";
+import { generateOtp, hashOtp, messageCost, otpMatches } from "@seiketsu/core/messaging";
 import { env, sessionSecret } from "./env";
 import { rateLimit } from "./rate-limit";
-import { sendMessage } from "./messaging/send";
+import { getMessagingSettings, sendMessage } from "./messaging/send";
 
 const COOKIE = "sk_customer";
 const MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
@@ -82,13 +82,94 @@ export async function verifyOtp(args: { challengeId: string; code: string; ip: s
     .returning({ id: otpChallenges.id });
   if (!used) throw new AuthError("This code has already been used.", 410);
 
+  return signInVerifiedPhone(c.phone);
+}
+
+/** Creates the customer if new and starts a session. Only call after the phone is proven. */
+async function signInVerifiedPhone(phone: string) {
+  const db = await getDb();
   const [customer] = await db
     .insert(customers)
-    .values({ phone: c.phone, name: "", lastLoginAt: new Date() })
+    .values({ phone, name: "", lastLoginAt: new Date() })
     .onConflictDoUpdate({ target: customers.phone, set: { lastLoginAt: new Date() } })
     .returning();
   await startCustomerSession(customer.id, customer.sessionVersion);
   return customer;
+}
+
+// ── MSG91 OTP widget ───────────────────────────────────────────────
+// The browser sends and checks the code with MSG91 directly; we apply our own
+// limits before it starts, and confirm MSG91's access token before signing in.
+
+/** Called before the widget sends a code: rate limits, and records the estimated cost. */
+export async function startWidgetOtp(args: { phone: string; ip: string }) {
+  const { phone, ip } = args;
+  const checks = await Promise.all([
+    rateLimit(`otp:phone:${phone}`, 3, 600),
+    rateLimit(`otp:phone-day:${phone}`, 10, 86_400),
+    rateLimit(`otp:ip:${ip}`, 10, 3600),
+    rateLimit("otp:global", DAILY_OTP_CAP, 86_400),
+  ]);
+  if (!checks[3]) throw new AuthError("Login by code is paused for now. Please try again later or check out as a guest.", 429);
+  if (checks.includes(false)) throw new AuthError("Too many codes requested. Please wait a few minutes and try again.", 429);
+  const db = await getDb();
+  // Count it like our own OTPs so spend, alerts and the OTP-spike check include widget logins.
+  await db.insert(otpChallenges).values({ phone, codeHash: "msg91-widget", channel: "sms", expiresAt: new Date(Date.now() + OTP_TTL_MS), ip });
+  const settings = await getMessagingSettings(null);
+  await db.insert(messageLog).values({
+    channel: "sms",
+    kind: "otp",
+    category: "authentication",
+    recipient: phone,
+    provider: "msg91-widget",
+    status: "sent",
+    costMilliPaise: messageCost("sms", "authentication", settings.rates),
+  });
+}
+
+/** Reads the verified identifier from MSG91's reply, or from the token's own claims. */
+function verifiedIdentifier(reply: Record<string, unknown>, accessToken: string): string | null {
+  const digits = (v: unknown) => (typeof v === "string" || typeof v === "number" ? String(v).replace(/\D/g, "") : "");
+  const data = (reply.data ?? {}) as Record<string, unknown>;
+  for (const v of [reply.message, reply.identifier, reply.mobile, data.identifier, data.mobile]) {
+    const d = digits(v);
+    if (d.length >= 10) return d;
+  }
+  try {
+    const claims = JSON.parse(Buffer.from(accessToken.split(".")[1] ?? "", "base64url").toString("utf8")) as Record<string, unknown>;
+    for (const k of ["identifier", "mobile", "phone", "requestedFor", "sub"]) {
+      const d = digits(claims[k]);
+      if (d.length >= 10) return d;
+    }
+  } catch {
+    /* not a JWT */
+  }
+  return null;
+}
+
+export async function verifyWidgetLogin(args: { phone: string; accessToken: string; ip: string }) {
+  if (!(await rateLimit(`otp-verify:ip:${args.ip}`, 30, 3600))) throw new AuthError("Too many attempts. Please try again later.", 429);
+  const authkey = env.messaging.msg91.authKey;
+  if (!authkey) throw new AuthError("Phone login is not set up yet.", 503);
+  const res = await fetch("https://control.msg91.com/api/v5/widget/verifyAccessToken", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ authkey, "access-token": args.accessToken }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  const reply = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok || reply.type !== "success") {
+    console.warn("[otp-widget] token rejected", res.status, JSON.stringify(reply).slice(0, 200));
+    throw new AuthError("We could not confirm the code. Please try again.", 401);
+  }
+  const id = verifiedIdentifier(reply, args.accessToken);
+  if (!id) {
+    // Fail closed: never sign in a number MSG91 did not confirm.
+    console.error("[otp-widget] no identifier in MSG91 reply; keys:", Object.keys(reply).join(","));
+    throw new AuthError("We could not confirm your number. Please try again.", 502);
+  }
+  if (id.slice(-10) !== args.phone) throw new AuthError("That code was for a different number.", 401);
+  return signInVerifiedPhone(args.phone);
 }
 
 async function startCustomerSession(customerId: string, sessionVersion: number) {

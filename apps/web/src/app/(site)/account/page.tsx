@@ -5,6 +5,7 @@ import { desc, eq, ne, and } from "drizzle-orm";
 import { getDb, orders } from "@seiketsu/db";
 import { STATUS_LABEL } from "@seiketsu/core/order-status";
 import { getCustomer } from "@/lib/server/customer-auth";
+import { env } from "@/lib/server/env";
 import { formatDateTime, formatINR } from "@/lib/format";
 import { PhoneLogin } from "./phone-login";
 import { ProfileForm } from "./profile-form";
@@ -43,7 +44,7 @@ export default async function AccountPage() {
         <p className="mb-8 mt-3 max-w-md text-muted">
           Use your mobile number to see your orders and save your details for next time. No password needed. You can always order as a guest.
         </p>
-        <PhoneLogin />
+        <PhoneLogin widget={env.messaging.otpWidget} />
       </div>
     );
   }

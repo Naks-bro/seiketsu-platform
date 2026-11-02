@@ -18,7 +18,7 @@ vi.mock("next/headers", () => ({
   headers: async () => new Headers(),
 }));
 
-const { getConn, menuItems, menuItemVariants, orders, payments, messageLog, customers, consentEvents, storeSettings } = await import("@seiketsu/db");
+const { getConn, menuItems, menuItemVariants, payments, messageLog, customers, consentEvents, storeSettings } = await import("@seiketsu/db");
 const { runMigrations } = await import("../../../../../packages/db/src/migrate.ts");
 const { seed, openAllDay } = await import("../../../../../packages/db/src/seed.ts");
 const { eq, and, isNull } = await import("drizzle-orm");

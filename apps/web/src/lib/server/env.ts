@@ -43,6 +43,11 @@ const messaging = {
     /** Shared secret in the delivery-report webhook URL (?token=...) */
     webhookToken: optional("MSG91_WEBHOOK_TOKEN"),
   },
+  /** MSG91 OTP widget (public IDs). Used for phone login when set together with MSG91_AUTH_KEY. */
+  otpWidget:
+    msg91AuthKey && optional("NEXT_PUBLIC_MSG91_WIDGET_ID") && optional("NEXT_PUBLIC_MSG91_WIDGET_TOKEN")
+      ? { widgetId: optional("NEXT_PUBLIC_MSG91_WIDGET_ID")!, tokenAuth: optional("NEXT_PUBLIC_MSG91_WIDGET_TOKEN")! }
+      : null,
   resendApiKey: optional("RESEND_API_KEY"),
   emailFrom: optional("EMAIL_FROM"),
   /** Template name/ID for a message kind, e.g. MSG91_WA_TPL_ORDER_PLACED / MSG91_SMS_TPL_OTP */
