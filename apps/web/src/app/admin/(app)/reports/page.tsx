@@ -37,7 +37,7 @@ function BarRow({ label, value, max, right }: { label: string; value: number; ma
           <div className="h-2.5 rounded-full bg-berry" style={{ width: `${pct}%` }} />
         </div>
       </td>
-      <td className="py-1.5 pl-3 text-right tabular-nums">{right}</td>
+      <td className="whitespace-nowrap py-1.5 pl-3 text-right tabular-nums">{right}</td>
     </tr>
   );
 }

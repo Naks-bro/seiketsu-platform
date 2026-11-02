@@ -14,12 +14,12 @@ if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
  */
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://*.razorpay.com https://verify.msg91.com https://*.msg91.com https://www.google.com https://www.gstatic.com https://*.hcaptcha.com https://hcaptcha.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.msg91.com",
+  "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://*.razorpay.com https://verify.msg91.com https://*.msg91.com https://*.hostnsoft.com https://www.google.com https://www.gstatic.com https://*.hcaptcha.com https://hcaptcha.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.msg91.com https://*.hostnsoft.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self' https://*.razorpay.com https://*.msg91.com https://*.supabase.co wss://*.supabase.co https://*.hcaptcha.com",
-  "frame-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com https://*.msg91.com https://www.google.com https://*.hcaptcha.com",
+  "connect-src 'self' https://*.razorpay.com https://*.msg91.com https://*.hostnsoft.com https://*.supabase.co wss://*.supabase.co https://*.hcaptcha.com",
+  "frame-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com https://*.msg91.com https://*.hostnsoft.com https://www.google.com https://*.hcaptcha.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",

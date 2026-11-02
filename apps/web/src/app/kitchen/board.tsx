@@ -107,7 +107,7 @@ export function KitchenBoard({ tickets, outletId, prepMinutes, staffName }: { ti
       </header>
       {error && <p role="alert" className="bg-[#a51c47] px-4 py-2 text-sm">{error}</p>}
 
-      <div className="grid flex-1 gap-4 p-4 lg:grid-cols-3">
+      <div className="clear-badge grid flex-1 gap-4 p-4 lg:grid-cols-3">
         {COLUMNS.map((col) => {
           const list = tickets.filter((t) => col.statuses.includes(t.status));
           return (

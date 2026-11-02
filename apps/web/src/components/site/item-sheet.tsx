@@ -169,7 +169,7 @@ export function ItemSheet({ item, canOrder, onClose }: { item: MenuItemDTO; canO
           </label>
         </div>
 
-        <div className="flex items-center gap-3 border-t border-line bg-cream px-6 py-4">
+        <div className="clear-badge flex items-center gap-3 border-t border-line bg-cream px-6 py-4">
           <QuantityStepper value={qty} onChange={(v) => setQty(Math.max(1, Math.min(20, v)))} label={item.name} />
           <button
             type="button"

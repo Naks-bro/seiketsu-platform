@@ -85,6 +85,26 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
 - A payment for a different amount is never accepted; it is flagged for staff.
 - Secrets live only in server environment variables.
 
+## Staff screens (Phase 2 and 3)
+
+| Screen | URL | Who |
+|---|---|---|
+| Orders (live board, refunds) | `/admin/orders` | owner, manager, cashier, kitchen |
+| Kitchen display (tablet) | `/kitchen` | owner, manager, cashier, kitchen |
+| Counter POS + 80 mm receipts | `/pos`, `/pos/receipt/<id>` | owner, manager, cashier |
+| Menu editor (prices, sizes, nutrition, photos, extras) | `/admin/menu` | edit: owner, manager · sold-out toggles: all |
+| Reports + CSV export | `/admin/reports` | owner, manager |
+| Messages & costs | `/admin/messages` | owner, manager |
+| Staff logins and roles | `/admin/staff` | owner |
+| My account (change password) | `/admin/account` | everyone |
+
+- Each person signs in with their own email; kitchen staff land on `/kitchen`, cashiers on `/pos`.
+- Counter sales are paid on creation (cash / UPI / card at the till), get a bill number and go straight to
+  the kitchen. Refunds of counter sales are recorded as handed back by hand; online ones go back via Razorpay.
+- Dish photos are resized in the browser and stored in Postgres (`menu_images`), served from `/api/images/<id>`.
+- Sizes removed in the editor are switched off, not deleted, so old orders and bills still show them.
+- Netlify shows a badge at the bottom-right on free sites; pinned buttons use `.clear-badge` to stay tappable.
+
 ## Customer login, messaging and bills
 
 - **Login**: `/account`. Phone number + 6-digit code sent on WhatsApp (SMS fallback or "Send by SMS instead").

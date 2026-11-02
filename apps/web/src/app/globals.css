@@ -56,6 +56,12 @@ h1, h2, h3 {
   }
 }
 
+/* Netlify adds a fixed badge (about 64px tall) at the bottom-right on free sites.
+   Keep pinned buttons clear of it so taps reach them. */
+body:has(#nl-badge-frame) .clear-badge {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 76px);
+}
+
 /* Print: order tickets from the admin */
 @media print {
   .no-print { display: none !important; }

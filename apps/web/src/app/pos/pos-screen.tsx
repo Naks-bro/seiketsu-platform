@@ -160,7 +160,7 @@ export function PosScreen({ menu, pricing, staffName }: { menu: CategoryDTO[]; p
             </div>
           )}
         </div>
-        <ul className="grid flex-1 content-start gap-3 overflow-y-auto p-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="clear-badge grid flex-1 content-start gap-3 overflow-y-auto p-4 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => (
             <li key={item.id}>
               <button
@@ -172,7 +172,10 @@ export function PosScreen({ menu, pricing, staffName }: { menu: CategoryDTO[]; p
                   <DietMark diet={item.diet} size={12} />
                   {item.name}
                 </span>
-                <span className="mt-2 text-sm tabular-nums text-muted">{fromPrice(item.variants.map((v) => v.pricePaise))}</span>
+                <span className="mt-2 text-sm tabular-nums text-muted">
+                  {new Set(item.variants.map((v) => v.pricePaise)).size > 1 && "from "}
+                  {formatINR(fromPrice(item.variants.map((v) => v.pricePaise)))}
+                </span>
               </button>
             </li>
           ))}
@@ -213,7 +216,7 @@ export function PosScreen({ menu, pricing, staffName }: { menu: CategoryDTO[]; p
           </div>
         </div>
 
-        <div className="space-y-3 border-t border-line p-4">
+        <div className="clear-badge space-y-3 border-t border-line p-4">
           {quote && (
             <dl className="space-y-1 text-sm tabular-nums">
               <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatINR(quote.subtotalPaise)}</dd></div>

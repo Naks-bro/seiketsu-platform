@@ -97,7 +97,7 @@ export function CartDrawer() {
                 </li>
               ))}
             </ul>
-            <div className="space-y-3 border-t border-line px-5 py-5">
+            <div className="clear-badge space-y-3 border-t border-line px-5 py-5">
               <div className="flex justify-between text-base">
                 <span>Subtotal · {count} item{count === 1 ? "" : "s"}</span>
                 <span className="tabular font-semibold">{formatINR(subtotalPaise)}</span>
