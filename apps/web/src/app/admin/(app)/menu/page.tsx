@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { btnPrimary, PageHeader } from "@/components/admin/ui";
+import { AddonEditor } from "./addon-editor";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { addons, categories, getDb, menuItems, menuItemVariants, outletMenuItems } from "@seiketsu/db";
 import { can, requireStaff } from "@/lib/server/auth";
@@ -41,17 +44,18 @@ export default async function AdminMenu() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-3xl">Menu</h1>
-        <p className="text-sm text-muted">Mark dishes sold out for today, or back in stock. Editing names, prices and photos arrives with the menu editor in Phase 2.</p>
-      </div>
+      <PageHeader title="Menu" lede="Mark dishes sold out for today with one tap. Owners and managers can edit names, prices, sizes and photos.">
+        {editFlags && <Link href="/admin/menu/new" className={btnPrimary}>Add a dish</Link>}
+      </PageHeader>
 
       {review.length > 0 && (
         <section className="rounded-2xl border border-orange/50 bg-orange/10 p-4 text-sm">
           <h2 className="font-semibold">Hidden until corrected ({review.length})</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {review.map(({ item }) => (
-              <li key={item.id}><span className="font-medium">{item.name}</span>: {item.reviewNotes}</li>
+              <li key={item.id}>
+                {editFlags ? <Link href={`/admin/menu/${item.id}`} className="font-medium text-berry underline">{item.name}</Link> : <span className="font-medium">{item.name}</span>}: {item.reviewNotes}
+              </li>
             ))}
           </ul>
         </section>
@@ -70,7 +74,12 @@ export default async function AdminMenu() {
                     <tr key={item.id}>
                       <td className="w-6 px-3 py-2"><DietMark diet={item.diet} /></td>
                       <td className="px-3 py-2">
-                        <span className="font-medium">{item.name}</span>
+                        {editFlags ? (
+                          <Link href={`/admin/menu/${item.id}`} className="font-medium hover:text-berry hover:underline">{item.name}</Link>
+                        ) : (
+                          <span className="font-medium">{item.name}</span>
+                        )}
+                        {item.imageUrl && <span className="ml-2 text-xs text-muted">· photo</span>}
                         {item.needsReview && <span className="ml-2 rounded bg-orange/20 px-1.5 text-xs">needs review</span>}
                         <span className="tabular block text-xs text-muted">
                           {variants.filter((v) => v.menuItemId === item.id).map((v) => `${v.label ?? "Regular"} ${formatINR(v.pricePaise)}`).join(" · ")}
@@ -89,6 +98,7 @@ export default async function AdminMenu() {
                                 </button>
                               </form>
                             ))}
+                            <Link href={`/admin/menu/${item.id}`} className="rounded-full border border-line px-2.5 py-1 text-xs hover:border-berry">Edit</Link>
                           </div>
                         )}
                       </td>
@@ -117,7 +127,11 @@ export default async function AdminMenu() {
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {extras.map((a) => (
             <li key={a.id} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-white px-3 py-2 text-sm">
-              <span className="flex items-center gap-2"><DietMark diet={a.diet} size={12} />{a.name} <span className="tabular text-muted">{formatINR(a.pricePaise)}</span></span>
+              {editFlags ? (
+                <span className="flex min-w-0 flex-1 items-center gap-2"><DietMark diet={a.diet} size={12} /><AddonEditor id={a.id} name={a.name} price={a.pricePaise} /></span>
+              ) : (
+                <span className="flex items-center gap-2"><DietMark diet={a.diet} size={12} />{a.name} <span className="tabular text-muted">{formatINR(a.pricePaise)}</span></span>
+              )}
               <Toggle action={setAddonAvailabilityAction} name="addonId" id={a.id} value={String(!a.isAvailable)} on={a.isAvailable} label={a.isAvailable ? "Available" : "Sold out"} />
             </li>
           ))}

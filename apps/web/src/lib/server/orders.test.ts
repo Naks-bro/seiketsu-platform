@@ -233,3 +233,99 @@ describe("outlet scoping", () => {
     await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId: otherOutlet, reason: "x" })).rejects.toThrow();
   });
 });
+
+describe("counter (POS)", () => {
+  async function line(name: string, label: string | null = null, extras: string[] = [], quantity = 1) {
+    const { item, v } = await variantOf(name, label);
+    return { menuItemId: item.id, variantId: v.id, addOnIds: await Promise.all(extras.map(addonId)), quantity };
+  }
+
+  it("records a paid cash sale with a bill number and change", async () => {
+    const r = await orderSvc.createPosOrder(
+      { lines: [await line("Green Machine", null, [], 2)], payment: "cash", tenderedPaise: 50_000, tableLabel: "T4" },
+      { id: staffId, outletId },
+    );
+    const [o] = await db.select().from(orders).where(eq(orders.id, r.id));
+    expect(o.source).toBe("pos");
+    expect(o.status).toBe("placed");
+    expect(o.paymentState).toBe("paid");
+    expect(o.customerName).toBe("Walk-in");
+    expect(o.tableLabel).toBe("T4");
+    expect(o.invoiceNumber).toMatch(/^SK\//);
+    expect(r.changePaise).toBe(50_000 - o.totalPaise);
+    const [p] = await db.select().from(payments).where(eq(payments.orderId, o.id));
+    expect(p.provider).toBe("cash");
+    expect(p.status).toBe("captured");
+  });
+
+  it("refuses too little cash and server-prices extras", async () => {
+    await expect(
+      orderSvc.createPosOrder({ lines: [await line("Green Machine")], payment: "cash", tenderedPaise: 1 }, { id: staffId, outletId }),
+    ).rejects.toThrow(/less than the total/);
+    const r = await orderSvc.createPosOrder(
+      { lines: [await line("Herbed Paneer / Chicken Protein Salad Bowl", "Chicken", ["Avocado"])], payment: "upi" },
+      { id: staffId, outletId },
+    );
+    const { v } = await variantOf("Herbed Paneer / Chicken Protein Salad Bowl", "Chicken");
+    const [avo] = await db.select().from(addons).where(eq(addons.name, "Avocado"));
+    const [o] = await db.select().from(orders).where(eq(orders.id, r.id));
+    expect(o.subtotalPaise).toBe(v.pricePaise + avo.pricePaise);
+  });
+
+  it("refunds a counter sale by hand, without Razorpay", async () => {
+    const r = await orderSvc.createPosOrder({ lines: [await line("Green Machine")], payment: "cash" }, { id: staffId, outletId });
+    await orderSvc.transitionOrder({ orderId: r.id, to: "rejected", staffId, outletId, reason: "Customer left" });
+    const refund = await orderSvc.refundOrder({ orderId: r.id, staffId, outletId, reason: "Customer left" });
+    expect(refund.status).toBe("processed");
+    const [o] = await db.select().from(orders).where(eq(orders.id, r.id));
+    expect(o.paymentState).toBe("refunded");
+  });
+});
+
+describe("menu editor", () => {
+  it("creates, edits and archives a dish, keeping old sizes for past orders", async () => {
+    const { saveMenuItem, sniffImageType } = await import("./menu-admin");
+    const { categories, menuItemVariants: mv } = await import("@seiketsu/db");
+    const [cat] = await db.select().from(categories).limit(1);
+    const base = {
+      name: "Test Bowl",
+      categoryId: cat.id,
+      description: "",
+      diet: "veg",
+      imageUrl: "",
+      offersExtras: true,
+      showOnMenu: true,
+      variants: [
+        { label: "Small", portionAmount: "300", portionUnit: "g", priceRupees: "250", kcal: "", proteinG: "", carbsG: "", fatG: "", fibreG: "", isActive: true },
+        { label: "Large", portionAmount: "450", portionUnit: "g", priceRupees: "320.50", kcal: "500", proteinG: "30", carbsG: "", fatG: "", fibreG: "", isActive: true },
+      ],
+    };
+    const id = await saveMenuItem(base, outletId);
+    let vs = await db.select().from(mv).where(eq(mv.menuItemId, id));
+    expect(vs.map((v) => v.pricePaise).sort()).toEqual([25_000, 32_050]);
+
+    // Drop "Small": it is switched off, not deleted.
+    const large = vs.find((v) => v.label === "Large")!;
+    await saveMenuItem({ ...base, id, variants: [{ ...base.variants[1], id: large.id, priceRupees: "330" }] }, outletId);
+    vs = await db.select().from(mv).where(eq(mv.menuItemId, id));
+    expect(vs.find((v) => v.label === "Small")!.isActive).toBe(false);
+    expect(vs.find((v) => v.label === "Large")!.pricePaise).toBe(33_000);
+
+    await expect(saveMenuItem({ ...base, id, name: "x" }, outletId)).rejects.toThrow();
+    await expect(saveMenuItem({ ...base, imageUrl: "javascript:alert(1)" }, outletId)).rejects.toThrow();
+
+    expect(sniffImageType(Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0]))).toBe("image/jpeg");
+    expect(sniffImageType(Buffer.from("<svg onload=alert(1)>"))).toBeNull();
+  });
+});
+
+describe("reports", () => {
+  it("totals today's paid orders including counter sales", async () => {
+    const { salesReport, parseRange } = await import("./reports");
+    const r = await salesReport(outletId, parseRange({ range: "today" }));
+    expect(r.totals.orders).toBeGreaterThan(0);
+    expect(r.byPayment.some((p) => p.provider === "cash")).toBe(true);
+    expect(r.bySource.some((s) => s.source === "pos")).toBe(true);
+    expect(r.bestSellers[0].qty).toBeGreaterThan(0);
+  });
+});

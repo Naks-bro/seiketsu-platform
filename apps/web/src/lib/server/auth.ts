@@ -13,6 +13,21 @@ const MAX_AGE_SECONDS = 12 * 60 * 60;
 export type StaffRole = "owner" | "manager" | "cashier" | "kitchen" | "inventory";
 export type Staff = { id: string; email: string; name: string; outletId: string; role: StaffRole };
 
+export const ROLE_LABEL: Record<StaffRole, string> = {
+  owner: "Owner",
+  manager: "Manager",
+  cashier: "Cashier",
+  kitchen: "Kitchen",
+  inventory: "Inventory",
+};
+
+/** Where each role lands after signing in. */
+export function homeFor(s: Staff) {
+  if (s.role === "kitchen") return "/kitchen";
+  if (s.role === "cashier") return "/pos";
+  return "/admin/orders";
+}
+
 export async function startSession(userId: string, sessionVersion: number) {
   const token = await new SignJWT({ v: sessionVersion })
     .setProtectedHeader({ alg: "HS256" })
@@ -65,8 +80,14 @@ export async function requireStaff(roles?: StaffRole[]): Promise<Staff> {
   return staff;
 }
 
+/** What each role may do. Owner: everything. Manager: everything except staff and tax. */
 export const can = {
   manageOrders: (s: Staff) => ["owner", "manager", "cashier", "kitchen"].includes(s.role),
+  kitchen: (s: Staff) => ["owner", "manager", "cashier", "kitchen"].includes(s.role),
+  pos: (s: Staff) => ["owner", "manager", "cashier"].includes(s.role),
+  reports: (s: Staff) => ["owner", "manager"].includes(s.role),
+  manageStaff: (s: Staff) => s.role === "owner",
+  messaging: (s: Staff) => ["owner", "manager"].includes(s.role),
   refund: (s: Staff) => ["owner", "manager"].includes(s.role),
   manageMenu: (s: Staff) => ["owner", "manager"].includes(s.role),
   manageSettings: (s: Staff) => ["owner", "manager"].includes(s.role),

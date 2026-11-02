@@ -7,7 +7,7 @@ import { z } from "zod";
 import { addons, getDb, menuItems, outletMenuItems, staffUsers, storeSettings } from "@seiketsu/db";
 import { ORDER_STATUSES, REFUND_ON } from "@seiketsu/core/order-status";
 import { verifyPassword } from "@seiketsu/core/password";
-import { can, endSession, requireStaff, startSession } from "@/lib/server/auth";
+import { can, endSession, getStaff, homeFor, requireStaff, startSession } from "@/lib/server/auth";
 import { audit } from "@/lib/server/audit";
 import { OrderError, refundOrder, transitionOrder } from "@/lib/server/orders";
 import { rateLimit } from "@/lib/server/rate-limit";
@@ -32,7 +32,8 @@ export async function loginAction(_prev: ActionState, form: FormData): Promise<A
   await db.update(staffUsers).set({ lastLoginAt: new Date() }).where(eq(staffUsers.id, user.id));
   await audit(db, { actorId: user.id, action: "staff.login", entity: "staff", entityId: user.id });
   await startSession(user.id, user.sessionVersion);
-  redirect("/admin/orders");
+  const me = await getStaff();
+  redirect(me ? homeFor(me) : "/admin/orders");
 }
 
 export async function logoutAction() {

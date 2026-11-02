@@ -19,7 +19,8 @@ import {
   refunds,
   type Db,
 } from "@seiketsu/db";
-import type { CheckoutData } from "@seiketsu/core/checkout-schema";
+import { cartLineSchema, indianMobile, type CheckoutData } from "@seiketsu/core/checkout-schema";
+import { z } from "zod";
 import { checkTransition, REFUND_ON, type OrderStatus } from "@seiketsu/core/order-status";
 import { computeQuote } from "@seiketsu/core/pricing";
 import { eventForStatus, financialYear, formatInvoiceNumber, type CustomerEvent } from "@seiketsu/core/messaging";
@@ -69,6 +70,58 @@ async function nextInvoiceNumber(tx: Tx, at: Date) {
   return formatInvoiceNumber("SK", fy, c.last);
 }
 
+type CartLine = CheckoutData["lines"][number];
+
+/**
+ * Looks up every cart line in the database (never trusting client prices) and
+ * checks availability and allowed extras. Shared by online checkout and the counter.
+ */
+async function resolveLines(db: Db, inputLines: CartLine[], outletId: string) {
+  const input = { lines: inputLines };
+  const variantIds = [...new Set(input.lines.map((l) => l.variantId))];
+  const rows = await db
+    .select({ v: menuItemVariants, item: menuItems, avail: outletMenuItems.isAvailable })
+    .from(menuItemVariants)
+    .innerJoin(menuItems, eq(menuItems.id, menuItemVariants.menuItemId))
+    .innerJoin(
+      outletMenuItems,
+      and(eq(outletMenuItems.menuItemId, menuItems.id), eq(outletMenuItems.outletId, outletId)),
+    )
+    .where(inArray(menuItemVariants.id, variantIds));
+  const byVariant = new Map(rows.map((r) => [r.v.id, r]));
+
+  const addonIds = [...new Set(input.lines.flatMap((l) => l.addOnIds))];
+  const addonRows = addonIds.length ? await db.select().from(addons).where(inArray(addons.id, addonIds)) : [];
+  const addonById = new Map(addonRows.map((a) => [a.id, a]));
+  const itemIds = [...new Set(input.lines.map((l) => l.menuItemId))];
+  const links = await db.select().from(menuItemAddonGroups).where(inArray(menuItemAddonGroups.menuItemId, itemIds));
+
+  return input.lines.map((line) => {
+    const r = byVariant.get(line.variantId);
+    if (!r || r.item.id !== line.menuItemId || !r.v.isActive) throw new OrderError("An item in your cart is no longer on the menu.", 409);
+    if (!r.avail || r.item.needsReview || r.item.deletedAt) throw new OrderError(`${r.item.name} is sold out right now.`, 409);
+    const allowedGroups = new Set(links.filter((l) => l.menuItemId === r.item.id).map((l) => l.groupId));
+    const chosen = [...new Set(line.addOnIds)].map((id) => {
+      const a = addonById.get(id);
+      if (!a || !allowedGroups.has(a.groupId)) throw new OrderError(`An extra is not available for ${r.item.name}.`, 409);
+      if (!a.isAvailable) throw new OrderError(`${a.name} is sold out right now.`, 409);
+      return a;
+    });
+    return { line, item: r.item, variant: r.v, addons: chosen };
+  });
+}
+
+function quoteFor(lines: Awaited<ReturnType<typeof resolveLines>>, pricing: Parameters<typeof computeQuote>[1], fulfilment: "pickup" | "delivery") {
+  return computeQuote(
+    lines.map((l) => ({ unitPricePaise: l.variant.pricePaise, addOnPricesPaise: l.addons.map((a) => a.pricePaise), quantity: l.line.quantity })),
+    pricing,
+    fulfilment,
+  );
+}
+
+const variantLabel = (v: { label: string | null; portionAmount: number | null; portionUnit: string | null }) =>
+  [v.label, v.portionAmount ? `{v.portionAmount}{v.portionUnit}` : null].filter(Boolean).join(" ") || null;
+
 // ── Checkout ───────────────────────────────────────────────────────
 
 export type CheckoutResult = {
@@ -102,43 +155,9 @@ export async function createCheckout(input: CheckoutData): Promise<CheckoutResul
   }
 
   const db = await getDb();
-  const variantIds = [...new Set(input.lines.map((l) => l.variantId))];
-  const rows = await db
-    .select({ v: menuItemVariants, item: menuItems, avail: outletMenuItems.isAvailable })
-    .from(menuItemVariants)
-    .innerJoin(menuItems, eq(menuItems.id, menuItemVariants.menuItemId))
-    .innerJoin(
-      outletMenuItems,
-      and(eq(outletMenuItems.menuItemId, menuItems.id), eq(outletMenuItems.outletId, store.outletId)),
-    )
-    .where(inArray(menuItemVariants.id, variantIds));
-  const byVariant = new Map(rows.map((r) => [r.v.id, r]));
+  const lines = await resolveLines(db, input.lines, store.outletId);
 
-  const addonIds = [...new Set(input.lines.flatMap((l) => l.addOnIds))];
-  const addonRows = addonIds.length ? await db.select().from(addons).where(inArray(addons.id, addonIds)) : [];
-  const addonById = new Map(addonRows.map((a) => [a.id, a]));
-  const itemIds = [...new Set(input.lines.map((l) => l.menuItemId))];
-  const links = await db.select().from(menuItemAddonGroups).where(inArray(menuItemAddonGroups.menuItemId, itemIds));
-
-  const lines = input.lines.map((line) => {
-    const r = byVariant.get(line.variantId);
-    if (!r || r.item.id !== line.menuItemId || !r.v.isActive) throw new OrderError("An item in your cart is no longer on the menu.", 409);
-    if (!r.avail || r.item.needsReview || r.item.deletedAt) throw new OrderError(`${r.item.name} is sold out right now.`, 409);
-    const allowedGroups = new Set(links.filter((l) => l.menuItemId === r.item.id).map((l) => l.groupId));
-    const chosen = [...new Set(line.addOnIds)].map((id) => {
-      const a = addonById.get(id);
-      if (!a || !allowedGroups.has(a.groupId)) throw new OrderError(`An extra is not available for ${r.item.name}.`, 409);
-      if (!a.isAvailable) throw new OrderError(`${a.name} is sold out right now.`, 409);
-      return a;
-    });
-    return { line, item: r.item, variant: r.v, addons: chosen };
-  });
-
-  const quote = computeQuote(
-    lines.map((l) => ({ unitPricePaise: l.variant.pricePaise, addOnPricesPaise: l.addons.map((a) => a.pricePaise), quantity: l.line.quantity })),
-    store.pricing,
-    input.fulfilment,
-  );
+  const quote = quoteFor(lines, store.pricing, input.fulfilment);
   if (quote.belowMinimum) {
     throw new OrderError(`Minimum order is \u20b9${store.pricing.minOrderPaise / 100}.`);
   }
@@ -199,9 +218,7 @@ export async function createCheckout(input: CheckoutData): Promise<CheckoutResul
           menuItemId: l.item.id,
           variantId: l.variant.id,
           itemName: l.item.name,
-          variantLabel: [l.variant.label, l.variant.portionAmount ? `${l.variant.portionAmount}${l.variant.portionUnit}` : null]
-            .filter(Boolean)
-            .join(" ") || null,
+          variantLabel: variantLabel(l.variant),
           diet: l.variant.diet ?? l.item.diet,
           unitPricePaise: l.variant.pricePaise,
           quantity: l.line.quantity,
@@ -490,7 +507,11 @@ export async function refundOrder(args: { orderId: string; staffId: string; outl
   const amount = row.p.amountPaise - row.p.refundedPaise;
   if (amount <= 0) throw new OrderError("This payment is already refunded.", 409);
 
-  const r = await gateway().refund(row.p.razorpayPaymentId!, amount, { order_number: row.o.orderNumber, reason: args.reason.slice(0, 200) });
+  // Counter sales (cash / UPI / card at the till) are refunded by hand; only online payments go back through Razorpay.
+  const r =
+    row.p.provider === "razorpay"
+      ? await gateway().refund(row.p.razorpayPaymentId!, amount, { order_number: row.o.orderNumber, reason: args.reason.slice(0, 200) })
+      : { id: null, status: "processed" };
   await db.transaction(async (tx) => {
     await tx.insert(refunds).values({ paymentId: row.p.id, razorpayRefundId: r.id, amountPaise: amount, status: r.status, reason: args.reason, createdBy: args.staffId });
     await tx.update(payments).set({ refundedPaise: row.p.refundedPaise + amount, status: "refunded" }).where(eq(payments.id, row.p.id));
@@ -504,4 +525,102 @@ export async function refundOrder(args: { orderId: string; staffId: string; outl
 export async function updateRefundStatus(razorpayRefundId: string, status: string) {
   const db = await getDb();
   await db.update(refunds).set({ status }).where(eq(refunds.razorpayRefundId, razorpayRefundId));
+}
+// ── Counter (POS) ──────────────────────────────────────────────────
+
+export const posOrderSchema = z.object({
+  lines: z.array(cartLineSchema).min(1, "Add something to the order").max(60),
+  customerName: z.string().trim().max(80).optional(),
+  phone: z.union([z.literal(""), indianMobile]).optional(),
+  tableLabel: z.string().trim().max(20).optional(),
+  notes: z.string().trim().max(300).optional(),
+  payment: z.enum(["cash", "upi", "card"]),
+  /** cash handed over, in paise; used only to work out change */
+  tenderedPaise: z.number().int().min(0).max(10_000_000).optional(),
+});
+export type PosOrderInput = z.input<typeof posOrderSchema>;
+
+export const COUNTER_PROVIDER = { cash: "cash", upi: "counter_upi", card: "counter_card" } as const;
+
+/**
+ * A sale taken and paid at the counter. It is paid on creation and goes
+ * straight to the kitchen; there is no online payment step.
+ */
+export async function createPosOrder(raw: unknown, staff: { id: string; outletId: string }) {
+  const input = posOrderSchema.parse(raw);
+  const store = await getStore();
+  const db = await getDb();
+  const lines = await resolveLines(db, input.lines, staff.outletId);
+  const quote = quoteFor(lines, store.pricing, "pickup");
+  if (input.payment === "cash" && input.tenderedPaise !== undefined && input.tenderedPaise < quote.totalPaise) {
+    throw new OrderError("Cash received is less than the total.");
+  }
+  const settings = await db.query.storeSettings.findFirst({ where: (s, { eq }) => eq(s.outletId, staff.outletId) });
+  const phone = input.phone || "";
+  const name = input.customerName || "Walk-in";
+
+  const order = await db.transaction(async (tx) => {
+    const customerId = phone
+      ? (
+          await tx
+            .insert(customers)
+            .values({ phone, name })
+            .onConflictDoUpdate({ target: customers.phone, set: input.customerName ? { name } : { phone } })
+            .returning({ id: customers.id })
+        )[0].id
+      : null;
+    const now = new Date();
+    const [o] = await tx
+      .insert(orders)
+      .values({
+        outletId: staff.outletId,
+        publicToken: newToken(),
+        customerId,
+        customerName: name,
+        customerPhone: phone,
+        source: "pos",
+        fulfilment: "pickup",
+        status: "placed",
+        paymentState: "paid",
+        tableLabel: input.tableLabel || null,
+        notes: input.notes || null,
+        subtotalPaise: quote.subtotalPaise,
+        discountPaise: quote.discountPaise,
+        deliveryFeePaise: 0,
+        taxPaise: quote.taxPaise,
+        totalPaise: quote.totalPaise,
+        taxSnapshot: { ...store.pricing.tax, gstin: settings?.gstin ?? null },
+        placedAt: now,
+        invoiceNumber: await nextInvoiceNumber(tx, now),
+      })
+      .returning();
+    for (const [i, l] of lines.entries()) {
+      const [oi] = await tx
+        .insert(orderItems)
+        .values({
+          orderId: o.id,
+          menuItemId: l.item.id,
+          variantId: l.variant.id,
+          itemName: l.item.name,
+          variantLabel: variantLabel(l.variant),
+          diet: l.variant.diet ?? l.item.diet,
+          unitPricePaise: l.variant.pricePaise,
+          quantity: l.line.quantity,
+          lineTotalPaise: quote.lineTotalsPaise[i],
+          note: l.line.note || null,
+        })
+        .returning();
+      if (l.addons.length) {
+        await tx.insert(orderItemAddons).values(l.addons.map((a) => ({ orderItemId: oi.id, addonId: a.id, name: a.name, pricePaise: a.pricePaise })));
+      }
+    }
+    await tx.insert(payments).values({ orderId: o.id, provider: COUNTER_PROVIDER[input.payment], amountPaise: o.totalPaise, status: "captured", method: input.payment });
+    await tx.insert(orderEvents).values({ orderId: o.id, fromStatus: null, toStatus: "placed", actorType: "staff", actorId: staff.id, note: `Counter sale (${input.payment})` });
+    await audit(tx, { actorId: staff.id, outletId: staff.outletId, action: "pos.sale", entity: "order", entityId: o.id, data: { total: o.totalPaise, payment: input.payment } });
+    return o;
+  });
+
+  await notify(order, phone ? "placed" : null);
+  const change = input.payment === "cash" && input.tenderedPaise !== undefined ? input.tenderedPaise - order.totalPaise : null;
+  return { id: order.id, orderNumber: order.orderNumber, invoiceNumber: order.invoiceNumber, totalPaise: order.totalPaise, changePaise: change };
 }

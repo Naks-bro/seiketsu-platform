@@ -6,6 +6,7 @@
  */
 import { sql } from "drizzle-orm";
 import {
+  customType,
   bigserial,
   boolean,
   index,
@@ -215,6 +216,8 @@ export const orders = pgTable(
     paymentState: orderPaymentStateEnum("payment_state").notNull().default("unpaid"),
     address: jsonb("address").$type<OrderAddress | null>(),
     notes: text("notes"),
+    /** counter orders: table number or token shown on the kitchen ticket */
+    tableLabel: text("table_label"),
     subtotalPaise: integer("subtotal_paise").notNull(),
     discountPaise: integer("discount_paise").notNull().default(0),
     deliveryFeePaise: integer("delivery_fee_paise").notNull().default(0),
@@ -450,3 +453,17 @@ export const messageLog = pgTable(
     index("message_log_order_idx").on(t.orderId),
   ],
 );
+const bytea = customType<{ data: Buffer; driverData: Buffer | Uint8Array }>({
+  dataType: () => "bytea",
+  fromDriver: (v) => (Buffer.isBuffer(v) ? v : Buffer.from(v)),
+});
+
+/** Dish photos, stored in Postgres so they move with the database (small, resized in the browser). */
+export const menuImages = pgTable("menu_images", {
+  id: id(),
+  contentType: text("content_type").notNull(),
+  bytes: integer("bytes").notNull(),
+  data: bytea("data").notNull(),
+  createdBy: uuid("created_by"),
+  createdAt: createdAt(),
+});
