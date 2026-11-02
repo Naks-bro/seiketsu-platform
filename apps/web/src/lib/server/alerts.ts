@@ -5,6 +5,8 @@ import { budgetState, getMessagingSettings, sendMessage } from "./messaging/send
 import { otpCountSince } from "./customer-auth";
 import { rateLimit } from "./rate-limit";
 import { rupees } from "./notify-customer";
+import { lowStock } from "./inventory";
+import { formatQty } from "@seiketsu/core/inventory";
 
 const OTP_SPIKE_PER_HOUR = Number(process.env.OTP_ALERT_PER_HOUR ?? 40);
 
@@ -22,7 +24,7 @@ async function alertOwner(outletId: string, key: string, everySeconds: number, m
   return true;
 }
 
-/** Spend, delivery-failure and OTP-abuse checks. Run from the cron job. */
+/** Spend, delivery-failure, low-stock and OTP-abuse checks. Run from the cron job. */
 export async function checkAlerts() {
   const db = await getDb();
   const outletRows = await db.select({ id: outlets.id }).from(outlets).where(eq(outlets.isActive, true));
@@ -43,6 +45,12 @@ export async function checkAlerts() {
       .where(and(eq(messageLog.outletId, id), gte(messageLog.createdAt, hourAgo), inArray(messageLog.status, ["sent", "delivered", "read", "failed"])));
     const total = Number(r?.total ?? 0);
     const failed = Number(r?.failed ?? 0);
+    const low = await lowStock(id);
+    if (low.length) {
+      const list = low.slice(0, 8).map((i) => `${i.name} (${formatQty(i.stockMilli, i.unit)})`).join(", ");
+      const more = low.length > 8 ? ` and ${low.length - 8} more` : "";
+      if (await alertOwner(id, "low-stock", 12 * 3600, `Running low: ${list}${more}.`)) fired.push("stock");
+    }
     if (total >= 5 && failed / total > 0.2 && (await alertOwner(id, "failures", 6 * 3600, `${failed} of ${total} messages failed in the last hour. Check MSG91.`))) fired.push("failures");
   }
   const otps = await otpCountSince(new Date(Date.now() - 3600_000));

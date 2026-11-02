@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
+import { homeFor, requireStaff } from "@/lib/server/auth";
 
-export default function AdminHome() {
-  redirect("/admin/orders");
+export default async function AdminHome() {
+  redirect(homeFor(await requireStaff()));
 }

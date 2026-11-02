@@ -45,7 +45,7 @@ export default async function StaffPage() {
                 <input type="hidden" name="op" value="role" />
                 <label className="sr-only" htmlFor={`role-${u.id}`}>Role for {u.name}</label>
                 <select id={`role-${u.id}`} name="role" defaultValue={role} className="rounded-lg border border-line bg-white px-2 py-2 text-sm">
-                  {(["owner", "manager", "cashier", "kitchen"] as const).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                  {(["owner", "manager", "cashier", "kitchen", "inventory"] as const).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                 </select>
                 <button type="submit" className={btnGhost}>Change role</button>
               </form>

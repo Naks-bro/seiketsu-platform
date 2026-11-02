@@ -22,7 +22,8 @@ export async function loginAction(_prev: ActionState, form: FormData): Promise<A
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
   if (!email || !password) return { error: "Enter your email and password." };
-  if (!(await rateLimit(`login:${await clientIp()}:${email}`, 5, 900))) {
+  // Per device, plus a looser cap per account so guessing from many addresses is slowed too.
+  if (!(await rateLimit(`login:${await clientIp()}:${email}`, 5, 900)) || !(await rateLimit(`login-account:${email}`, 30, 3600))) {
     return { error: "Too many attempts. Wait 15 minutes and try again." };
   }
   const db = await getDb();

@@ -85,7 +85,7 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
 - A payment for a different amount is never accepted; it is flagged for staff.
 - Secrets live only in server environment variables.
 
-## Staff screens (Phase 2 and 3)
+## Staff screens (Phases 2 to 4)
 
 | Screen | URL | Who |
 |---|---|---|
@@ -93,17 +93,35 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
 | Kitchen display (tablet) | `/kitchen` | owner, manager, cashier, kitchen |
 | Counter POS + 80 mm receipts | `/pos`, `/pos/receipt/<id>` | owner, manager, cashier |
 | Menu editor (prices, sizes, nutrition, photos, extras) | `/admin/menu` | edit: owner, manager · sold-out toggles: all |
+| Inventory: stock, deliveries, wastage, counts | `/admin/inventory` | owner, manager, inventory |
+| Recipes (ingredients per portion, food cost) | `/admin/inventory/recipes` | edit: owner, manager · view: inventory |
+| Suppliers, usage & stock history | `/admin/inventory/suppliers`, `/admin/inventory/history` | owner, manager, inventory |
 | Reports + CSV export | `/admin/reports` | owner, manager |
 | Messages & costs | `/admin/messages` | owner, manager |
 | Staff logins and roles | `/admin/staff` | owner |
 | My account (change password) | `/admin/account` | everyone |
 
-- Each person signs in with their own email; kitchen staff land on `/kitchen`, cashiers on `/pos`.
+- Each person signs in with their own email; kitchen staff land on `/kitchen`, cashiers on `/pos`,
+  inventory staff on `/admin/inventory`.
 - Counter sales are paid on creation (cash / UPI / card at the till), get a bill number and go straight to
   the kitchen. Refunds of counter sales are recorded as handed back by hand; online ones go back via Razorpay.
 - Dish photos are resized in the browser and stored in Postgres (`menu_images`), served from `/api/images/<id>`.
 - Sizes removed in the editor are switched off, not deleted, so old orders and bills still show them.
 - Netlify shows a badge at the bottom-right on free sites; pinned buttons use `.clear-badge` to stay tappable.
+
+### Inventory (Phase 4)
+
+- Ingredients are measured by weight (g), volume (ml) or count (pieces). Quantities are stored as
+  thousandths of that unit and costs as thousandths of a paisa, so the maths stays exact.
+- **Recipes come only from the owner.** A dish size or extra with no recipe sells without touching stock;
+  nothing is guessed. Recipes > shows how many sizes have one and each portion's ingredient cost.
+- When an order is paid (online or at the counter) its ingredients are taken out once
+  (`orders.stock_deducted_at`). The cron job retries any that failed. Rejecting an order puts stock back;
+  cancelling does not (the food may have been made), so record wastage instead.
+- Deliveries with a bill total keep a moving-average cost per ingredient. Shelf counts set stock to what
+  is really there, and Usage & history shows the difference ("count difference").
+- Stock may go below zero if sales arrive before a delivery is entered. Low and out-of-stock items show
+  on the Stock tab and are sent to the owner alert number (at most every 12 hours).
 
 ## Customer login, messaging and bills
 
@@ -135,17 +153,16 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
 5. Set the delivery-report webhook in MSG91 to `https://<site>/api/webhooks/msg91?token=<MSG91_WEBHOOK_TOKEN>`.
 6. Enter your real per-message rates and budgets in Admin › Messages.
 
-## Known limitations (Phase 1)
+## Known limitations
 
-- Menu names, prices and photos are edited by re-importing data; the full menu editor is Phase 2.
-  Admin can already mark dishes and extras sold out and set Featured/Bestseller.
 - WhatsApp/SMS sending is built against MSG91's documented APIs but has not yet been tried with a real
   MSG91 account. Send one test of each template before going live (see "Messaging" below).
 - Message costs are estimates from the rates in Admin › Messages, not MSG91's actual bill.
-- Refunds are full refunds only; partial refunds arrive with the POS phase.
-- The kitchen uses the admin Live board for now; the dedicated kitchen display is Phase 2.
-- No Content-Security-Policy header yet (other security headers are set).
-- Menu cards have no photos: the supplied food images are illustrations, not dish photos.
+- Refunds are full refunds only.
+- Recipes belong to dish sizes, which are shared by all outlets; with a second outlet, ingredients are
+  per outlet but a dish's recipe would need to list each outlet's ingredients.
+- Stock is not reserved while an order waits for online payment; it comes out when payment is captured.
+- Dish photos must be uploaded in the menu editor; the supplied food images are illustrations.
 
 ## Data that needs the owner's confirmation
 

@@ -15,6 +15,7 @@ export function AddStaffForm() {
         <select name="role" defaultValue="kitchen" className={field}>
           <option value="kitchen">Kitchen: kitchen screen only</option>
           <option value="cashier">Cashier: counter POS + orders</option>
+          <option value="inventory">Inventory: stock, deliveries and suppliers</option>
           <option value="manager">Manager: everything except staff and GST</option>
           <option value="owner">Owner: everything</option>
         </select>

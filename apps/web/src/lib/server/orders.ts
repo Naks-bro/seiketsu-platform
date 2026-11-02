@@ -32,6 +32,7 @@ import { audit } from "./audit";
 import { runAfter } from "./after";
 import { notifyCustomer } from "./notify-customer";
 import { rateLimit } from "./rate-limit";
+import { deductStockSafely, returnStockForOrder } from "./inventory";
 
 export class OrderError extends Error {
   constructor(
@@ -351,7 +352,10 @@ export async function markPaymentCaptured(args: {
     await tx.update(orders).set({ paymentState: "paid" }).where(eq(orders.id, o.id));
     return { order: o, changed: false };
   });
-  if (result.changed) await notify(result.order, "placed");
+  if (result.changed) {
+    await deductStockSafely(result.order.id);
+    await notify(result.order, "placed");
+  }
   return result.order;
 }
 
@@ -490,6 +494,10 @@ export async function transitionOrder(args: { orderId: string; to: OrderStatus; 
     await audit(tx, { actorId: args.staffId, outletId: o.outletId, action: `order.${args.to}`, entity: "order", entityId: o.id, data: { reason: args.reason ?? null } });
     return u;
   });
+  if (args.to === "rejected") {
+    // Rejected before the kitchen started, so the ingredients are still on the shelf.
+    await returnStockForOrder(updated.id).catch((err) => console.error("[inventory] could not return stock", updated.id, err));
+  }
   await notify(updated, eventForStatus(args.to, updated.fulfilment));
   return updated;
 }
@@ -620,6 +628,7 @@ export async function createPosOrder(raw: unknown, staff: { id: string; outletId
     return o;
   });
 
+  await deductStockSafely(order.id);
   await notify(order, phone ? "placed" : null);
   const change = input.payment === "cash" && input.tenderedPaise !== undefined ? input.tenderedPaise - order.totalPaise : null;
   return { id: order.id, orderNumber: order.orderNumber, invoiceNumber: order.invoiceNumber, totalPaise: order.totalPaise, changePaise: change };

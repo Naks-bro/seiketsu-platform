@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { can, requireStaff, ROLE_LABEL, type Staff } from "@/lib/server/auth";
+import { can, homeFor, requireStaff, ROLE_LABEL, type Staff } from "@/lib/server/auth";
 import { logoutAction } from "../actions";
 import { AdminNav } from "./admin-nav";
 
@@ -12,6 +12,7 @@ function navFor(s: Staff) {
   if (can.kitchen(s)) items.push({ href: "/kitchen", label: "Kitchen" });
   if (can.pos(s)) items.push({ href: "/pos", label: "Counter" });
   if (can.manageOrders(s)) items.push({ href: "/admin/menu", label: "Menu" });
+  if (can.inventory(s)) items.push({ href: "/admin/inventory", label: "Inventory" });
   if (can.reports(s)) items.push({ href: "/admin/reports", label: "Reports" });
   if (can.messaging(s)) items.push({ href: "/admin/messages", label: "Messages" });
   if (can.manageStaff(s)) items.push({ href: "/admin/staff", label: "Staff" });
@@ -26,7 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
       <header className="no-print sticky top-0 z-30 border-b border-line bg-cream">
         <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2">
-          <Link href="/admin/orders" className="font-display text-xl text-berry">seiketsu <span className="font-sans text-sm text-muted">admin</span></Link>
+          <Link href={homeFor(staff)} className="font-display text-xl text-berry">seiketsu <span className="font-sans text-sm text-muted">admin</span></Link>
           <AdminNav items={navFor(staff)} />
           <div className="ml-auto flex items-center gap-1 text-sm">
             <Link href="/admin/account" className="rounded-lg px-3 py-2 hover:bg-paper">

@@ -7,6 +7,7 @@
 import { sql } from "drizzle-orm";
 import {
   customType,
+  bigint,
   bigserial,
   boolean,
   index,
@@ -40,6 +41,8 @@ export const staffRoleEnum = pgEnum("staff_role", ["owner", "manager", "cashier"
 export const actorTypeEnum = pgEnum("actor_type", ["system", "staff", "customer"]);
 export const messageChannelEnum = pgEnum("message_channel", ["whatsapp", "sms", "email"]);
 export const messageStatusEnum = pgEnum("message_status", ["queued", "sent", "delivered", "read", "failed", "skipped"]);
+export const stockUnitEnum = pgEnum("stock_unit", ["g", "ml", "pc"]);
+export const stockMoveKindEnum = pgEnum("stock_move_kind", ["purchase", "sale", "wastage", "count", "adjustment", "return"]);
 
 export const orderNumberSeq = pgSequence("order_number_seq", { startWith: 1001 });
 
@@ -227,6 +230,8 @@ export const orders = pgTable(
     statusReason: text("status_reason"),
     /** sequential per financial year, assigned when payment is captured */
     invoiceNumber: text("invoice_number").unique(),
+    /** set once the order's ingredients have been taken out of stock */
+    stockDeductedAt: timestamp("stock_deducted_at", { withTimezone: true }),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
     placedAt: timestamp("placed_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
@@ -467,3 +472,84 @@ export const menuImages = pgTable("menu_images", {
   createdBy: uuid("created_by"),
   createdAt: createdAt(),
 });
+
+// ── Inventory ──────────────────────────────────────────────────────
+// Quantities are thousandths of the ingredient's unit (1.5 kg = 1_500_000 g-milli);
+// costs are thousandths of a paisa per unit. See @seiketsu/core/inventory.
+
+export const suppliers = pgTable("suppliers", {
+  id: id(),
+  outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+  name: text("name").notNull(),
+  phone: text("phone"),
+  email: text("email"),
+  notes: text("notes"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+export const ingredients = pgTable(
+  "ingredients",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    name: text("name").notNull(),
+    unit: stockUnitEnum("unit").notNull(),
+    /** on hand now; kept in step with stock_movements in the same transaction. Can go below zero. */
+    stockMilli: bigint("stock_milli", { mode: "number" }).notNull().default(0),
+    /** warn when stock falls to this level */
+    reorderMilli: bigint("reorder_milli", { mode: "number" }),
+    /** moving-average cost per unit, from deliveries; null until the first priced delivery */
+    costMilliPaise: integer("cost_milli_paise"),
+    supplierId: uuid("supplier_id").references(() => suppliers.id),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("ingredients_outlet_name").on(t.outletId, t.name)],
+);
+
+/** How much of each ingredient one portion of a dish size (or one extra) uses. */
+export const recipeLines = pgTable(
+  "recipe_lines",
+  {
+    id: id(),
+    variantId: uuid("variant_id").references(() => menuItemVariants.id),
+    addonId: uuid("addon_id").references(() => addons.id),
+    ingredientId: uuid("ingredient_id").notNull().references(() => ingredients.id),
+    qtyMilli: integer("qty_milli").notNull(),
+  },
+  (t) => [
+    uniqueIndex("recipe_variant_ingredient").on(t.variantId, t.ingredientId),
+    uniqueIndex("recipe_addon_ingredient").on(t.addonId, t.ingredientId),
+    index("recipe_ingredient_idx").on(t.ingredientId),
+  ],
+);
+
+/** Append-only stock ledger: every delivery, sale, wastage and count. */
+export const stockMovements = pgTable(
+  "stock_movements",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    ingredientId: uuid("ingredient_id").notNull().references(() => ingredients.id),
+    kind: stockMoveKindEnum("kind").notNull(),
+    deltaMilli: bigint("delta_milli", { mode: "number" }).notNull(),
+    stockAfterMilli: bigint("stock_after_milli", { mode: "number" }).notNull(),
+    /** unit cost at the time, so usage and wastage can be valued later */
+    costMilliPaise: integer("cost_milli_paise"),
+    /** deliveries: what the bill said */
+    totalPaise: integer("total_paise"),
+    supplierId: uuid("supplier_id").references(() => suppliers.id),
+    orderId: uuid("order_id").references(() => orders.id),
+    reference: text("reference"),
+    note: text("note"),
+    staffId: uuid("staff_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("stock_moves_ingredient_idx").on(t.ingredientId, t.createdAt),
+    index("stock_moves_outlet_idx").on(t.outletId, t.createdAt),
+    index("stock_moves_order_idx").on(t.orderId),
+  ],
+);

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { and, desc, eq, gte, ilike, inArray, lt, or, type SQL } from "drizzle-orm";
 import { getDb, orderItemAddons, orderItems, orders } from "@seiketsu/db";
 import { ACTIVE_STATUSES, ORDER_STATUSES, STATUS_LABEL, staffActions, type OrderStatus } from "@seiketsu/core/order-status";
-import { requireStaff } from "@/lib/server/auth";
+import { can, requirePage } from "@/lib/server/auth";
 import { formatINR, formatTimeOnly, formatDateTime } from "@/lib/format";
 import { AdminLive } from "../admin-live";
 import { StatusActions } from "./status-actions";
@@ -24,7 +24,7 @@ const istMidnight = (yyyyMmDd: string) => new Date(`${yyyyMmDd}T00:00:00+05:30`)
 type Search = { view?: string; q?: string; status?: string; from?: string; to?: string; source?: string };
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<Search> }) {
-  const staff = await requireStaff();
+  const staff = await requirePage(can.manageOrders);
   const sp = await searchParams;
   const view = sp.view === "all" ? "all" : "active";
   const db = await getDb();
@@ -147,7 +147,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             <button type="submit" className="rounded-lg bg-berry px-4 py-1.5 font-semibold text-cream">Filter</button>
             <Link href="/admin/orders?view=all" className="px-2 py-1.5 text-muted hover:text-ink">Clear</Link>
           </form>
-          <div className="overflow-x-auto rounded-xl border border-line bg-white">
+          <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
             <table className="w-full min-w-[720px] text-sm">
               <thead className="border-b border-line text-left text-xs uppercase tracking-wider text-muted">
                 <tr>

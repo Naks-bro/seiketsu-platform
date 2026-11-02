@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { STATUS_LABEL, staffActions } from "@seiketsu/core/order-status";
-import { can, requireStaff } from "@/lib/server/auth";
+import { can, requirePage } from "@/lib/server/auth";
 import { loadOrder } from "@/lib/server/order-view";
 import { formatDateTime, formatINR, whatsappLink } from "@/lib/format";
 import { DietMark } from "@/components/diet-mark";
@@ -14,7 +14,7 @@ import { PrintButton, RefundForm } from "./order-tools";
 export const metadata: Metadata = { title: "Order" };
 
 export default async function OrderDetail({ params }: { params: Promise<{ id: string }> }) {
-  const staff = await requireStaff();
+  const staff = await requirePage(can.manageOrders);
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const view = await loadOrder({ id });

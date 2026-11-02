@@ -25,6 +25,7 @@ export const ROLE_LABEL: Record<StaffRole, string> = {
 export function homeFor(s: Staff) {
   if (s.role === "kitchen") return "/kitchen";
   if (s.role === "cashier") return "/pos";
+  if (s.role === "inventory") return "/admin/inventory";
   return "/admin/orders";
 }
 
@@ -80,6 +81,13 @@ export async function requireStaff(roles?: StaffRole[]): Promise<Staff> {
   return staff;
 }
 
+/** For pages: sends staff without access to their own home screen instead of showing an error. */
+export async function requirePage(allowed: (s: Staff) => boolean): Promise<Staff> {
+  const staff = await requireStaff();
+  if (!allowed(staff)) redirect(homeFor(staff));
+  return staff;
+}
+
 /** What each role may do. Owner: everything. Manager: everything except staff and tax. */
 export const can = {
   manageOrders: (s: Staff) => ["owner", "manager", "cashier", "kitchen"].includes(s.role),
@@ -92,4 +100,8 @@ export const can = {
   manageMenu: (s: Staff) => ["owner", "manager"].includes(s.role),
   manageSettings: (s: Staff) => ["owner", "manager"].includes(s.role),
   manageTax: (s: Staff) => s.role === "owner",
+  /** deliveries, wastage, stock counts, suppliers */
+  inventory: (s: Staff) => ["owner", "manager", "inventory"].includes(s.role),
+  /** recipes decide food cost, so only owners and managers change them */
+  manageRecipes: (s: Staff) => ["owner", "manager"].includes(s.role),
 };

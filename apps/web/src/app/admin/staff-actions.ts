@@ -11,7 +11,7 @@ import { rateLimit } from "@/lib/server/rate-limit";
 
 export type StaffState = { error?: string; ok?: string } | undefined;
 
-const ROLES = ["owner", "manager", "cashier", "kitchen"] as const satisfies readonly StaffRole[];
+const ROLES = ["owner", "manager", "cashier", "kitchen", "inventory"] as const satisfies readonly StaffRole[];
 const password = z.string().min(10, "Passwords need at least 10 characters").max(200);
 
 async function owner() {

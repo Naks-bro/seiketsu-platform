@@ -4,7 +4,7 @@ import { btnPrimary, PageHeader } from "@/components/admin/ui";
 import { AddonEditor } from "./addon-editor";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { addons, categories, getDb, menuItems, menuItemVariants, outletMenuItems } from "@seiketsu/db";
-import { can, requireStaff } from "@/lib/server/auth";
+import { can, requirePage } from "@/lib/server/auth";
 import { formatINR } from "@/lib/format";
 import { DietMark } from "@/components/diet-mark";
 import { setAddonAvailabilityAction, setItemAvailabilityAction, setItemFlagAction } from "../../actions";
@@ -28,7 +28,7 @@ function Toggle({ action, name, id, value, on, label, disabled }: { action: (f: 
 }
 
 export default async function AdminMenu() {
-  const staff = await requireStaff();
+  const staff = await requirePage(can.manageOrders);
   const db = await getDb();
   const cats = await db.select().from(categories).orderBy(asc(categories.sort));
   const items = await db
@@ -67,7 +67,7 @@ export default async function AdminMenu() {
         return (
           <section key={c.id}>
             <h2 className="mb-2 font-display text-2xl">{c.name}</h2>
-            <div className="overflow-x-auto rounded-xl border border-line bg-white">
+            <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
               <table className="w-full min-w-[640px] text-sm">
                 <tbody className="divide-y divide-line">
                   {list.map(({ item, available }) => (
