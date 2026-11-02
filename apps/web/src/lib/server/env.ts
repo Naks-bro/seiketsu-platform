@@ -48,6 +48,17 @@ const messaging = {
     msg91AuthKey && optional("NEXT_PUBLIC_MSG91_WIDGET_ID") && optional("NEXT_PUBLIC_MSG91_WIDGET_TOKEN")
       ? { widgetId: optional("NEXT_PUBLIC_MSG91_WIDGET_ID")!, tokenAuth: optional("NEXT_PUBLIC_MSG91_WIDGET_TOKEN")! }
       : null,
+  /**
+   * Temporary test logins that skip SMS: TEST_LOGINS="6000000001:482915,6000000002:731604".
+   * For testing before MSG91 delivery works. Delete the variable before launch.
+   */
+  testLogins: new Map(
+    (optional("TEST_LOGINS") ?? "")
+      .split(",")
+      .map((pair) => pair.trim().split(":"))
+      .filter(([phone, code]) => /^[6-9]\d{9}$/.test(phone ?? "") && /^\d{4,8}$/.test(code ?? ""))
+      .map(([phone, code]) => [phone, code] as [string, string]),
+  ),
   resendApiKey: optional("RESEND_API_KEY"),
   emailFrom: optional("EMAIL_FROM"),
   /** Template name/ID for a message kind, e.g. MSG91_WA_TPL_ORDER_PLACED / MSG91_SMS_TPL_OTP */

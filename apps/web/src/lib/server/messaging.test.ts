@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 process.env.DATABASE_URL = "pglite:memory";
 process.env.PAYMENTS_MODE = "simulator";
+process.env.TEST_LOGINS = "6000000001:482915, bad:1, 6000000002:731604";
 
 // Customer sessions use next/headers cookies(); give tests a simple in-memory jar.
 const jar = new Map<string, string>();
@@ -193,5 +194,20 @@ describe("phone login", () => {
     await auth.setConsent(c.id, "whatsapp", false, "stop_keyword", null);
     const events = await db.select().from(consentEvents).where(eq(consentEvents.customerId, c.id));
     expect(events.map((e) => e.granted)).toEqual([true, false]);
+  });
+});
+describe("test logins", () => {
+  it("sign in with the fixed code, send nothing, and reject other codes", async () => {
+    expect(auth.isTestPhone("6000000001")).toBe(true);
+    expect(auth.isTestPhone("9876543210")).toBe(false);
+    await expect(auth.verifyTestLogin({ phone: "6000000001", code: "000000", ip: "5.5.5.5" })).rejects.toThrow(/not right/);
+    await expect(auth.verifyTestLogin({ phone: "9876543210", code: "482915", ip: "5.5.5.5" })).rejects.toThrow(/not right/);
+    const c = await auth.verifyTestLogin({ phone: "6000000001", code: "482915", ip: "5.5.5.5" });
+    expect(c.phone).toBe("6000000001");
+
+    // The own-OTP path also accepts them without sending a message.
+    const r = await auth.requestOtp({ phone: "6000000002", ip: "5.5.5.6" });
+    await auth.verifyOtp({ challengeId: r.challengeId, code: "731604", ip: "5.5.5.6" });
+    expect((await db.select().from(messageLog).where(eq(messageLog.recipient, "6000000002"))).length).toBe(0);
   });
 });

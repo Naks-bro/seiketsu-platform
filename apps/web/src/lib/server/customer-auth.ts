@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { jwtVerify, SignJWT } from "jose";
+import { timingSafeEqual } from "node:crypto";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { consentEvents, customers, getDb, messageLog, otpChallenges } from "@seiketsu/db";
 import { generateOtp, hashOtp, messageCost, otpMatches } from "@seiketsu/core/messaging";
@@ -46,13 +47,15 @@ export async function requestOtp(args: { phone: string; ip: string; channel?: "w
   if (checks.includes(false)) throw new AuthError("Too many codes requested. Please wait a few minutes and try again.", 429);
 
   const db = await getDb();
-  const code = generateOtp();
+  const testCode = env.messaging.testLogins.get(phone);
+  const code = testCode ?? generateOtp();
   const [c] = await db
     .insert(otpChallenges)
     .values({ phone, codeHash: "pending", channel: args.channel ?? "whatsapp", expiresAt: new Date(Date.now() + OTP_TTL_MS), ip })
     .returning({ id: otpChallenges.id });
   await db.update(otpChallenges).set({ codeHash: hashOtp(sessionSecret(), c.id, code) }).where(eq(otpChallenges.id, c.id));
 
+  if (testCode) return { challengeId: c.id, channel: "sms" as const, resendAfterSeconds: 30 };
   const sent = await sendMessage({ kind: "otp", to: phone, vars: { code }, channel: args.channel ?? "whatsapp" });
   if (sent.status !== "sent") {
     console.error("[otp] could not send", sent.error);
@@ -101,6 +104,20 @@ async function signInVerifiedPhone(phone: string) {
 // The browser sends and checks the code with MSG91 directly; we apply our own
 // limits before it starts, and confirm MSG91's access token before signing in.
 
+/** True for a temporary test login number (see TEST_LOGINS). */
+export const isTestPhone = (phone: string) => env.messaging.testLogins.has(phone);
+
+/** Signs in a TEST_LOGINS number with its fixed code. No message is sent. */
+export async function verifyTestLogin(args: { phone: string; code: string; ip: string }) {
+  if (!(await rateLimit(`otp-verify:ip:${args.ip}`, 30, 3600))) throw new AuthError("Too many attempts. Please try again later.", 429);
+  if (!(await rateLimit(`test-login:${args.phone}`, 10, 3600))) throw new AuthError("Too many attempts. Please try again later.", 429);
+  const expected = env.messaging.testLogins.get(args.phone);
+  const a = Buffer.from(args.code.trim());
+  const b = Buffer.from(expected ?? "");
+  if (!expected || a.length !== b.length || !timingSafeEqual(a, b)) throw new AuthError("That code is not right. Please check and try again.");
+  return signInVerifiedPhone(args.phone);
+}
+
 /** Called before the widget sends a code: rate limits, and records the estimated cost. */
 export async function startWidgetOtp(args: { phone: string; ip: string }) {
   const { phone, ip } = args;
@@ -122,9 +139,22 @@ export async function startWidgetOtp(args: { phone: string; ip: string }) {
     category: "authentication",
     recipient: phone,
     provider: "msg91-widget",
-    status: "sent",
+    // "sent" (and counted in spend) only once the widget reports MSG91 accepted it.
+    status: "queued",
     costMilliPaise: messageCost("sms", "authentication", settings.rates),
   });
+}
+
+/** The widget reported success (or failure) sending a code to this phone. */
+export async function markWidgetOtp(phone: string, ok: boolean, error?: string) {
+  const db = await getDb();
+  const [row] = await db
+    .select({ id: messageLog.id })
+    .from(messageLog)
+    .where(and(eq(messageLog.recipient, phone), eq(messageLog.provider, "msg91-widget"), eq(messageLog.status, "queued")))
+    .orderBy(desc(messageLog.createdAt))
+    .limit(1);
+  if (row) await db.update(messageLog).set(ok ? { status: "sent" } : { status: "failed", error: error?.slice(0, 300) ?? "widget reported failure" }).where(eq(messageLog.id, row.id));
 }
 
 /** Reads the verified identifier from MSG91's reply, or from the token's own claims. */

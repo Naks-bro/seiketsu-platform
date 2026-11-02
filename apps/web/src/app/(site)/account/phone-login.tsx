@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 const input = "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 outline-none focus:border-berry";
 
 type Channel = "whatsapp" | "sms";
-type Sent = { challengeId: string | null; channel: Channel | null; resendAfterSeconds: number };
+type Sent = { challengeId: string | null; channel: Channel | null; resendAfterSeconds: number; test?: boolean };
 export type WidgetConfig = { widgetId: string; tokenAuth: string };
 
 type Cb = (data: { message?: string; type?: string } & Record<string, unknown>) => void;
@@ -60,15 +60,26 @@ export function PhoneLogin({ widget }: { widget: WidgetConfig | null }) {
     try {
       if (widget) {
         // Our limits first, then MSG91 sends the code.
-        await post("/api/auth/otp/widget", { action: "start", phone });
+        const start = await post("/api/auth/otp/widget", { action: "start", phone });
+        if (start.test) {
+          setSent({ challengeId: null, channel: null, resendAfterSeconds: 30, test: true });
+          setCode("");
+          return;
+        }
         const api = w();
+        const report = (ok: boolean, error?: string) => void post("/api/auth/otp/widget", { action: "sent", phone, ok, error }).catch(() => {});
         await new Promise<void>((resolve, reject) => {
           const ok: Cb = (d) => {
+            report(true);
             setSent((s) => ({ challengeId: typeof d?.message === "string" ? d.message : s?.challengeId ?? null, channel: channel ?? null, resendAfterSeconds: 30 }));
             resolve();
           };
-          if (sent && api.retryOtp) api.retryOtp(channel ? RETRY[channel] : null, ok, (e) => reject(new Error(widgetError(e))), sent.challengeId ?? undefined);
-          else if (api.sendOtp) api.sendOtp(`91${digits()}`, ok, (e) => reject(new Error(widgetError(e))));
+          const fail: Cb = (e) => {
+            report(false, widgetError(e));
+            reject(new Error(widgetError(e)));
+          };
+          if (sent && api.retryOtp) api.retryOtp(channel ? RETRY[channel] : null, ok, fail, sent.challengeId ?? undefined);
+          else if (api.sendOtp) api.sendOtp(`91${digits()}`, ok, fail);
           else reject(new Error("Login is still loading. Please try again in a moment."));
         });
         setCode("");
@@ -92,7 +103,9 @@ export function PhoneLogin({ widget }: { widget: WidgetConfig | null }) {
     setBusy(true);
     setError(null);
     try {
-      if (widget) {
+      if (sent.test) {
+        await post("/api/auth/otp/widget", { action: "verify-test", phone, code });
+      } else if (widget) {
         const accessToken = await new Promise<string>((resolve, reject) => {
           const api = w();
           if (!api.verifyOtp) return reject(new Error("Login is still loading. Please try again."));
@@ -114,7 +127,7 @@ export function PhoneLogin({ widget }: { widget: WidgetConfig | null }) {
     }
   }
 
-  const sentBy = sent?.channel === "sms" ? "SMS" : sent?.channel === "whatsapp" ? "WhatsApp" : "WhatsApp or SMS";
+  const sentBy = sent?.test ? "test login (no SMS — use your test code)" : sent?.channel === "sms" ? "SMS" : sent?.channel === "whatsapp" ? "WhatsApp" : "WhatsApp or SMS";
 
   return (
     <div className="max-w-sm space-y-5">
