@@ -4,6 +4,8 @@ import { and, eq } from "drizzle-orm";
 import { getDb, orders, payments } from "@seiketsu/db";
 import { markPaymentFailed } from "@/lib/server/orders";
 import { handleError, jsonError, readJson } from "@/lib/server/http";
+import { rateLimit } from "@/lib/server/rate-limit";
+import { clientIp } from "@/lib/server/request";
 
 const bodySchema = z.object({
   token: z.string().min(10).max(100),
@@ -15,6 +17,7 @@ const bodySchema = z.object({
 /** Browser report of a failed attempt. Only records the failure; it can never mark anything paid. */
 export async function POST(req: Request) {
   try {
+    if (!(await rateLimit(`pay-failed:${await clientIp()}`, 30, 600))) return jsonError("Too many attempts.", 429);
     const b = bodySchema.parse(await readJson(req));
     const db = await getDb();
     const [match] = await db

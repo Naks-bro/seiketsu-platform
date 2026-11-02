@@ -30,6 +30,7 @@ import { publish, topics } from "./realtime";
 import { audit } from "./audit";
 import { runAfter } from "./after";
 import { notifyCustomer } from "./notify-customer";
+import { rateLimit } from "./rate-limit";
 
 export class OrderError extends Error {
   constructor(
@@ -384,7 +385,8 @@ export async function confirmCheckoutPayment(args: { token: string; razorpayOrde
 export async function reconcileOrder(order: typeof orders.$inferSelect) {
   if (!["pending_payment", "payment_failed", "expired"].includes(order.status)) return order;
   const db = await getDb();
-  if (env.paymentsMode === "razorpay") {
+  // Tracking pages poll every few seconds; ask Razorpay at most every 20s per order.
+  if (env.paymentsMode === "razorpay" && (await rateLimit(`reconcile:${order.id}`, 1, 20))) {
     const ps = await db.select().from(payments).where(eq(payments.orderId, order.id));
     for (const p of ps) {
       if (!p.razorpayOrderId || p.status === "captured") continue;
@@ -440,10 +442,14 @@ export async function reconcileStale(limit = 50) {
 
 // ── Staff actions ──────────────────────────────────────────────────
 
-export async function transitionOrder(args: { orderId: string; to: OrderStatus; staffId: string; reason?: string | null }) {
+export async function transitionOrder(args: { orderId: string; to: OrderStatus; staffId: string; outletId: string; reason?: string | null }) {
   const db = await getDb();
   const updated = await db.transaction(async (tx) => {
-    const [o] = await tx.select().from(orders).where(eq(orders.id, args.orderId)).for("update");
+    const [o] = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, args.orderId), eq(orders.outletId, args.outletId)))
+      .for("update");
     if (!o) throw new OrderError("Order not found.", 404);
     const check = checkTransition({ from: o.status, to: args.to, actor: "staff", fulfilment: o.fulfilment, reason: args.reason });
     if (!check.ok) throw new OrderError(check.error, 409);
@@ -472,13 +478,13 @@ export async function transitionOrder(args: { orderId: string; to: OrderStatus; 
 }
 
 /** Full refund of the captured payment. Partial refunds come with the POS phase. */
-export async function refundOrder(args: { orderId: string; staffId: string; reason: string }) {
+export async function refundOrder(args: { orderId: string; staffId: string; outletId: string; reason: string }) {
   const db = await getDb();
   const [row] = await db
     .select({ o: orders, p: payments })
     .from(orders)
     .innerJoin(payments, eq(payments.orderId, orders.id))
-    .where(and(eq(orders.id, args.orderId), eq(payments.status, "captured")));
+    .where(and(eq(orders.id, args.orderId), eq(orders.outletId, args.outletId), eq(payments.status, "captured")));
   if (!row) throw new OrderError("There is no captured payment to refund.", 409);
   if (!REFUND_ON.includes(row.o.status)) throw new OrderError("Reject or cancel the order before refunding.", 409);
   const amount = row.p.amountPaise - row.p.refundedPaise;

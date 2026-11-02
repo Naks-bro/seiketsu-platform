@@ -115,9 +115,9 @@ describe("paid orders", () => {
   it("notifies on ready for pickup but not on accept", async () => {
     const o = await paidOrder("9000000004");
     const [staff] = await db.select({ id: customers.id }).from(customers).limit(1); // any uuid works as actor
-    await orderSvc.transitionOrder({ orderId: o.id, to: "accepted", staffId: staff.id });
-    await orderSvc.transitionOrder({ orderId: o.id, to: "preparing", staffId: staff.id });
-    await orderSvc.transitionOrder({ orderId: o.id, to: "ready", staffId: staff.id });
+    await orderSvc.transitionOrder({ orderId: o.id, to: "accepted", staffId: staff.id, outletId });
+    await orderSvc.transitionOrder({ orderId: o.id, to: "preparing", staffId: staff.id, outletId });
+    await orderSvc.transitionOrder({ orderId: o.id, to: "ready", staffId: staff.id, outletId });
     const kinds = await waitFor(async () => {
       const rows = await db.select().from(messageLog).where(eq(messageLog.orderId, o.id));
       return rows.length >= 2 ? rows.map((r) => r.kind).sort() : null;

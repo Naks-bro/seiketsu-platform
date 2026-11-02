@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { env } from "@/lib/server/env";
 import { reconcileStale } from "@/lib/server/orders";
@@ -6,7 +7,9 @@ import { checkAlerts } from "@/lib/server/alerts";
 
 /** Scheduled by vercel.json. Vercel sends "Authorization: Bearer <CRON_SECRET>". */
 export async function GET(req: Request) {
-  if (!env.cronSecret || req.headers.get("authorization") !== `Bearer ${env.cronSecret}`) {
+  const given = Buffer.from(req.headers.get("authorization") ?? "");
+  const expected = Buffer.from(`Bearer ${env.cronSecret ?? ""}`);
+  if (!env.cronSecret || given.length !== expected.length || !timingSafeEqual(given, expected)) {
     return new Response("Unauthorized", { status: 401 });
   }
   const result = await reconcileStale();

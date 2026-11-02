@@ -200,9 +200,9 @@ describe("kitchen flow and refunds", () => {
 
   it("moves through the pickup steps in order and rejects skips", async () => {
     const o = await paidOrder();
-    await expect(orderSvc.transitionOrder({ orderId: o.id, to: "ready", staffId })).rejects.toThrow(/Cannot move/);
+    await expect(orderSvc.transitionOrder({ orderId: o.id, to: "ready", staffId, outletId })).rejects.toThrow(/Cannot move/);
     for (const to of ["accepted", "preparing", "ready", "completed"] as const) {
-      await orderSvc.transitionOrder({ orderId: o.id, to, staffId });
+      await orderSvc.transitionOrder({ orderId: o.id, to, staffId, outletId });
     }
     const done = await orderByToken(o.publicToken);
     expect(done.status).toBe("completed");
@@ -211,16 +211,25 @@ describe("kitchen flow and refunds", () => {
 
   it("requires a reason to reject, and refunds the payment", async () => {
     const o = await paidOrder();
-    await expect(orderSvc.transitionOrder({ orderId: o.id, to: "rejected", staffId })).rejects.toThrow(/reason/);
-    await orderSvc.transitionOrder({ orderId: o.id, to: "rejected", staffId, reason: "Out of celery" });
-    const r = await orderSvc.refundOrder({ orderId: o.id, staffId, reason: "Out of celery" });
+    await expect(orderSvc.transitionOrder({ orderId: o.id, to: "rejected", staffId, outletId })).rejects.toThrow(/reason/);
+    await orderSvc.transitionOrder({ orderId: o.id, to: "rejected", staffId, outletId, reason: "Out of celery" });
+    const r = await orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Out of celery" });
     expect(r.amountPaise).toBe(o.totalPaise);
     expect((await orderByToken(o.publicToken)).paymentState).toBe("refunded");
-    await expect(orderSvc.refundOrder({ orderId: o.id, staffId, reason: "again" })).rejects.toThrow();
+    await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "again" })).rejects.toThrow();
   });
 
   it("does not refund an order that is still being served", async () => {
     const o = await paidOrder();
-    await expect(orderSvc.refundOrder({ orderId: o.id, staffId, reason: "test" })).rejects.toThrow(/Reject or cancel/);
+    await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "test" })).rejects.toThrow(/Reject or cancel/);
+  });
+});
+describe("outlet scoping", () => {
+  it("staff cannot change or refund another outlet's order", async () => {
+    const r = await checkout([{ name: "Green Machine" }]);
+    const o = await orderByToken(r.token);
+    const otherOutlet = "00000000-0000-4000-8000-000000000000";
+    await expect(orderSvc.transitionOrder({ orderId: o.id, to: "accepted", staffId, outletId: otherOutlet })).rejects.toThrow(/not found/i);
+    await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId: otherOutlet, reason: "x" })).rejects.toThrow();
   });
 });

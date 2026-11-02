@@ -59,13 +59,13 @@ export async function changeStatusAction(_prev: ActionState, form: FormData): Pr
   try {
     if (!can.manageOrders(staff)) throw new Error("You do not have permission to do that.");
     const input = statusSchema.parse(Object.fromEntries(form));
-    const order = await transitionOrder({ orderId: input.orderId, to: input.to, staffId: staff.id, reason: input.reason });
+    const order = await transitionOrder({ orderId: input.orderId, to: input.to, staffId: staff.id, outletId: staff.outletId, reason: input.reason });
     let note = "";
     if (REFUND_ON.includes(input.to) && input.refund && order.paymentState === "paid") {
       if (!can.refund(staff)) {
         note = " Ask the owner or a manager to issue the refund.";
       } else {
-        const r = await refundOrder({ orderId: order.id, staffId: staff.id, reason: input.reason ?? input.to });
+        const r = await refundOrder({ orderId: order.id, staffId: staff.id, outletId: staff.outletId, reason: input.reason ?? input.to });
         note = ` Refund of \u20b9${r.amountPaise / 100} started.`;
       }
     }
@@ -81,7 +81,7 @@ export async function refundAction(_prev: ActionState, form: FormData): Promise<
   try {
     const orderId = z.string().uuid().parse(form.get("orderId"));
     const reason = z.string().trim().min(2, "Enter a reason").max(300).parse(form.get("reason"));
-    const r = await refundOrder({ orderId, staffId: staff.id, reason });
+    const r = await refundOrder({ orderId, staffId: staff.id, outletId: staff.outletId, reason });
     revalidatePath(`/admin/orders/${orderId}`);
     return { ok: `Refund of \u20b9${r.amountPaise / 100} started (${r.status}).` };
   } catch (err) {
