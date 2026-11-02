@@ -1,0 +1,547 @@
+[
+  {
+    "category": "Salads",
+    "name": "Classic French Salad Bowl (Veg)",
+    "price_text": "₹ Small(300g) 300 / Large (400g) 350",
+    "description": "Fresh salad greens, cherry tomatoes, broccoli, jalapeno, carrots, bell peppers, cucumber, basil leaves and glaze with a drizzle basil cilantro tahini dressing.",
+    "nutrition_source_text": "Small : 240 kcal • Protein 7 g • Carbs 23 g • Fat 14 g • Fiber 8 g | Large: 320 kcal • Protein 9 g • Carbs 31 g • Fat 19 g • Fiber 11 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Herbed Paneer / Chicken Protein Salad Bowl",
+    "price_text": "₹ Paneer(450g) 300 / Chicken(450g) 350",
+    "description": "Fresh salad greens, carrots, mix colour bell peppers, broccoli, tomatoes, paneer with herbs and corn toppings with Greek yogurt Caesar dressing.",
+    "nutrition_source_text": "Paneer: : 570 kcal • Protein 32 g • Carbs 37 g • Fat 33 g • Fiber 11 g | Chicken: 470 kcal • Protein 49 g • Carbs 37 g • Fat 13 g • Fiber 11 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Peri Peri Paneer / Chicken Protein Salad Bowl",
+    "price_text": "₹ Paneer(450g) 300 / Chicken(450g) 350",
+    "description": "Fresh salad greens with peri peri marinated paneer / chicken, carrots, mix color bell peppers, broccoli, tomatoes and corn served with Greek yogurt Caesar dressing.",
+    "nutrition_source_text": "Paneer : 580 kcal • Protein 32 g • Carbs 39 g • Fat 34 g • Fiber 11 g | Chicken: 480 kcal • Protein 49 g • Carbs 39 g • Fat 14 g • Fiber 11 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Tandoori Paneer / Chicken Protein Salad Bowl",
+    "price_text": "₹ Paneer(450g) 300 / Chicken(450g) 350",
+    "description": "Fresh salad greens, paneer / chicken marinated in tandoori sauce, herbs, carrots, mixed colour bell peppers, broccoli, tomato and corn toppings with Greek yogurt and Caesar dressing.",
+    "nutrition_source_text": "Paneer: 580 kcal • Protein 32 g • Carbs 39 g • Fat 34 g • Fibre 11 g | Chicken: 480 kcal • Protein 49 g • Carbs 39 g • Fat 14 g • Fiber 11 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Large (400g) 320",
+    "price_text": "₹ Large (400g) 320",
+    "description": "Crisp Salad greens, baby spinach, salad greens, bell peppers, tangy tomatoes, jalapeno, cucumber topped with chilli tofu and served with Russian salad dressing.",
+    "nutrition_source_text": "Small: 370 kcal • Protein 18 g • Carbs 23 g • Fat 24 g • Fiber 8 g | Large: 490 kcal • Protein 24 g • Carbs 31 g • Fat 32 g • Fiber 11 g",
+    "flags": [
+      "malformed product name; requires correction from brand"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Sprouts Protein Salad Bowl",
+    "price_text": "₹ (350g) 250",
+    "description": "A wholesome Mix sprouts salad with onion, tomatoes, cucumber, peanuts, coriander, mint, pomegranate topping with zesty Greek yoghurt dressing.",
+    "nutrition_source_text": "420 kcal • Protein 19 g • Carbs 52 g • Fat 17 g • Fiber 13 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Broccoli Corn Salad Bowl",
+    "price_text": "₹ Small (350g) 300 / Large (400g) 330",
+    "description": "Farm fresh greens with broccoli, corn, tangy tomatoes, crunchy cucumber, onion and raisins, sunflower seeds tossed with Creamy Greek yogurt Dijon dressing.",
+    "nutrition_source_text": "Small: 390 kcal • Protein 14 g • Carbs 48 g • Fat 17 g • Fiber 11 g | Large: 445 kcal • Protein 16 g • Carbs 55 g • Fat 19 g • Fiber 13 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Healthy Quinoa Salad Bowl",
+    "price_text": "₹ Small (350g) 330 / Large (450g) 380",
+    "description": "Fluﬀy quinoa, fresh spinach, crisp cucumber, colorful bell peppers, juicy cherry tomatoes and avocado with honey balsamic dressing.",
+    "nutrition_source_text": "Small: 460 kcal • Protein 12 g • Carbs 54 g • Fat 23 g • Fiber 11 g | Large: 590 kcal • Protein 15 g • Carbs 69 g • Fat 30 g • Fiber 14 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Mediterranean Salad Bowl",
+    "price_text": "₹ Small (350g) 300 / Large (450g) 350",
+    "description": "Chopped Romaine lettuce, chopped cucumber, chickpeas, cherry tomato, broccoli, onion, parsley, cheese and mix seeds with delicious red wine vinaigrette dressing.",
+    "nutrition_source_text": "Small: 440 kcal • Protein 17 g • Carbs 36 g • Fat 27 g • Fiber 11 g | Large: 565 kcal • Protein 22 g • Carbs 46 g • Fat 35 g • Fiber 14 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Large (450g) 350",
+    "price_text": "₹ Large (450g) 350",
+    "description": "Fresh spiralized green and yellow zucchini, tangy tomatoes, red cabbage, thinly sliced bell peppers, onion with Italian herbs dressing.",
+    "nutrition_source_text": "Small: 260 kcal • Protein 6 g • Carbs 25 g • Fat 16 g • Fiber 7 g | Large: 335 kcal • Protein 8 g • Carbs 32 g • Fat 21 g • Fiber 9 g",
+    "flags": [
+      "malformed product name; requires correction from brand"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Cucumber Watermelon Salad Bowl",
+    "price_text": "₹ Small (300g) 260 / Large (400g) 300",
+    "description": "Mix leafy green, crunchy cucumber, juicy watermelon, crumbled cheese, mint with honey lemon dressing.",
+    "nutrition_source_text": "Small: 300 kcal • Protein 9 g • Carbs 31 g • Fat 16 g • Fiber 4 g | Large: 400 kcal • Protein 12 g • Carbs 41 g • Fat 21 g • Fiber 5 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Cucumber and Avocado Salad Bowl",
+    "price_text": "₹ Small (300g) 300 / Large (400g) 330",
+    "description": "Mix salad greens, blanch corn mix with tangy cherry tomatoes, avocado, crunchy cucumber, onion, cilantro and with Italian lime dressing.",
+    "nutrition_source_text": "Small: 400 kcal • Protein 8 g • Carbs 35 g • Fat 27 g • Fiber 10 g | Large: 530 kcal • Protein 11 g • Carbs 47 g • Fat 36 g • Fiber 13 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Exotic Apple Salad Bowl",
+    "price_text": "₹ Small (350g) 330 / Large (450g) 380",
+    "description": "Green apples, red apples, pomegranate arils, fresh salad greens, basil, raisins, walnuts, leafy with balsamic cranberry vinaigrette.",
+    "nutrition_source_text": "Small: 400 kcal • Protein 6 g • Carbs 56 g • Fat 20 g • Fiber 9 g | Large: 530 kcal • Protein 8 g • Carbs 75 g • Fat 26 g • Fiber 12 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Salads",
+    "name": "Exotic Fresh Fruit Bowl",
+    "price_text": "₹ (400g) 399",
+    "description": "A refreshing bowl of red apples, green apples, pears, pomegranate arils, kiwis, watermelon, dragon fruit and exotic blueberries, ﬁnished with a light orange dressing and fresh mint.",
+    "nutrition_source_text": "290 kcal • Protein 4 g • Carbs 68 g • Fat 2 g • Fiber 11 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Wraps",
+    "name": "Grilled Chicken Hummus Wrap",
+    "price_text": "₹ Chicken 350",
+    "description": "Juicy grilled chicken, creamy hummus, crisp vegetables and a hint of herbs, wrapped in a soft tortilla.",
+    "nutrition_source_text": "520 kcal • Protein 39 g • Carbs 48 g • Fat 18 g • Fiber 8 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Wraps",
+    "name": "Paneer Thecha Wrap",
+    "price_text": "₹ Paneer 250",
+    "description": "Tawa-grilled paneer tossed in ﬁery Maharashtrian thecha, paired with crunchy vegetables and a refreshing thecha pudina yoghurt dip.",
+    "nutrition_source_text": "580 kcal • Protein 25 g • Carbs 47 g • Fat 31 g • Fiber 5 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Wraps",
+    "name": "Mexicana Salsa Wrap",
+    "price_text": "₹ Veg 250",
+    "description": "A flavour-packed wrap ﬁlled with Mexican-style salsa, colourful peppers, sweet corn, beans and a zesty, tangy dressing.",
+    "nutrition_source_text": "440 kcal • Protein 14 g • Carbs 69 g • Fat 12 g • Fiber 11 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Wraps",
+    "name": "Tandoori Wrap – Paneer / Chicken",
+    "price_text": "₹ Paneer 250 / Chicken 350",
+    "description": "Smoky tandoori marinated Paneer or Chicken, grilled with fresh vegetables and wrapped with a creamy mint-yoghurt dressing.",
+    "nutrition_source_text": "Paneer : 550 kcal • Protein 25 g • Carbs 49 g • Fat 27 g • Fiber 5 g | Chicken : 490 kcal • Protein 38 g • Carbs 48 g • Fat 16 g • Fiber 5 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Meals",
+    "name": "Chicken Shawarma Meal Bowl",
+    "price_text": "₹ Chicken 350",
+    "description": "Fragrant rice topped with shawarma-spiced chicken, crisp vegetables, pickled onions and creamy garlic sauce.",
+    "nutrition_source_text": "650 kcal • Protein 43 g • Carbs 70 g • Fat 21 g • Fiber 5 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Meals",
+    "name": "Mexi Burrito Red Rice Bowl",
+    "price_text": "₹ Veg 350",
+    "description": "Mexican-style rice served with beans, sweet corn, sautéed peppers, fresh salsa and a zesty dressing.",
+    "nutrition_source_text": "610 kcal • Protein 18 g • Carbs 101 g • Fat 14 g • Fiber 15 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Meals",
+    "name": "Butter Paneer / Chicken Bowl",
+    "price_text": "₹ Paneer 300 / Chicken 350",
+    "description": "Comforting butter-style tomato gravy with your choice of tender paneer or chicken, served with fragrant rice.",
+    "nutrition_source_text": "Paneer : 720 kcal • Protein 27 g • Carbs 72 g • Fat 36 g • Fiber 6 g | Chicken: 660 kcal • Protein 40 g • Carbs 71 g • Fat 23 g • Fiber 5 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Meals",
+    "name": "Paneer / Chicken Quinoa Bowl",
+    "price_text": "₹ Paneer 300 / Chicken 350",
+    "description": "Protein-rich paneer or grilled chicken served over fluﬀy quinoa with colourful vegetables and a flavorful house dressing.",
+    "nutrition_source_text": "Paneer: 620 kcal • Protein 29 g • Carbs 54 g • Fat 32 g • Fiber 9 g | Chicken : 540 kcal • Protein 47 g • Carbs 54 g • Fat 15 g • Fiber 9 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Sandwiches",
+    "name": "Avocado Toast – Veg / Egg",
+    "price_text": "₹ Veg 300 / Egg 350",
+    "description": "Creamy Guacamole on toasted bread, seasoned with herbs, lime and cracked pepper. Choose classic veg or add egg for an extra protein boost.",
+    "nutrition_source_text": "Veg: 340 kcal • Protein 8 g • Carbs 39 g • Fat 18 g • Fiber 9 g | Egg: 420 kcal • Protein 15 g • Carbs 40 g • Fat 24 g • Fiber 9 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Sandwiches",
+    "name": "Tandoori Grill – Paneer / Chicken",
+    "price_text": "₹ Paneer 250 / Chicken 300",
+    "description": "Grilled Paneer or Chicken layered with fresh vegetables, melted cheese and your choice of smoky tandoori sauce or creamy chipotle sauce.",
+    "nutrition_source_text": "Paneer: 520 kcal • Protein 23 g • Carbs 46 g • Fat 28 g • Fiber 5 g | Chicken: 480 kcal • Protein 36 g • Carbs 45 g • Fat 17 g • Fiber 5 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Sandwiches",
+    "name": "Classic Egg Sandwich",
+    "price_text": "₹ Egg 200",
+    "description": "Fluﬀy Egg ﬁlling with fresh vegetables, creamy dressing and a touch of seasoning, served between toasted bread slices.",
+    "nutrition_source_text": "400 kcal • Protein 19 g • Carbs 37 g • Fat 19 g • Fiber 4 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Sandwiches",
+    "name": "Caprese Sandwich",
+    "price_text": "₹ Veg 200",
+    "description": "Juicy Tomatoes, Ceamy Mozzarella, Fresh Basil and Aromatic Pesto layered in toasted bread for a classic Italian inspired bite.",
+    "nutrition_source_text": "490 kcal • Protein 20 g • Carbs 42 g • Fat 27 g • Fiber 5 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Sandwiches",
+    "name": "Egg Akuri on Sourdough",
+    "price_text": "₹ Egg 380",
+    "description": "Egg Akuri on Sourdough Spiced, Akuri-style scrambled Egg cooked with onions, tomatoes and aromatic Indian spices, served on toasted sourdough bread.",
+    "nutrition_source_text": "440 kcal • Protein 33 g • Carbs 40 g • Fat 16 g • Fiber 4 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Pasta",
+    "name": "Creamy Italian Herb Pasta Bowl",
+    "price_text": "₹ Small (350g) 300 / Large (450g) 340",
+    "description": "Cooked fusilli pasta tossed with garlic and herbs, onion, tomatoes, broccoli, olives, mix bell peppers, corn toppings, basil with creamy Italian herbs dressing.",
+    "nutrition_source_text": "Small: 600 kcal • Protein 18 g • Carbs 76 g • Fat 25 g • Fiber 9 g | Large: 770 kcal • Protein 23 g • Carbs 98 g • Fat 32 g • Fiber 12 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Pasta",
+    "name": "Italian Pesto Pasta Bowl",
+    "price_text": "₹ Small (350g) 330 / Large (450g) 380",
+    "description": "Cooked fusilli pasta tosses in garlic and herbs, onion, tomatoes, broccoli, olives, mix bell peppers, corn toppings, basil tossed with exotic Pesto sauce.",
+    "nutrition_source_text": "Small: 630 kcal • Protein 19 g • Carbs 72 g • Fat 30 g • Fiber 9 g | Large: 810 kcal • Protein 24 g • Carbs 93 g • Fat 39 g • Fiber 12 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Pasta",
+    "name": "Red Sauce Pasta Bowl",
+    "price_text": "₹ Small (350g) 300 / Large (450g) 340",
+    "description": "Cooked fusilli pasta tossed in garlic and herbs, onion, tomatoes, broccoli, olives, mix bell peppers, corn toppings, basil with creamy red herbs dressing.",
+    "nutrition_source_text": "Small: 520 kcal • Protein 17 g • Carbs 79 g • Fat 15 g • Fiber 10 g | Large: 670 kcal • Protein 22 g • Carbs 102 g • Fat 19 g • Fiber 13 g",
+    "flags": [
+      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+    ],
+    "included": true
+  },
+  {
+    "category": "Juices",
+    "name": "Beetroot – Apple – Carrot",
+    "price_text": "₹ (300ml) 220",
+    "description": "A vibrant blend of earthy beetroot, naturally sweet apple and fresh carrot for a fruity, refreshing sip.",
+    "nutrition_source_text": "145 kcal • Protein 2 g • Carbs 34 g • Fat 0 g • Fiber 1 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Juices",
+    "name": "Watermelon – Beetroot – Lime",
+    "price_text": "₹ (300ml) 210",
+    "description": "Juicy watermelon meets earthy beetroot and a squeeze of tangy lime for a refreshing sweet-and-citrusy blend.",
+    "nutrition_source_text": "115 kcal • Protein 2 g • Carbs 27 g • Fat 0 g • Fiber 1 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Juices",
+    "name": "Celery – Green Apple – Carrot",
+    "price_text": "₹ (300ml) 230",
+    "description": "A crisp, refreshing combination of celery, tangy green apple and naturally sweet carrot with a clean, fresh ﬁnish.",
+    "nutrition_source_text": "125 kcal • Protein 2 g • Carbs 29 g • Fat 0 g • Fiber 1 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Juices",
+    "name": "Watermelon Mint Refresher",
+    "price_text": "₹ (300ml) 230",
+    "description": "A crisp, refreshing combination of celery, tangy green apple and naturally sweet carrot with a clean, fresh ﬁnish.",
+    "nutrition_source_text": "95 kcal • Protein 2 g • Carbs 23 g • Fat 0 g • Fiber 1 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Juices",
+    "name": "Green Machine",
+    "price_text": "₹ (300ml) 240",
+    "description": "Crisp cucumber, green apple, celery lemon in a fresh, tangy green blend.",
+    "nutrition_source_text": "100 kcal • Protein 2 g • Carbs 23 g • Fat 0 g • Fiber 1 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Juices",
+    "name": "Sunrise Kick",
+    "price_text": "₹ (300ml) 250",
+    "description": "Sweet carrot, fresh orange a lively ginger kick for a bright citrusy sip.",
+    "nutrition_source_text": "135 kcal • Protein 2 g • Carbs 31 g • Fat 0 g • Fiber 1 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Smoothies",
+    "name": "Chocolate Smoothie",
+    "price_text": "₹ 200",
+    "description": "A rich, creamy chocolate blend with a smooth, satisfying ﬁnish. Your chocolate ﬁx, blended fresh.",
+    "nutrition_source_text": "320 kcal • Protein 11 g • Carbs 44 g • Fat 11 g • Fiber 3 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Smoothies",
+    "name": "Fresh Fruit Smoothie",
+    "price_text": "₹ 230",
+    "description": "A refreshing blend of seasonal fruits and a creamy base, naturally fruity and deliciously smooth.",
+    "nutrition_source_text": "280 kcal • Protein 9 g • Carbs 49 g • Fat 6 g • Fiber 4 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Smoothies",
+    "name": "Avocado Smoothie",
+    "price_text": "₹ 250",
+    "description": "Creamy avocado blended into a velvety smoothie with a naturally rich texture and refreshing ﬁnish.",
+    "nutrition_source_text": "330 kcal • Protein 9 g • Carbs 30 g • Fat 21 g • Fiber 7 g",
+    "flags": [],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Cherry Tomatoes",
+    "price_text": "₹ 30",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Tandoori Paneer",
+    "price_text": "₹ 60",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Chilli Tofu",
+    "price_text": "₹ 80",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Tandoori Chicken",
+    "price_text": "₹ 80",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Feta Cheese",
+    "price_text": "₹ 80",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Olives",
+    "price_text": "₹ 50",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Broccoli",
+    "price_text": "₹ 60",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Avocado",
+    "price_text": "₹ 80",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Pesto Sauce",
+    "price_text": "₹ 80",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Italian Herb Dressing",
+    "price_text": "₹ 60",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Honey Musterd Dip",
+    "price_text": "₹ 60",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Russian Dressing",
+    "price_text": "₹ 60",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Peri Peri Dip",
+    "price_text": "₹ 70",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  },
+  {
+    "category": "Extras",
+    "name": "Guacamole",
+    "price_text": "₹ 100",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "no description supplied"
+    ],
+    "included": true
+  }
+]

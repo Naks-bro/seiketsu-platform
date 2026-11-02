@@ -1,0 +1,28 @@
+{
+  "name": "seiketsu",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "test": "vitest run",
+    "typecheck": "tsc -p packages/core && tsc -p packages/db && npm run typecheck -w web",
+    "db:generate": "npm run generate -w @seiketsu/db",
+    "db:migrate": "npm run migrate -w @seiketsu/db",
+    "db:seed": "npm run seed -w @seiketsu/db"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "playwright": "^1.64.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "type": "module"
+}

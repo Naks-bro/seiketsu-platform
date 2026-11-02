@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/* Seiketsu brand tokens (from the supplied palette sheet). */
+@theme {
+  --color-cream: #fffcf5;
+  --color-paper: #f7f0e3;
+  --color-butter: #fce9ab;
+  --color-berry: #a51c47;
+  --color-berry-deep: #7f1336;
+  --color-pink: #e04d75;
+  --color-orange: #f68a31;
+  --color-olive: #9e9935;
+  --color-olive-ink: #67651f;
+  --color-ink: #2a181e;
+  --color-muted: #6e5b60;
+  --color-line: #eadfcd;
+  --color-veg: #2f7d32;
+  --color-nonveg: #b3261e;
+  --color-egg: #c98a0b;
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --shadow-lift: 0 1px 2px rgb(42 24 30 / 0.06), 0 8px 24px -12px rgb(42 24 30 / 0.18);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 8rem;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-berry);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print: order tickets from the admin */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+}

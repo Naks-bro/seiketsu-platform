@@ -1,0 +1,13 @@
+node_modules
+.next
+.env
+.env.local
+.env*.local
+.data
+*.tsbuildinfo
+coverage
+playwright-report
+test-results
+demo/
+.netlify
+next-env.d.ts

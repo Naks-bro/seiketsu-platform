@@ -1,0 +1,78 @@
+import "server-only";
+
+const isProd = process.env.NODE_ENV === "production";
+
+function optional(name: string): string | undefined {
+  const v = process.env[name]?.trim();
+  return v ? v : undefined;
+}
+
+const razorpayKeyId = optional("RAZORPAY_KEY_ID");
+const razorpayKeySecret = optional("RAZORPAY_KEY_SECRET");
+
+/**
+ * razorpay  - real Razorpay (test or live keys)
+ * simulator - local-only fake gateway for development and automated tests
+ * disabled  - no keys configured: customers can browse but not pay
+ */
+export type PaymentsMode = "razorpay" | "simulator" | "disabled";
+
+const paymentsMode: PaymentsMode =
+  razorpayKeyId && razorpayKeySecret
+    ? "razorpay"
+    : !isProd && process.env.PAYMENTS_MODE === "simulator"
+      ? "simulator"
+      : "disabled";
+
+/**
+ * msg91    - real WhatsApp/SMS through MSG91 (MSG91_AUTH_KEY set)
+ * log      - development: messages are printed to the server console and logged
+ * disabled - nothing is sent (production without a key, or MESSAGING_MODE=disabled)
+ */
+export type MessagingMode = "msg91" | "log" | "disabled";
+const msg91AuthKey = optional("MSG91_AUTH_KEY");
+const messagingMode: MessagingMode =
+  process.env.MESSAGING_MODE === "disabled" ? "disabled" : msg91AuthKey ? "msg91" : isProd ? "disabled" : "log";
+
+const messaging = {
+  mode: messagingMode,
+  msg91: {
+    authKey: msg91AuthKey,
+    /** WhatsApp number connected in MSG91, with country code, e.g. 917977697408 */
+    whatsappNumber: optional("MSG91_WA_NUMBER"),
+    /** Shared secret in the delivery-report webhook URL (?token=...) */
+    webhookToken: optional("MSG91_WEBHOOK_TOKEN"),
+  },
+  resendApiKey: optional("RESEND_API_KEY"),
+  emailFrom: optional("EMAIL_FROM"),
+  /** Template name/ID for a message kind, e.g. MSG91_WA_TPL_ORDER_PLACED / MSG91_SMS_TPL_OTP */
+  template: (channel: "WA" | "SMS", kind: string) => optional(`MSG91_${channel}_TPL_${kind.toUpperCase()}`),
+};
+
+export const SIMULATOR_SECRET = "seiketsu-local-simulator-secret";
+
+export const env = {
+  isProd,
+  siteUrl: (optional("NEXT_PUBLIC_SITE_URL") ?? "http://localhost:3000").replace(/\/$/, ""),
+  outletSlug: optional("DEFAULT_OUTLET") ?? "versova",
+  paymentsMode,
+  razorpay: {
+    keyId: razorpayKeyId,
+    keySecret: paymentsMode === "simulator" ? SIMULATOR_SECRET : razorpayKeySecret,
+    webhookSecret: optional("RAZORPAY_WEBHOOK_SECRET"),
+    isLive: razorpayKeyId?.startsWith("rzp_live_") ?? false,
+  },
+  cronSecret: optional("CRON_SECRET"),
+  messaging,
+  supabase: {
+    url: optional("NEXT_PUBLIC_SUPABASE_URL"),
+    serviceRoleKey: optional("SUPABASE_SERVICE_ROLE_KEY"),
+  },
+};
+
+export function sessionSecret(): Uint8Array {
+  const s = optional("SESSION_SECRET");
+  if (s && s.length >= 32) return new TextEncoder().encode(s);
+  if (isProd) throw new Error("SESSION_SECRET must be set to at least 32 characters in production.");
+  return new TextEncoder().encode("dev-only-session-secret-change-me-0000000000");
+}
