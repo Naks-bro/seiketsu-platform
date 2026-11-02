@@ -17,6 +17,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
   return (
     <CartProvider>
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:shadow">Skip to content</a>
       {notice && (
         <div className="bg-butter px-4 py-2 text-center text-sm text-ink" role="status">
           {notice}
@@ -43,7 +44,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         </div>
       </header>
 
-      <main>{children}</main>
+      <main id="main" tabIndex={-1} className="outline-none">{children}</main>
       <CartDrawer />
 
       <footer className="mt-24 border-t border-line bg-paper">

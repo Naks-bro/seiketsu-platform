@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { useModal } from "./use-modal";
 import { formatINR } from "@/lib/format";
 import { unitTotal, useCart } from "@/lib/cart";
 import { DietMark } from "@/components/diet-mark";
@@ -48,22 +49,12 @@ export function CartDrawer() {
   const { lines, drawerOpen, setDrawerOpen, setQuantity, subtotalPaise, count } = useCart();
   const panel = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawerOpen(false);
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    panel.current?.focus();
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [drawerOpen, setDrawerOpen]);
+  useModal(panel, drawerOpen, () => setDrawerOpen(false));
 
   if (!drawerOpen) return null;
   return (
     <div className="fixed inset-0 z-50">
-      <button type="button" aria-label="Close cart" className="absolute inset-0 bg-ink/40" onClick={() => setDrawerOpen(false)} />
+      <div aria-hidden className="absolute inset-0 bg-ink/40" onClick={() => setDrawerOpen(false)} />
       <div
         ref={panel}
         tabIndex={-1}

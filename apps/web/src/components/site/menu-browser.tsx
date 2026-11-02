@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { useDeferredValue, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { CategoryDTO, Diet, MenuItemDTO } from "@/lib/types";
 import { formatINR, fromPrice, whatsappLink } from "@/lib/format";
@@ -159,8 +161,14 @@ function MenuCard({ item, onOpen }: { item: MenuItemDTO; onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
-      className="flex h-full w-full flex-col gap-3 rounded-2xl border border-line bg-white/60 p-5 text-left transition hover:border-berry/40 hover:bg-white hover:shadow-[var(--shadow-lift)]"
+      aria-haspopup="dialog"
+      className="flex h-full w-full flex-col gap-3 overflow-hidden rounded-2xl border border-line bg-white/60 p-5 text-left transition hover:border-berry/40 hover:bg-white hover:shadow-[var(--shadow-lift)]"
     >
+      {item.imageUrl && (
+        <div className="relative -mx-5 -mt-5 mb-1 aspect-[16/10] bg-paper">
+          <Image src={item.imageUrl} alt="" fill sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw" className="object-cover" unoptimized />
+        </div>
+      )}
       <div className="flex items-start gap-3">
         <div className="flex gap-1 pt-1.5">
           {diets.map((d) => (

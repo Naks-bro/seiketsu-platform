@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { useRef, useState } from "react";
+import { useModal } from "./use-modal";
 import type { MenuItemDTO } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 import { useCart } from "@/lib/cart";
@@ -20,16 +22,7 @@ export function ItemSheet({ item, canOrder, onClose }: { item: MenuItemDTO; canO
   const chosen = allAddons.filter((a) => addOnIds.includes(a.id));
   const unit = variant.pricePaise + chosen.reduce((s, a) => s + a.pricePaise, 0);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    dialog.current?.focus();
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  useModal(dialog, true, onClose);
 
   function toggleAddon(id: string, max: number, groupIds: string[]) {
     setAddOnIds((prev) => {
@@ -59,7 +52,7 @@ export function ItemSheet({ item, canOrder, onClose }: { item: MenuItemDTO; canO
   const n = variant.nutrition;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <button type="button" aria-label="Close" className="absolute inset-0 bg-ink/45" onClick={onClose} />
+      <div aria-hidden className="absolute inset-0 bg-ink/45" onClick={onClose} />
       <div
         ref={dialog}
         tabIndex={-1}
@@ -69,10 +62,15 @@ export function ItemSheet({ item, canOrder, onClose }: { item: MenuItemDTO; canO
         className="relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-cream shadow-2xl outline-none sm:rounded-3xl"
       >
         <div className="overflow-y-auto px-6 pb-4 pt-6">
+          {item.imageUrl && (
+            <div className="relative -mx-6 -mt-6 mb-5 aspect-[16/10] bg-paper">
+              <Image src={item.imageUrl} alt={item.name} fill sizes="(min-width: 640px) 512px, 100vw" className="object-cover" unoptimized />
+            </div>
+          )}
           <div className="flex items-start gap-3">
             <div className="pt-2"><DietMark diet={variant.diet ?? item.diet} size={16} /></div>
             <h2 id="item-title" className="flex-1 font-display text-3xl leading-tight text-berry">{item.name}</h2>
-            <button type="button" onClick={onClose} className="rounded-full px-3 py-1 text-sm text-muted hover:bg-paper">
+            <button type="button" onClick={onClose} className="min-h-10 rounded-full px-3 py-1 text-sm text-muted hover:bg-paper" aria-label={`Close ${item.name}`}>
               Close
             </button>
           </div>
