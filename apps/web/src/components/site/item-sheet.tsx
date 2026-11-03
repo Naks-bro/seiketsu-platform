@@ -8,6 +8,7 @@ import { formatINR } from "@/lib/format";
 import { useCart, type CartLine } from "@/lib/cart";
 import { requestLocation } from "@/lib/location";
 import { DietMark } from "@/components/diet-mark";
+import { DishArt } from "./menu/dish-art";
 import { useModal } from "./use-modal";
 import { QuantityStepper } from "./cart-drawer";
 import { ExtrasPicker } from "./menu/extras-picker";
@@ -80,7 +81,9 @@ export function ItemSheet({ item, canOrder, onClose, filter = NO_FILTER, editing
               <Image src={item.imageUrl} alt={item.name} fill sizes="(min-width: 640px) 576px, 100vw" className="object-cover" unoptimized />
             </div>
           ) : (
-            <div aria-hidden className="h-3" />
+            <div className="relative aspect-[3/1]">
+              <DishArt category={item.categorySlug} seed={item.name} size="lg" />
+            </div>
           )}
           <div className="px-6 pb-6 pt-5">
             <div className="flex items-start gap-3">

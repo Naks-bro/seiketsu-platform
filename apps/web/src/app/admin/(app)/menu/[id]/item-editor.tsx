@@ -58,6 +58,7 @@ export function ItemEditor({ item, categories }: { item: EditorItem; categories:
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [pending, start] = useTransition();
 
   const set = <K extends keyof EditorItem>(k: K, v: EditorItem[K]) => setForm((f) => ({ ...f, [k]: v }));
@@ -210,17 +211,41 @@ export function ItemEditor({ item, categories }: { item: EditorItem; categories:
       <aside className="space-y-5">
         <section className={`${panel} space-y-3`}>
           <h2 className="font-display text-xl">Photo</h2>
-          {form.imageUrl ? (
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-paper">
-              <Image src={form.imageUrl} alt={`Photo of ${form.name || "the dish"}`} fill sizes="320px" className="object-cover" unoptimized />
-            </div>
-          ) : (
-            <p className="grid aspect-[4/3] place-items-center rounded-xl bg-paper text-sm text-muted">No photo yet</p>
-          )}
-          <label className={`${btnGhost} w-full cursor-pointer`}>
-            {uploading ? "Uploading…" : form.imageUrl ? "Replace photo" : "Upload photo"}
+          <label
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              upload(e.dataTransfer.files?.[0]);
+            }}
+            className={`relative block cursor-pointer overflow-hidden rounded-xl border-2 border-dashed transition ${dragging ? "border-berry bg-berry/5" : "border-line hover:border-berry/50"}`}
+          >
+            {form.imageUrl ? (
+              <span className="relative block aspect-square">
+                <Image src={form.imageUrl} alt={`Photo of ${form.name || "the dish"}`} fill sizes="320px" className="object-cover" unoptimized />
+                <span className="absolute inset-x-0 bottom-0 bg-ink/55 px-3 py-1.5 text-center text-xs font-medium text-cream">
+                  {uploading ? "Uploading…" : "Drop a new photo or click to replace"}
+                </span>
+              </span>
+            ) : (
+              <span className="grid aspect-square place-items-center p-4 text-center text-sm text-muted">
+                <span>
+                  <span className="mx-auto mb-2 grid size-12 place-items-center rounded-full bg-paper text-2xl text-berry" aria-hidden>+</span>
+                  <span className="block font-semibold text-berry">{uploading ? "Uploading…" : "Drop a photo here"}</span>
+                  or click to choose one
+                </span>
+              </span>
+            )}
             <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => upload(e.target.files?.[0])} disabled={uploading} />
           </label>
+          <p className="text-xs text-muted">
+            Shown square on the menu, as above. Best: the dish from straight above or at a slight angle, in daylight, filling the frame.
+            JPG, PNG or WebP; large photos are shrunk automatically.
+          </p>
           {form.imageUrl && <button type="button" className="text-sm text-nonveg hover:underline" onClick={() => set("imageUrl", "")}>Remove photo</button>}
         </section>
 

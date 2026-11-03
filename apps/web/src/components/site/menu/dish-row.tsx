@@ -11,6 +11,7 @@ import { DietMark } from "@/components/diet-mark";
 import { flyToCart } from "../fly-to-cart";
 import { showToast } from "../toast";
 import { cartLineFor, isSimple } from "./cart-line";
+import { DishArt } from "./dish-art";
 
 const range = (ns: number[], unit: string) =>
   ns.length === 0 ? null : Math.min(...ns) === Math.max(...ns) ? `${ns[0]}${unit}` : `${Math.min(...ns)}–${Math.max(...ns)}${unit}`;
@@ -84,9 +85,7 @@ export function DishRow({ item, canOrder, onCustomise, onlyDiet = null }: { item
           {item.imageUrl ? (
             <Image src={item.imageUrl} alt="" fill sizes="160px" className="object-cover transition duration-500 hover:scale-105" unoptimized />
           ) : (
-            <span aria-hidden className="grid size-full place-items-center bg-[radial-gradient(circle_at_30%_25%,var(--color-butter),var(--color-paper)_70%)] font-display text-5xl text-berry/70">
-              {item.name.charAt(0)}
-            </span>
+            <DishArt category={item.categorySlug} seed={item.name} />
           )}
         </button>
         <div ref={btn} className="relative z-10 -mt-5 w-[84%]">

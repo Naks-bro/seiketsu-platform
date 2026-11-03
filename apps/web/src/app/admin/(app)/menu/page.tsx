@@ -40,6 +40,7 @@ export default async function AdminMenu() {
   const variants = await db.select().from(menuItemVariants).orderBy(asc(menuItemVariants.sort));
   const extras = await db.select().from(addons).orderBy(asc(addons.sort));
   const review = items.filter((i) => i.item.needsReview);
+  const noPhoto = items.filter((i) => !i.item.imageUrl).length;
   const editFlags = can.manageMenu(staff);
 
   return (
@@ -47,6 +48,13 @@ export default async function AdminMenu() {
       <PageHeader title="Menu" lede="Mark dishes sold out for today with one tap. Owners and managers can edit names, prices, sizes and photos.">
         {editFlags && <Link href="/admin/menu/new" className={btnPrimary}>Add a dish</Link>}
       </PageHeader>
+
+      {editFlags && noPhoto > 0 && (
+        <p className="rounded-2xl border border-line bg-white p-4 text-sm">
+          <strong>{noPhoto} of {items.length} dishes have no photo yet.</strong> They show a drawn placeholder on the menu. Open a dish and
+          drop its photo in to replace it.
+        </p>
+      )}
 
       {review.length > 0 && (
         <section className="rounded-2xl border border-orange/50 bg-orange/10 p-4 text-sm">
@@ -79,7 +87,7 @@ export default async function AdminMenu() {
                         ) : (
                           <span className="font-medium">{item.name}</span>
                         )}
-                        {item.imageUrl && <span className="ml-2 text-xs text-muted">· photo</span>}
+                        {item.imageUrl ? <span className="ml-2 text-xs text-veg">· photo</span> : <span className="ml-2 text-xs text-muted">· no photo</span>}
                         {item.needsReview && <span className="ml-2 rounded bg-orange/20 px-1.5 text-xs">needs review</span>}
                         <span className="tabular block text-xs text-muted">
                           {variants.filter((v) => v.menuItemId === item.id).map((v) => `${v.label ?? "Regular"} ${formatINR(v.pricePaise)}`).join(" · ")}
