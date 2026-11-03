@@ -45,13 +45,11 @@
   },
   {
     "category": "Salads",
-    "name": "Large (400g) 320",
-    "price_text": "₹ Large (400g) 320",
+    "name": "Spicy Tofu Protein Salad Bowl",
+    "price_text": "₹ Small (300g) 299 / Large (400g) 320",
     "description": "Crisp Salad greens, baby spinach, salad greens, bell peppers, tangy tomatoes, jalapeno, cucumber topped with chilli tofu and served with Russian salad dressing.",
     "nutrition_source_text": "Small: 370 kcal • Protein 18 g • Carbs 23 g • Fat 24 g • Fiber 8 g | Large: 490 kcal • Protein 24 g • Carbs 31 g • Fat 32 g • Fiber 11 g",
-    "flags": [
-      "malformed product name; requires correction from brand"
-    ],
+    "flags": [],
     "included": true
   },
   {
@@ -77,11 +75,11 @@
   {
     "category": "Salads",
     "name": "Healthy Quinoa Salad Bowl",
-    "price_text": "₹ Small (350g) 330 / Large (450g) 380",
+    "price_text": "₹ Veg (450g) 380 / Chicken (450g) 460",
     "description": "Fluﬀy quinoa, fresh spinach, crisp cucumber, colorful bell peppers, juicy cherry tomatoes and avocado with honey balsamic dressing.",
-    "nutrition_source_text": "Small: 460 kcal • Protein 12 g • Carbs 54 g • Fat 23 g • Fiber 11 g | Large: 590 kcal • Protein 15 g • Carbs 69 g • Fat 30 g • Fiber 14 g",
+    "nutrition_source_text": "",
     "flags": [
-      "multiple variants; checkout flattens to one price; do not use checkout as authoritative"
+      "prices from the Nov 2026 printed menu; nutrition was given per Small/Large and needs re-supplying for Veg/Chicken"
     ],
     "included": true
   },
@@ -98,13 +96,11 @@
   },
   {
     "category": "Salads",
-    "name": "Large (450g) 350",
-    "price_text": "₹ Large (450g) 350",
+    "name": "Fresh Zucchini Noodles Salad Bowl",
+    "price_text": "₹ Small (350g) 300 / Large (450g) 350",
     "description": "Fresh spiralized green and yellow zucchini, tangy tomatoes, red cabbage, thinly sliced bell peppers, onion with Italian herbs dressing.",
     "nutrition_source_text": "Small: 260 kcal • Protein 6 g • Carbs 25 g • Fat 16 g • Fiber 7 g | Large: 335 kcal • Protein 8 g • Carbs 32 g • Fat 21 g • Fiber 9 g",
-    "flags": [
-      "malformed product name; requires correction from brand"
-    ],
+    "flags": [],
     "included": true
   },
   {
@@ -142,7 +138,7 @@
   },
   {
     "category": "Salads",
-    "name": "Exotic Fresh Fruit Bowl",
+    "name": "Exotic Fresh Fruits Bowl",
     "price_text": "₹ (400g) 399",
     "description": "A refreshing bowl of red apples, green apples, pears, pomegranate arils, kiwis, watermelon, dragon fruit and exotic blueberries, ﬁnished with a light orange dressing and fresh mint.",
     "nutrition_source_text": "290 kcal • Protein 4 g • Carbs 68 g • Fat 2 g • Fiber 11 g",
@@ -229,7 +225,7 @@
   },
   {
     "category": "Sandwiches",
-    "name": "Avocado Toast – Veg / Egg",
+    "name": "Avocado Toast",
     "price_text": "₹ Veg 300 / Egg 350",
     "description": "Creamy Guacamole on toasted bread, seasoned with herbs, lime and cracked pepper. Choose classic veg or add egg for an extra protein boost.",
     "nutrition_source_text": "Veg: 340 kcal • Protein 8 g • Carbs 39 g • Fat 18 g • Fiber 9 g | Egg: 420 kcal • Protein 15 g • Carbs 40 g • Fat 24 g • Fiber 9 g",
@@ -240,7 +236,7 @@
   },
   {
     "category": "Sandwiches",
-    "name": "Tandoori Grill – Paneer / Chicken",
+    "name": "Tandoori Grill",
     "price_text": "₹ Paneer 250 / Chicken 300",
     "description": "Grilled Paneer or Chicken layered with fresh vegetables, melted cheese and your choice of smoky tandoori sauce or creamy chipotle sauce.",
     "nutrition_source_text": "Paneer: 520 kcal • Protein 23 g • Carbs 46 g • Fat 28 g • Fiber 5 g | Chicken: 480 kcal • Protein 36 g • Carbs 45 g • Fat 17 g • Fiber 5 g",
@@ -364,6 +360,17 @@
     "included": true
   },
   {
+    "category": "Juices",
+    "name": "Pomegranate Juice",
+    "price_text": "₹ (300ml) 240",
+    "description": "",
+    "nutrition_source_text": "",
+    "flags": [
+      "added from the printed menu; no description or nutrition supplied"
+    ],
+    "included": true
+  },
+  {
     "category": "Smoothies",
     "name": "Chocolate Smoothie",
     "price_text": "₹ 200",
@@ -374,7 +381,7 @@
   },
   {
     "category": "Smoothies",
-    "name": "Fresh Fruit Smoothie",
+    "name": "Mix Fruit Smoothie",
     "price_text": "₹ 230",
     "description": "A refreshing blend of seasonal fruits and a creamy base, naturally fruity and deliciously smooth.",
     "nutrition_source_text": "280 kcal • Protein 9 g • Carbs 49 g • Fat 6 g • Fiber 4 g",

@@ -91,8 +91,17 @@ describe("checkout", () => {
     await expect(checkout([{ name: "Green Machine", addOns: ["Avocado"] }])).rejects.toThrow(/extra is not available/);
   });
 
+  it("holds each extras shelf to its pick-up-to limit", async () => {
+    const { addonGroups } = await import("@seiketsu/db");
+    await db.update(addonGroups).set({ maxSelect: 1 }).where(eq(addonGroups.name, "Proteins"));
+    await expect(
+      checkout([{ name: "Herbed Paneer / Chicken Protein Salad Bowl", label: "Chicken", addOns: ["Tandoori Paneer", "Chilli Tofu"] }]),
+    ).rejects.toThrow(/Too many extras/);
+    await db.update(addonGroups).set({ maxSelect: 3 }).where(eq(addonGroups.name, "Proteins"));
+  });
+
   it("refuses items hidden for owner review", async () => {
-    await expect(checkout([{ name: "Large (400g) 320", label: "Large" }])).rejects.toThrow(/sold out/);
+    await expect(checkout([{ name: "Pomegranate Juice" }])).rejects.toThrow(/sold out/);
   });
 
   it("refuses sold-out items", async () => {

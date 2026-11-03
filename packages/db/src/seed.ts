@@ -6,6 +6,7 @@
 import { fileURLToPath } from "node:url";
 import { eq, inArray } from "drizzle-orm";
 import { parseMenu, type Diet, type SourceMenuRow } from "@seiketsu/core/menu-parse";
+import { EXTRA_GROUPS, extraPlacement } from "@seiketsu/core/extras";
 import rows from "../data/seiketsu_menu.json" with { type: "json" };
 import { openDb, type Db } from "./client.ts";
 import { runMigrations } from "./migrate.ts";
@@ -25,6 +26,8 @@ export const VERSOVA = {
 };
 
 const CATEGORY_ORDER = ["Salads", "Wraps", "Meals", "Sandwiches", "Pasta", "Juices", "Smoothies"];
+/** Section titles as printed on the menu card. */
+const CATEGORY_TITLE: Record<string, string> = { Salads: "Fresh Salads", Meals: "Wholesome Meals", Juices: "Fresh-Pressed Juices" };
 /** Categories that offer the Extras add-ons (owner to confirm). */
 const EXTRAS_ON = new Set(["Salads", "Wraps", "Meals", "Sandwiches", "Pasta"]);
 
@@ -52,7 +55,7 @@ export async function seed(db: Db) {
     const slug = name.toLowerCase();
     const [row] = await db
       .insert(s.categories)
-      .values({ slug, name, sort: i })
+      .values({ slug, name: CATEGORY_TITLE[name] ?? name, sort: i })
       .onConflictDoNothing({ target: s.categories.slug })
       .returning();
     if (row) summary.categories++;
@@ -60,21 +63,31 @@ export async function seed(db: Db) {
     catIds.set(name, cat.id);
   }
 
-  // Extras become one add-on group
-  let [group] = await db.select().from(s.addonGroups).where(eq(s.addonGroups.name, "Extras"));
-  if (!group) {
-    [group] = await db.insert(s.addonGroups).values({ name: "Extras", minSelect: 0, maxSelect: 14 }).returning();
+  // Extras sit on Subway-style shelves (Proteins, Cheese, ...). Ids stay stable on re-runs.
+  const groupIds: string[] = [];
+  const haveExtras = await db.select().from(s.addonGroups).where(eq(s.addonGroups.isExtra, true));
+  if (haveExtras.length) {
+    groupIds.push(...haveExtras.map((g) => g.id));
+  } else {
     const extras = items.filter((i) => i.isExtra);
-    await db.insert(s.addons).values(
-      extras.map((e, i) => ({
-        groupId: group.id,
-        name: e.name,
-        pricePaise: e.variants[0].pricePaise,
-        diet: extraDiet(e.name),
-        sort: i,
-      })),
-    );
-    summary.addons = extras.length;
+    for (const [sort, g] of EXTRA_GROUPS.entries()) {
+      const [row] = await db.insert(s.addonGroups).values({ name: g.name, minSelect: 0, maxSelect: g.maxSelect, sort, isExtra: true }).returning();
+      groupIds.push(row.id);
+      const mine = extras.filter((e) => extraPlacement(e.name).group === g.name);
+      if (mine.length) {
+        await db.insert(s.addons).values(
+          mine.map((e, i) => ({
+            groupId: row.id,
+            name: e.name,
+            pricePaise: e.variants[0].pricePaise,
+            diet: extraDiet(e.name),
+            icon: extraPlacement(e.name).icon,
+            sort: i,
+          })),
+        );
+      }
+      summary.addons += mine.length;
+    }
   }
 
   // Dishes
@@ -124,7 +137,7 @@ export async function seed(db: Db) {
         .insert(s.outletMenuItems)
         .values({ outletId: outlet.id, menuItemId: item.id, isAvailable: !d.needsReview });
       if (EXTRAS_ON.has(d.category)) {
-        await tx.insert(s.menuItemAddonGroups).values({ menuItemId: item.id, groupId: group.id });
+        await tx.insert(s.menuItemAddonGroups).values(groupIds.map((groupId) => ({ menuItemId: item.id, groupId })));
       }
       summary.items++;
       summary.variants += d.variants.length;

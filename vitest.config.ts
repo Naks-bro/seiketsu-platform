@@ -5,11 +5,11 @@ const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
 export default defineConfig({
   resolve: {
-    alias: {
-      "@/": r("./apps/web/src/"),
+    alias: [
+      { find: /^@\//, replacement: r("./apps/web/src/") },
       // Next.js enforces this at build time; in tests it is a no-op.
-      "server-only": r("./apps/web/test/empty.ts"),
-    },
+      { find: "server-only", replacement: r("./apps/web/test/empty.ts") },
+    ],
   },
   test: {
     include: ["packages/**/src/**/*.test.ts", "apps/web/src/**/*.test.ts"],

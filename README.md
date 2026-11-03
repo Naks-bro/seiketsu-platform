@@ -123,6 +123,33 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
 - Stock may go below zero if sales arrive before a delivery is entered. Low and out-of-stock items show
   on the Stock tab and are sent to the owner alert number (at most every 12 hours).
 
+## Customer site: delivery area, menu and cart
+
+- **Delivery or pickup first.** The first time someone taps ADD, a sheet asks "Delivery or pickup?". Delivery
+  needs a pincode, checked against **Settings → Delivery pincodes** (an empty list means every pincode).
+  The choice is kept in the browser, shown in the header pill and cart, and pre-fills checkout. The server
+  still checks the pincode when the order is placed.
+- **Not in the area yet**: `/coming-soon?pin=…` apologises and collects name, mobile, area, pincode and an
+  optional email (validated, rate-limited per IP, with a hidden bot trap). Staff see them, grouped by pincode,
+  in **Admin → Area requests**, can mark each one contacted and download a CSV.
+- **Menu**: a section rail with scroll-spy (desktop) or chips plus a floating Menu button (phones), and
+  Swiggy-style rows with an ADD button. Dishes with one size and no extras go straight into the cart;
+  the rest open the dish sheet.
+- **Veg only** shows only dishes and extras *marked* vegetarian. Unmarked ones are never assumed veg, and
+  the page says how many are unmarked. Two-way dishes (Paneer / Chicken) show only their veg option.
+- **Extras** sit on four shelves (Proteins, Cheese, Veggies & toppings, Sauces & dips), each with a
+  pick-up-to limit that the server also enforces, and an icon chosen in **Admin → Menu → Extras**.
+- **Adding to the cart** never opens it. A token flies to the cart, the badge bumps and a toast offers
+  "View cart". All motion is skipped under reduced motion. The cart lists every extra with its price,
+  lets each line be edited, and shows progress to free delivery and the minimum order.
+- **Home page**: built from the brand brief ("Premium nutrition fresh house"). The pictures are the
+  supplied brand art, café photos (no people) and hand-drawn SVG illustrations in
+  `components/site/home/doodles.tsx`. Swap in real dish photography when it exists. `public/landing/`
+  holds the resized café photos and posters.
+- **Hero video**: `public/landing/hero.mp4` is the brand reel from Instagram (@sei_ketsu), re-encoded to
+  720×900 H.264 with no sound; `hero-poster.webp` is its first frame. It loops muted, has a pause button,
+  and stays paused for visitors who prefer reduced motion. To change it, replace both files (4:5, under ~2 MB).
+
 ## Customer login, messaging and bills
 
 - **Login**: `/account`. Phone number + 6-digit code sent on WhatsApp (SMS fallback or "Send by SMS instead").
@@ -166,16 +193,22 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
 
 ## Data that needs the owner's confirmation
 
+The printed menu (Nov 2026) named the two unnamed salads (Spicy Tofu Protein Salad Bowl, Fresh Zucchini
+Noodles Salad Bowl) and added their Small prices. Migration `0005_menu_from_print` applies this and the
+other printed-menu changes to an existing database.
+
 Shown in **Admin → Menu → Hidden until corrected**:
-- Two salads have no names in the source and list only a Large price
-  ("Large (400g) 320": chilli tofu, Russian dressing; "Large (450g) 350": spiralised zucchini).
-  Their Small nutrition is given but no Small price. They are hidden until corrected.
+- Healthy Quinoa Salad Bowl: now Veg (450g) ₹380 / Chicken (450g) ₹460. Its nutrition was given for
+  Small/Large, so it needs nutrition for each option before it shows again.
+- Pomegranate Juice (300ml) ₹240: new on the printed menu, with no description or nutrition yet.
 
 Also to confirm:
 - Watermelon Mint Refresher has the same description as Celery – Green Apple – Carrot.
 - Spelling in the source: "Honey Musterd Dip", "Ceamy Mozzarella".
+- The printed menu gives the phone as 95847 58479; the site uses +91 79776 97408 (WhatsApp 917977697408).
 - Which extras go with which dishes (currently: all salads, wraps, meals, sandwiches and pasta).
-- Veg/non-veg marks are shown only where the menu states them (Paneer/Veg/Egg/Chicken).
+- Veg/non-veg marks are shown only where the menu states them (Paneer/Veg/Egg/Chicken). About 20 dishes
+  (most salads, pasta, juices, smoothies) are unmarked, so **Veg only** hides them until marked in the editor.
 - GST registration, rate and whether prices include it (GST is off until set).
 - Opening hours, delivery area, delivery fee and minimum order (delivery is off until set).
 - Policy pages (`/terms`, `/privacy`, `/refunds`, `/delivery`, `/contact`) are drafts: review the wording,

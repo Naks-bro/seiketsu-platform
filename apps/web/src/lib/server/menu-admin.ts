@@ -55,7 +55,7 @@ export async function saveMenuItem(raw: unknown, outletId: string) {
   const input = itemInput.parse(raw);
   if (!input.variants.some((v) => v.isActive)) throw new z.ZodError([{ code: "custom", path: ["variants"], message: "Keep at least one size on sale" }]);
   const db = await getDb();
-  const [extras] = await db.select().from(addonGroups).where(eq(addonGroups.name, "Extras"));
+  const extraGroups = await db.select({ id: addonGroups.id }).from(addonGroups).where(eq(addonGroups.isExtra, true));
   const slug = input.id ? undefined : await uniqueSlug(input.name);
 
   return db.transaction(async (tx) => {
@@ -103,9 +103,10 @@ export async function saveMenuItem(raw: unknown, outletId: string) {
     const dropped = [...owned].filter((id) => !kept.has(id));
     if (dropped.length) await tx.update(menuItemVariants).set({ isActive: false }).where(inArray(menuItemVariants.id, dropped));
 
-    if (extras) {
-      await tx.delete(menuItemAddonGroups).where(and(eq(menuItemAddonGroups.menuItemId, itemId), eq(menuItemAddonGroups.groupId, extras.id)));
-      if (input.offersExtras) await tx.insert(menuItemAddonGroups).values({ menuItemId: itemId, groupId: extras.id });
+    if (extraGroups.length) {
+      const ids = extraGroups.map((g) => g.id);
+      await tx.delete(menuItemAddonGroups).where(and(eq(menuItemAddonGroups.menuItemId, itemId), inArray(menuItemAddonGroups.groupId, ids)));
+      if (input.offersExtras) await tx.insert(menuItemAddonGroups).values(ids.map((groupId) => ({ menuItemId: itemId, groupId })));
     }
     await tx
       .insert(outletMenuItems)

@@ -7,7 +7,7 @@ const byName = (name: string) => items.find((i) => i.name === name)!;
 
 describe("menu parser on the real Seiketsu menu", () => {
   it("parses every row without throwing", () => {
-    expect(items).toHaveLength(53);
+    expect(items).toHaveLength(54);
     expect(items.filter((i) => i.isExtra)).toHaveLength(14);
   });
 
@@ -60,13 +60,24 @@ describe("menu parser on the real Seiketsu menu", () => {
     expect(byName("Green Machine").variants[0].portion).toEqual({ amount: 300, unit: "ml" });
   });
 
-  it("flags the two unnamed salads for review and does not guess the Small price", () => {
+  it("names the two salads from the printed menu, with both sizes", () => {
+    expect(byName("Spicy Tofu Protein Salad Bowl").variants.map((v) => [v.label, v.portion?.amount, v.pricePaise, v.nutrition?.kcal])).toEqual([
+      ["Small", 300, 29900, 370],
+      ["Large", 400, 32000, 490],
+    ]);
+    expect(byName("Fresh Zucchini Noodles Salad Bowl").variants.map((v) => [v.label, v.pricePaise])).toEqual([
+      ["Small", 30000],
+      ["Large", 35000],
+    ]);
+  });
+
+  it("holds back dishes whose nutrition has not been supplied, rather than guessing it", () => {
     const flagged = items.filter((i) => i.needsReview);
-    expect(flagged.map((i) => i.name).sort()).toEqual(["Large (400g) 320", "Large (450g) 350"]);
-    for (const it of flagged) {
-      expect(it.variants.map((v) => v.label)).toEqual(["Large"]);
-      expect(it.issues.join(" ")).toMatch(/small/i);
-    }
+    expect(flagged.map((i) => i.name).sort()).toEqual(["Healthy Quinoa Salad Bowl", "Pomegranate Juice"]);
+    expect(byName("Healthy Quinoa Salad Bowl").variants.map((v) => [v.label, v.diet, v.pricePaise])).toEqual([
+      ["Veg", "veg", 38000],
+      ["Chicken", "non_veg", 46000],
+    ]);
   });
 
   it("parses extras as single-price items", () => {

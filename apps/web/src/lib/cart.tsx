@@ -14,8 +14,9 @@ export type CartLine = {
   name: string;
   variantLabel: string | null;
   unitPricePaise: number;
-  addOns: { id: string; name: string; pricePaise: number }[];
+  addOns: { id: string; name: string; pricePaise: number; icon?: string | null }[];
   diet: Diet | null;
+  imageUrl?: string | null;
 };
 
 const STORAGE_KEY = "seiketsu.cart.v1";
@@ -35,6 +36,11 @@ type CartCtx = {
   removedNames: string[];
   drawerOpen: boolean;
   setDrawerOpen: (open: boolean) => void;
+  /** Swaps a line for its edited version (sheet opened from the cart). */
+  replace: (key: string, line: Omit<CartLine, "key">) => void;
+  /** The cart line being edited in the item sheet, if any. */
+  editingKey: string | null;
+  setEditingKey: (key: string | null) => void;
 };
 
 const Ctx = createContext<CartCtx | null>(null);
@@ -94,6 +100,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const lines = useSyncExternalStore(subscribe, getSnapshot, () => EMPTY);
   const ready = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [removedNames, setRemovedNames] = useState<string[]>([]);
 
   useEffect(() => {
@@ -121,6 +128,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const remove = useCallback((key: string) => setLines((prev) => prev.filter((p) => p.key !== key)), []);
+
+  const replace = useCallback((key: string, l: Omit<CartLine, "key">) => {
+    const next = lineKey(l);
+    setLines((prev) => {
+      const rest = prev.filter((p) => p.key !== key);
+      const same = rest.find((p) => p.key === next);
+      if (same) return rest.map((p) => (p.key === next ? { ...p, quantity: Math.min(20, p.quantity + l.quantity) } : p));
+      const at = prev.findIndex((p) => p.key === key);
+      const out = [...rest];
+      out.splice(at < 0 ? out.length : at, 0, { ...l, key: next });
+      return out;
+    });
+  }, []);
   const clear = useCallback(() => setLines(() => []), []);
 
   /** Drops items no longer on the menu and refreshes prices. Returns names that were removed. */
@@ -140,10 +160,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         next.push({
           ...l,
           name: item.name,
+          imageUrl: item.imageUrl,
           unitPricePaise: variant.pricePaise,
           addOns: l.addOnIds.map((id) => {
             const a = allAddons.get(id)!;
-            return { id: a.id, name: a.name, pricePaise: a.pricePaise };
+            return { id: a.id, name: a.name, pricePaise: a.pricePaise, icon: a.icon };
           }),
         });
       }
@@ -166,8 +187,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removedNames,
       drawerOpen,
       setDrawerOpen,
+      replace,
+      editingKey,
+      setEditingKey,
     }),
-    [lines, ready, add, setQuantity, remove, clear, reconcile, removedNames, drawerOpen],
+    [lines, ready, add, setQuantity, remove, clear, reconcile, removedNames, drawerOpen, replace, editingKey],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

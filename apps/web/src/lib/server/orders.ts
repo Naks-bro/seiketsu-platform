@@ -2,6 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { and, eq, gt, inArray, lt, or, sql } from "drizzle-orm";
 import {
+  addonGroups,
   addons,
   customers,
   consentEvents,
@@ -23,6 +24,7 @@ import { cartLineSchema, indianMobile, type CheckoutData } from "@seiketsu/core/
 import { z } from "zod";
 import { checkTransition, REFUND_ON, type OrderStatus } from "@seiketsu/core/order-status";
 import { computeQuote } from "@seiketsu/core/pricing";
+import { isServiceable } from "@seiketsu/core/delivery-area";
 import { eventForStatus, financialYear, formatInvoiceNumber, type CustomerEvent } from "@seiketsu/core/messaging";
 import { getStore } from "./catalog";
 import { env } from "./env";
@@ -96,6 +98,10 @@ async function resolveLines(db: Db, inputLines: CartLine[], outletId: string) {
   const addonById = new Map(addonRows.map((a) => [a.id, a]));
   const itemIds = [...new Set(input.lines.map((l) => l.menuItemId))];
   const links = await db.select().from(menuItemAddonGroups).where(inArray(menuItemAddonGroups.menuItemId, itemIds));
+  const usedGroups = [...new Set(addonRows.map((a) => a.groupId))];
+  const groupMax = new Map(
+    (usedGroups.length ? await db.select().from(addonGroups).where(inArray(addonGroups.id, usedGroups)) : []).map((g) => [g.id, g.maxSelect]),
+  );
 
   return input.lines.map((line) => {
     const r = byVariant.get(line.variantId);
@@ -108,6 +114,10 @@ async function resolveLines(db: Db, inputLines: CartLine[], outletId: string) {
       if (!a.isAvailable) throw new OrderError(`${a.name} is sold out right now.`, 409);
       return a;
     });
+    for (const g of new Set(chosen.map((a) => a.groupId))) {
+      const max = groupMax.get(g);
+      if (max !== undefined && chosen.filter((a) => a.groupId === g).length > max) throw new OrderError(`Too many extras from one group for ${r.item.name}.`, 400);
+    }
     return { line, item: r.item, variant: r.v, addons: chosen };
   });
 }
@@ -150,7 +160,7 @@ export async function createCheckout(input: CheckoutData): Promise<CheckoutResul
   if (input.fulfilment === "delivery") {
     if (!store.deliveryEnabled) throw new OrderError("Delivery is not available right now.");
     const pin = input.address!.pincode;
-    if (store.deliveryPincodes.length && !store.deliveryPincodes.includes(pin)) {
+    if (!isServiceable(pin, store.deliveryPincodes)) {
       throw new OrderError(`Sorry, we do not deliver to ${pin} yet.`);
     }
   }

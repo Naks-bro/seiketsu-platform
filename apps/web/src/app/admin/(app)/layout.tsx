@@ -16,6 +16,7 @@ function navFor(s: Staff) {
   if (can.reports(s)) items.push({ href: "/admin/reports", label: "Reports" });
   if (can.messaging(s)) items.push({ href: "/admin/messages", label: "Messages" });
   if (can.manageStaff(s)) items.push({ href: "/admin/staff", label: "Staff" });
+  if (can.manageSettings(s)) items.push({ href: "/admin/area-requests", label: "Area requests" });
   if (can.manageSettings(s)) items.push({ href: "/admin/settings", label: "Settings" });
   return items;
 }

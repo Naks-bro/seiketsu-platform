@@ -19,6 +19,10 @@ export default async function PrivacyPage() {
         <li>Your name and mobile number, to prepare your order and contact you about it.</li>
         <li>Your delivery address, if you choose delivery.</li>
         <li>Your order details and any notes you add.</li>
+        <li>
+          If you ask to be told when we deliver to your area: your name, mobile number, area, pincode and, if you give it, your email. We
+          use these only to contact you about delivery to your area.
+        </li>
         <li>Payment status and reference numbers from Razorpay. We do not receive or store card numbers, UPI PINs or bank passwords.</li>
       </ul>
       <h2>How we use it</h2>
@@ -32,7 +36,7 @@ export default async function PrivacyPage() {
       <h2>Your choices</h2>
       <p>You can ask us to show, correct or delete your personal data, or withdraw marketing consent, by contacting us. Some order records must be kept for tax and accounting purposes.</p>
       <h2>Cookies</h2>
-      <p>Your cart is saved in your browser so it is not lost if you close the page. We do not use advertising cookies.</p>
+      <p>Your cart and your delivery or pickup choice are saved in your browser so they are not lost if you close the page. We do not use advertising cookies.</p>
       <h2>Contact</h2>
       <p>For privacy requests or grievances, see <Link href="/contact">Contact us</Link>.</p>
     </PolicyPage>

@@ -6,14 +6,20 @@ import { CartProvider } from "@/lib/cart";
 import { getStore } from "@/lib/server/catalog";
 import { getCustomer } from "@/lib/server/customer-auth";
 import { whatsappLink } from "@/lib/format";
-import { CartButton, CartDrawer } from "@/components/site/cart-drawer";
+import { CartButton, CartDrawer, MobileCartBar } from "@/components/site/cart-drawer";
+import { LocationPill, LocationSheet } from "@/components/site/location-picker";
+import { DesktopNav, HeaderShell, MobileNav, RevealOnScroll } from "@/components/site/site-nav";
+import { Toaster } from "@/components/site/toast";
 import { POLICY_LINKS } from "@/components/site/policy-page";
+
+const PICKUP_FROM = "Versova";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   await connection();
   const [store, customer] = await Promise.all([getStore(), getCustomer()]);
   const wa = whatsappLink(store.whatsapp);
-  const notice = store.closureMessage ?? (!store.isOpenNow && store.hours ? "We are closed right now. You can still browse the menu." : null) ?? store.announcement;
+  const notice = store.closureMessage ?? (!store.isOpenNow && store.hours ? "We're closed right now. Browse the menu and order when we open." : null) ?? store.announcement;
+  const accountLabel = customer ? "Account" : "Sign in";
 
   return (
     <CartProvider>
@@ -23,81 +29,93 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           {notice}
         </div>
       )}
-      <header className="sticky top-0 z-30 bg-berry text-cream">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
+      <HeaderShell>
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-5 sm:px-6">
           <Link href="/" aria-label="Seiketsu home" className="shrink-0">
             <Image src="/brand/wordmark-berry.png" alt="Seiketsu" width={131} height={26} priority className="h-[22px] w-auto sm:h-[26px]" />
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium sm:flex" aria-label="Main">
-            <Link href="/menu" className="hover:text-butter">Menu</Link>
-            <Link href="/#visit" className="hover:text-butter">Visit us</Link>
-          </nav>
-          <div className="ml-auto flex items-center gap-2">
-            <Link href="/account" className="rounded-full px-3 py-2 text-sm font-medium hover:bg-berry-deep">
-              {customer ? "Account" : "Sign in"}
-            </Link>
-            <Link href="/menu" className="rounded-full px-3 py-2 text-sm font-medium hover:bg-berry-deep sm:hidden">
-              Menu
+          <DesktopNav />
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+            <LocationPill pickupFrom={PICKUP_FROM} />
+            <Link href="/account" className="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-berry-deep lg:block">
+              {accountLabel}
             </Link>
             <CartButton />
+            <MobileNav accountLabel={accountLabel} />
           </div>
         </div>
-      </header>
+      </HeaderShell>
 
-      <main id="main" tabIndex={-1} className="outline-none">{children}</main>
-      <CartDrawer />
+      <main id="main" tabIndex={-1} className="overflow-x-clip outline-none">{children}</main>
+      <CartDrawer
+        pickupFrom={PICKUP_FROM}
+        pricing={{
+          deliveryFeePaise: store.pricing.deliveryFeePaise,
+          freeDeliveryAbovePaise: store.pricing.freeDeliveryAbovePaise,
+          minOrderPaise: store.pricing.minOrderPaise,
+          deliveryEnabled: store.deliveryEnabled,
+        }}
+      />
+      <LocationSheet pincodes={store.deliveryPincodes} deliveryEnabled={store.deliveryEnabled} pickupEnabled={store.pickupEnabled} pickupFrom={PICKUP_FROM} />
+      <Toaster />
+      <MobileCartBar />
+      <RevealOnScroll />
 
-      <footer className="mt-24 border-t border-line bg-paper">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-3 sm:px-6">
-          <div className="space-y-3">
-            <p className="font-display text-2xl text-berry">The art of clean eating.</p>
-            <p className="text-sm text-muted">Fresh food · Thoughtful ingredients · Feel-good flavours</p>
+      <footer className="mt-24 bg-ink text-cream">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-10 pt-16 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <div className="space-y-4">
+            <Image src="/brand/wordmark-berry.png" alt="Seiketsu" width={131} height={26} className="h-7 w-auto brightness-0 invert" />
+            <p className="font-display text-3xl leading-tight text-butter">The art of clean eating.</p>
+            <p className="max-w-xs text-sm text-cream/70">A premium nutrition fresh house in Versova. Fresh ingredients, thoughtful nutrition, exceptional taste.</p>
           </div>
+          <nav aria-label="Explore" className="space-y-2 text-sm">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-cream/50">Explore</h2>
+            <Link href="/menu" className="block hover:text-butter">Menu</Link>
+            <Link href="/#story" className="block hover:text-butter">Our story</Link>
+            <Link href="/delivery" className="block hover:text-butter">Delivery &amp; pickup</Link>
+            <Link href="/account" className="block hover:text-butter">{accountLabel}</Link>
+          </nav>
           <div className="space-y-2 text-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-olive-ink">Find us</h2>
-            <address className="not-italic leading-relaxed">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-cream/50">Find us</h2>
+            <address className="not-italic leading-relaxed text-cream/85">
               {store.addressLines.map((l) => (
                 <span key={l} className="block">{l}</span>
               ))}
             </address>
-            <a href={store.mapUrl} target="_blank" rel="noreferrer" className="inline-block font-medium text-berry underline-offset-4 hover:underline">
+            <a href={store.mapUrl} target="_blank" rel="noreferrer" className="inline-block font-medium text-butter underline-offset-4 hover:underline">
               Open in Google Maps
             </a>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+              {wa && <a href={wa} target="_blank" rel="noreferrer" className="hover:text-butter">WhatsApp</a>}
+              {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noreferrer" className="hover:text-butter">Instagram</a>}
+            </div>
           </div>
           <div className="space-y-2 text-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-olive-ink">Hours</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-cream/50">Hours</h2>
             {store.hours ? (
               <ul className="tabular space-y-0.5">
                 {store.hours.map((h, i) => (
                   <li key={DAY_NAMES[i]} className="flex justify-between gap-4">
                     <span>{DAY_NAMES[i]}</span>
-                    <span className="text-muted">{formatHours(h)}</span>
+                    <span className="text-cream/70">{formatHours(h)}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-muted">Opening hours will be posted soon.</p>
+              <p className="text-cream/70">Opening hours will be posted soon.</p>
             )}
-            <div className="flex gap-4 pt-2">
-              {wa && (
-                <a href={wa} target="_blank" rel="noreferrer" className="font-medium text-berry hover:underline">
-                  WhatsApp {store.phone}
-                </a>
-              )}
-              {store.instagram && (
-                <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noreferrer" className="font-medium text-berry hover:underline">
-                  @{store.instagram}
-                </a>
-              )}
-            </div>
           </div>
         </div>
-        <nav aria-label="Policies" className="mx-auto flex max-w-6xl flex-wrap justify-center gap-x-5 gap-y-2 px-4 pb-4 text-xs sm:px-6">
-          {POLICY_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className="text-muted hover:text-berry">{l.label}</Link>
-          ))}
-        </nav>
-        <p className="pb-8 text-center text-xs text-muted">© {new Date().getFullYear()} Seiketsu, Versova</p>
+        <div className="border-t border-cream/10">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-cream/60 sm:px-6">
+            <p>© {new Date().getFullYear()} Seiketsu, Versova</p>
+            <nav aria-label="Policies" className="flex flex-wrap gap-x-5 gap-y-2">
+              {POLICY_LINKS.map((l) => (
+                <Link key={l.href} href={l.href} className="hover:text-cream">{l.label}</Link>
+              ))}
+            </nav>
+          </div>
+        </div>
       </footer>
     </CartProvider>
   );

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: { default: "Seiketsu, Versova | The art of clean eating", template: "%s | Seiketsu" },
   description:
-    "Fresh salads, wraps, bowls, juices and smoothies from Seiketsu in Versova, Andheri West. Order online for pickup.",
+    "Seiketsu is a premium nutrition fresh house in Versova, Andheri West. Fresh salads, wraps, bowls, cold-pressed juices and smoothies, with nutrition for every dish. Order online for delivery or pickup.",
   openGraph: { siteName: "Seiketsu", locale: "en_IN", type: "website" },
 };
 

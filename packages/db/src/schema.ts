@@ -156,6 +156,8 @@ export const addonGroups = pgTable("addon_groups", {
   minSelect: integer("min_select").notNull().default(0),
   maxSelect: integer("max_select").notNull().default(10),
   sort: integer("sort").notNull().default(0),
+  /** One of the owner's "Extras" shelves (Proteins, Cheese, ...); the admin toggles them together. */
+  isExtra: boolean("is_extra").notNull().default(false),
 });
 
 export const addons = pgTable("addons", {
@@ -164,6 +166,8 @@ export const addons = pgTable("addons", {
   name: text("name").notNull(),
   pricePaise: integer("price_paise").notNull(),
   diet: dietEnum("diet"),
+  /** Key into the customer site's icon set (see @seiketsu/core/extras). */
+  icon: text("icon"),
   isAvailable: boolean("is_available").notNull().default(true),
   sort: integer("sort").notNull().default(0),
 });
@@ -552,4 +556,24 @@ export const stockMovements = pgTable(
     index("stock_moves_outlet_idx").on(t.outletId, t.createdAt),
     index("stock_moves_order_idx").on(t.orderId),
   ],
+);
+
+// ── Delivery area requests ─────────────────────────────────────────
+
+/** People outside the delivery area asking to be told when we reach them. */
+export const areaRequests = pgTable(
+  "area_requests",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    pincode: text("pincode").notNull(),
+    name: text("name").notNull(),
+    phone: text("phone").notNull(),
+    email: text("email"),
+    area: text("area").notNull(),
+    note: text("note"),
+    contactedAt: timestamp("contacted_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("area_requests_outlet_created").on(t.outletId, t.createdAt), index("area_requests_pincode").on(t.pincode)],
 );

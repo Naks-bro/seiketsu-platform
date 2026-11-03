@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { addons, getDb, menuItems } from "@seiketsu/db";
+import { ADDON_ICONS } from "@seiketsu/core/extras";
 import { can, requireStaff } from "@/lib/server/auth";
 import { audit } from "@/lib/server/audit";
 import { saveMenuItem } from "@/lib/server/menu-admin";
@@ -46,6 +47,7 @@ const addonInput = z.object({
   addonId: z.string().uuid(),
   name: z.string().trim().min(2, "Enter the extra's name").max(60),
   price: z.coerce.number().min(0).max(10_000),
+  icon: z.enum(ADDON_ICONS).or(z.literal("")).optional(),
 });
 
 export async function saveAddonAction(_prev: { error?: string; ok?: string } | undefined, form: FormData) {
@@ -54,7 +56,7 @@ export async function saveAddonAction(_prev: { error?: string; ok?: string } | u
   const parsed = addonInput.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const db = await getDb();
-  await db.update(addons).set({ name: parsed.data.name, pricePaise: Math.round(parsed.data.price * 100) }).where(eq(addons.id, parsed.data.addonId));
+  await db.update(addons).set({ name: parsed.data.name, pricePaise: Math.round(parsed.data.price * 100), ...(parsed.data.icon !== undefined ? { icon: parsed.data.icon || null } : {}) }).where(eq(addons.id, parsed.data.addonId));
   await audit(db, { actorId: staff.id, outletId: staff.outletId, action: "addon.save", entity: "addon", entityId: parsed.data.addonId, data: parsed.data });
   revalidatePath("/", "layout");
   return { ok: "Saved" };

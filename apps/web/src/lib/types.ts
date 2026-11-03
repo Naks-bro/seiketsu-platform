@@ -14,9 +14,9 @@ export type VariantDTO = {
   nutrition: { kcal: number; proteinG: number; carbsG: number; fatG: number; fibreG: number } | null;
 };
 
-export type AddonDTO = { id: string; name: string; pricePaise: number; diet: Diet | null };
+export type AddonDTO = { id: string; name: string; pricePaise: number; diet: Diet | null; icon: string | null };
 
-export type AddonGroupDTO = { id: string; name: string; minSelect: number; maxSelect: number; addons: AddonDTO[] };
+export type AddonGroupDTO = { id: string; name: string; minSelect: number; maxSelect: number; sort: number; addons: AddonDTO[] };
 
 export type MenuItemDTO = {
   id: string;

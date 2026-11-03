@@ -10,6 +10,8 @@ import { formatINR, whatsappLink } from "@/lib/format";
 import { orderSource, unitTotal, useCart } from "@/lib/cart";
 import { DietMark } from "@/components/diet-mark";
 import { usePayment, type PaymentParams } from "./use-payment";
+import { isPincode, isServiceable } from "@seiketsu/core/delivery-area";
+import { useLocation } from "@/lib/location";
 
 type FieldErrors = Record<string, string>;
 
@@ -35,6 +37,8 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
   const router = useRouter();
   const { lines, ready, reconcile, clear, removedNames: removed } = useCart();
   const [fulfilment, setFulfilment] = useState<Fulfilment>(store.pickupEnabled ? "pickup" : "delivery");
+  const { location } = useLocation();
+  const [prefilled, setPrefilled] = useState(false);
   const [form, setForm] = useState({
     name: customer?.name ?? "",
     phone: customer?.phone ?? "",
@@ -51,6 +55,18 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
   const [busy, setBusy] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const { start, dialog } = usePayment(orderNumber);
+
+  // Start from the delivery/pickup choice made on the menu (once it has loaded from storage).
+  if (location && !prefilled) {
+    setPrefilled(true);
+    if (location.mode === "delivery" && store.deliveryEnabled) {
+      setFulfilment("delivery");
+      setForm((f) => ({ ...f, pincode: location.pincode }));
+    } else if (location.mode === "pickup" && store.pickupEnabled) {
+      setFulfilment("pickup");
+    }
+  }
+  const pinOutside = fulfilment === "delivery" && isPincode(form.pincode) && !isServiceable(form.pincode, store.deliveryPincodes);
 
   useEffect(() => {
     if (ready) reconcile(menu);
@@ -186,6 +202,13 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
                 </Field>
                 <Field id="pincode" label="Pincode" error={err("address.pincode")}>
                   <input id="pincode" inputMode="numeric" autoComplete="postal-code" maxLength={6} value={form.pincode} onChange={set("pincode")} className={input} {...aria("address.pincode")} />
+                  {pinOutside && (
+                    <p className="text-sm text-nonveg">
+                      We don&apos;t deliver to {form.pincode} yet.{" "}
+                      <Link href={`/coming-soon?pin=${form.pincode}`} className="font-semibold underline">Tell us you&apos;re there</Link>
+                      {store.pickupEnabled && " or choose pickup above."}
+                    </p>
+                  )}
                 </Field>
               </div>
               <Field id="instructions" label="Delivery instructions (optional)">

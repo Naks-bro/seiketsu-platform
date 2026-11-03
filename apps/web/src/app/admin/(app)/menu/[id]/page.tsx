@@ -38,7 +38,7 @@ export default async function EditDishPage({ params }: { params: Promise<{ id: s
       .select({ g: menuItemAddonGroups.groupId })
       .from(menuItemAddonGroups)
       .innerJoin(addonGroups, eq(addonGroups.id, menuItemAddonGroups.groupId))
-      .where(and(eq(menuItemAddonGroups.menuItemId, id), eq(addonGroups.name, "Extras")));
+      .where(and(eq(menuItemAddonGroups.menuItemId, id), eq(addonGroups.isExtra, true)));
     const [avail] = await db.select().from(outletMenuItems).where(and(eq(outletMenuItems.menuItemId, id), eq(outletMenuItems.outletId, staff.outletId)));
     const s = (n: number | null) => (n === null ? "" : String(n));
     item = {

@@ -103,9 +103,10 @@ export async function getMenu(outletId: string): Promise<CategoryDTO[]> {
         name: g.name,
         minSelect: g.minSelect,
         maxSelect: g.maxSelect,
+        sort: g.sort,
         addons: groupAddons
           .filter((a) => a.groupId === g.id)
-          .map((a) => ({ id: a.id, name: a.name, pricePaise: a.pricePaise, diet: a.diet })),
+          .map((a) => ({ id: a.id, name: a.name, pricePaise: a.pricePaise, diet: a.diet, icon: a.icon })),
       },
     ]),
   );
@@ -137,7 +138,8 @@ export async function getMenu(outletId: string): Promise<CategoryDTO[]> {
     addonGroups: links
       .filter((l) => l.menuItemId === item.id)
       .map((l) => groupDTO.get(l.groupId)!)
-      .filter((g) => g && g.addons.length > 0),
+      .filter((g) => g && g.addons.length > 0)
+      .sort((a, b) => a.sort - b.sort),
   }));
 
   return cats

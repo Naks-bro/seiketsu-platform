@@ -128,7 +128,7 @@ export default async function AdminMenu() {
           {extras.map((a) => (
             <li key={a.id} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-white px-3 py-2 text-sm">
               {editFlags ? (
-                <span className="flex min-w-0 flex-1 items-center gap-2"><DietMark diet={a.diet} size={12} /><AddonEditor id={a.id} name={a.name} price={a.pricePaise} /></span>
+                <span className="flex min-w-0 flex-1 items-center gap-2"><DietMark diet={a.diet} size={12} /><AddonEditor id={a.id} name={a.name} price={a.pricePaise} icon={a.icon} /></span>
               ) : (
                 <span className="flex items-center gap-2"><DietMark diet={a.diet} size={12} />{a.name} <span className="tabular text-muted">{formatINR(a.pricePaise)}</span></span>
               )}
