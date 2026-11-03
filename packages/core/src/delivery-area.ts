@@ -40,3 +40,20 @@ export function mergePincodes(current: readonly string[], incoming: readonly str
   for (const p of incoming) if (isPincode(p)) next.add(p);
   return [...next].sort();
 }
+
+export type OutletArea = { slug: string; deliveryEnabled: boolean; pincodes: readonly string[] };
+
+/**
+ * The outlet that should deliver to a pincode. Outlets that list the pincode come first, then outlets that
+ * deliver everywhere (no list). The customer's current outlet wins a tie, so nobody is moved without reason.
+ */
+export function pickOutletForPincode<T extends OutletArea>(list: readonly T[], pin: string, preferSlug: string | null): T | null {
+  if (!isPincode(pin)) return null;
+  const open = list.filter((o) => o.deliveryEnabled);
+  const listed = open.filter((o) => o.pincodes.includes(pin));
+  const anywhere = open.filter((o) => o.pincodes.length === 0);
+  for (const group of [listed, anywhere]) {
+    if (group.length) return group.find((o) => o.slug === preferSlug) ?? group[0];
+  }
+  return null;
+}

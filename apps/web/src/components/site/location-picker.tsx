@@ -2,11 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
-import { isPincode, isServiceable } from "@seiketsu/core/delivery-area";
+import { isPincode, isServiceable, pickOutletForPincode } from "@seiketsu/core/delivery-area";
+import { chooseOutletAction } from "@/app/(site)/outlet-actions";
 import { closeLocationSheet, openLocationSheet, setLocation, useLocation } from "@/lib/location";
 import { useModal } from "./use-modal";
 
-type Props = { pincodes: string[]; deliveryEnabled: boolean; pickupEnabled: boolean; pickupFrom: string };
+type Outlet = { slug: string; area: string; address: string; pickupEnabled: boolean; deliveryEnabled: boolean; pincodes: string[] };
+type Props = { pincodes: string[]; deliveryEnabled: boolean; pickupEnabled: boolean; pickupFrom: string; outlets?: Outlet[]; current?: string | null };
 
 function PinIcon({ className = "size-4" }: { className?: string }) {
   return (
@@ -40,7 +42,7 @@ export function LocationSheet(props: Props) {
   return <Sheet {...props} />;
 }
 
-function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom }: Props) {
+function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom, outlets = [], current = null }: Props) {
   const router = useRouter();
   const { location } = useLocation();
   const panel = useRef<HTMLDivElement>(null);
@@ -48,6 +50,19 @@ function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom }: Props) 
   const [mode, setMode] = useState<"delivery" | "pickup">(location?.mode === "pickup" || !deliveryEnabled ? "pickup" : "delivery");
   const [pin, setPin] = useState(location?.pincode ?? "");
   const [error, setError] = useState<string | null>(null);
+  // With more than one outlet, the pincode decides which kitchen delivers, and pickup lets you choose.
+  const many = outlets.length > 1;
+  const pickupOutlets = outlets.filter((o) => o.pickupEnabled);
+  const [pickupAt, setPickupAt] = useState(current ?? pickupOutlets[0]?.slug ?? null);
+  const anyDelivery = many ? outlets.some((o) => o.deliveryEnabled) : deliveryEnabled;
+  const anyPickup = many ? pickupOutlets.length > 0 : pickupEnabled;
+
+  async function moveTo(slug: string | null) {
+    if (slug && slug !== current) {
+      await chooseOutletAction(slug);
+      router.refresh();
+    }
+  }
 
   useModal(panel, true, closeLocationSheet);
 
@@ -55,7 +70,14 @@ function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom }: Props) 
     e.preventDefault();
     const p = pin.trim();
     if (!isPincode(p)) return setError("Enter a 6-digit pincode, for example 400061.");
-    if (isServiceable(p, pincodes)) return setLocation({ mode: "delivery", pincode: p });
+    if (many) {
+      const to = pickOutletForPincode(outlets, p, current);
+      if (to) {
+        setLocation({ mode: "delivery", pincode: p });
+        void moveTo(to.slug);
+        return;
+      }
+    } else if (isServiceable(p, pincodes)) return setLocation({ mode: "delivery", pincode: p });
     closeLocationSheet();
     router.push(`/coming-soon?pin=${p}`);
   }
@@ -98,8 +120,8 @@ function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom }: Props) 
         </div>
 
         <div role="tablist" aria-label="Delivery or pickup" className="mt-5 flex gap-1 rounded-full border border-line bg-white p-1">
-          {tab("delivery", "Delivery", deliveryEnabled)}
-          {tab("pickup", "Pickup", pickupEnabled)}
+          {tab("delivery", "Delivery", anyDelivery)}
+          {tab("pickup", "Pickup", anyPickup)}
         </div>
 
         {mode === "delivery" ? (
@@ -130,16 +152,34 @@ function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom }: Props) 
           </form>
         ) : (
           <div className="mt-5 space-y-4">
-            <div className="flex items-start gap-3 rounded-2xl border border-line bg-white p-4">
-              <PinIcon className="mt-0.5 size-5 text-berry" />
-              <div>
-                <p className="font-semibold">Pick up from Seiketsu {pickupFrom}</p>
-                <p className="text-sm text-muted">We’ll message you when it’s ready at the counter.</p>
+            {many ? (
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium">Pick up from</legend>
+                {pickupOutlets.map((o) => (
+                  <label key={o.slug} className={`flex cursor-pointer items-start gap-3 rounded-2xl border bg-white p-4 ${pickupAt === o.slug ? "border-berry" : "border-line"}`}>
+                    <input type="radio" name="pickup-outlet" checked={pickupAt === o.slug} onChange={() => setPickupAt(o.slug)} className="mt-1 accent-[var(--color-berry)]" />
+                    <span>
+                      <span className="block font-semibold">Seiketsu {o.area}</span>
+                      <span className="block text-sm text-muted">{o.address}</span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+            ) : (
+              <div className="flex items-start gap-3 rounded-2xl border border-line bg-white p-4">
+                <PinIcon className="mt-0.5 size-5 text-berry" />
+                <div>
+                  <p className="font-semibold">Pick up from Seiketsu {pickupFrom}</p>
+                  <p className="text-sm text-muted">We’ll message you when it’s ready at the counter.</p>
+                </div>
               </div>
-            </div>
+            )}
             <button
               type="button"
-              onClick={() => setLocation({ mode: "pickup", pincode: null })}
+              onClick={() => {
+                setLocation({ mode: "pickup", pincode: null });
+                if (many) void moveTo(pickupAt);
+              }}
               className="w-full rounded-full bg-berry py-3.5 font-semibold text-cream hover:bg-berry-deep"
             >
               I’ll pick it up

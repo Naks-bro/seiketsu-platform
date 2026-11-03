@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { allowedAddon, allowedVariants, itemDiets, matchesDiet } from "./diet-filter";
-import { extractPincodes, isServiceable, mergePincodes } from "./delivery-area";
+import { extractPincodes, isServiceable, mergePincodes, pickOutletForPincode } from "./delivery-area";
 import { EXTRA_GROUPS, extraPlacement } from "./extras";
 
 const bowl = { diet: null, variants: [{ id: "p", diet: "veg" as const }, { id: "c", diet: "non_veg" as const }] };
@@ -76,5 +76,23 @@ describe("pincode import", () => {
   it("adds without duplicates, or replaces the list", () => {
     expect(mergePincodes(["400061"], ["400053", "400061", "bad"], "add")).toEqual(["400053", "400061"]);
     expect(mergePincodes(["400061"], ["400053"], "replace")).toEqual(["400053"]);
+  });
+});
+
+describe("choosing the outlet for a pincode", () => {
+  const versova = { slug: "versova", deliveryEnabled: true, pincodes: ["400061", "400053"] };
+  const bandra = { slug: "bandra", deliveryEnabled: true, pincodes: ["400050", "400053"] };
+  const everywhere = { slug: "cloud", deliveryEnabled: true, pincodes: [] as string[] };
+
+  it("sends each pincode to the outlet that lists it, keeping the current one on a tie", () => {
+    expect(pickOutletForPincode([versova, bandra], "400050", "versova")?.slug).toBe("bandra");
+    expect(pickOutletForPincode([versova, bandra], "400053", "bandra")?.slug).toBe("bandra");
+    expect(pickOutletForPincode([versova, bandra], "400053", null)?.slug).toBe("versova");
+  });
+
+  it("falls back to an outlet that delivers everywhere, and skips outlets with delivery off", () => {
+    expect(pickOutletForPincode([versova, everywhere], "110001", "versova")?.slug).toBe("cloud");
+    expect(pickOutletForPincode([{ ...versova, deliveryEnabled: false }], "400061", null)).toBeNull();
+    expect(pickOutletForPincode([versova], "999", null)).toBeNull();
   });
 });

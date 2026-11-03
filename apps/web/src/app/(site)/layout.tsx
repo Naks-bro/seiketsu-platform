@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { DAY_NAMES, formatHours } from "@seiketsu/core/store-hours";
 import { CartProvider } from "@/lib/cart";
 import { getStore } from "@/lib/server/catalog";
+import { activeOutlets, shortName } from "@/lib/server/outlets";
 import { getCustomer } from "@/lib/server/customer-auth";
 import { whatsappLink } from "@/lib/format";
 import { CartButton, CartDrawer, MobileCartBar } from "@/components/site/cart-drawer";
@@ -12,11 +13,12 @@ import { DesktopNav, HeaderShell, MobileNav, RevealOnScroll } from "@/components
 import { Toaster } from "@/components/site/toast";
 import { POLICY_LINKS } from "@/components/site/policy-page";
 
-const PICKUP_FROM = "Versova";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   await connection();
-  const [store, customer] = await Promise.all([getStore(), getCustomer()]);
+  const [store, customer, outletList] = await Promise.all([getStore(), getCustomer(), activeOutlets()]);
+  const PICKUP_FROM = shortName(store.name);
+  const here = outletList.find((o) => o.id === store.outletId)?.slug ?? null;
   const wa = whatsappLink(store.whatsapp);
   const notice = store.closureMessage ?? (!store.isOpenNow && store.hours ? "We're closed right now. Browse the menu and order when we open." : null) ?? store.announcement;
   const accountLabel = customer ? "Account" : "Sign in";
@@ -56,7 +58,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           deliveryEnabled: store.deliveryEnabled,
         }}
       />
-      <LocationSheet pincodes={store.deliveryPincodes} deliveryEnabled={store.deliveryEnabled} pickupEnabled={store.pickupEnabled} pickupFrom={PICKUP_FROM} />
+      <LocationSheet pincodes={store.deliveryPincodes} deliveryEnabled={store.deliveryEnabled} pickupEnabled={store.pickupEnabled} pickupFrom={PICKUP_FROM} outlets={outletList.map((o) => ({ slug: o.slug, area: o.area, address: o.addressLines.join(", "), pickupEnabled: o.pickupEnabled, deliveryEnabled: o.deliveryEnabled, pincodes: o.pincodes }))} current={here} />
       <Toaster />
       <MobileCartBar />
       <RevealOnScroll />

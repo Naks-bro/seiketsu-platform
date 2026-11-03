@@ -3,6 +3,8 @@ import Link from "next/link";
 import { can, homeFor, requireStaff, ROLE_LABEL, type Staff } from "@/lib/server/auth";
 import { logoutAction } from "../actions";
 import { AdminNav } from "./admin-nav";
+import { staffOutlets } from "@/lib/server/outlets";
+import { switchAdminOutletAction } from "../outlet-actions";
 
 export const metadata: Metadata = { title: { default: "Admin", template: "%s | Seiketsu admin" }, robots: { index: false } };
 
@@ -23,15 +25,28 @@ function navFor(s: Staff) {
   if (can.manageSettings(s)) items.push({ href: "/admin/delivery-areas", label: "Delivery areas" });
   if (can.manageSettings(s)) items.push({ href: "/admin/area-requests", label: "Area requests" });
   if (can.manageSettings(s)) items.push({ href: "/admin/settings", label: "Settings" });
+  if (can.manageStaff(s)) items.push({ href: "/admin/outlets", label: "Outlets" });
   return items;
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const staff = await requireStaff();
+  const myOutlets = await staffOutlets(staff.id);
   return (
     <div className="min-h-dvh bg-[#fbf8f2] lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
       <AdminNav
+        outletSwitch={
+          myOutlets.length > 1 ? (
+            <form action={switchAdminOutletAction} className="flex gap-1.5 px-3">
+              <label htmlFor="outlet-switch" className="sr-only">Outlet</label>
+              <select id="outlet-switch" name="outletId" defaultValue={staff.outletId} className="min-w-0 flex-1 rounded-lg border border-line bg-white px-2 py-1.5 text-sm">
+                {myOutlets.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+              <button type="submit" className="rounded-lg border border-line bg-white px-2.5 text-sm font-medium hover:bg-paper">Go</button>
+            </form>
+          ) : null
+        }
         items={navFor(staff)}
         homeHref={homeFor(staff)}
         account={

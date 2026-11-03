@@ -11,7 +11,7 @@ const GROUPS: [string, string[]][] = [
   ["Run the day", ["/admin/orders", "/kitchen", "/pos"]],
   ["Menu & stock", ["/admin/menu", "/admin/inventory"]],
   ["Customers", ["/admin/customers", "/admin/subscriptions", "/admin/coupons", "/admin/enquiries", "/admin/delivery-areas", "/admin/area-requests", "/admin/messages"]],
-  ["Business", ["/admin/reports", "/admin/staff", "/admin/settings"]],
+  ["Business", ["/admin/reports", "/admin/staff", "/admin/settings", "/admin/outlets"]],
 ];
 
 /** Small line icons (24px grid, stroked) per section. */
@@ -29,6 +29,7 @@ const ICON: Record<string, string> = {
   "/admin/area-requests": "M4 12h11M11 6l6 6-6 6M20 4v16",
   "/admin/messages": "M4 6h16v10H9l-5 4zM8 11h.01M12 11h.01M16 11h.01",
   "/admin/reports": "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  "/admin/outlets": "M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6",
   "/admin/staff": "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM2 21a7 7 0 0 1 14 0M17 11a3 3 0 1 0 0-6M22 21a6 6 0 0 0-4-5.7",
   "/admin/settings": "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M16 4v4M10 10v4M18 16v4",
 };
@@ -90,10 +91,10 @@ function Brand({ href }: { href: string }) {
   );
 }
 
-type Props = { items: Item[]; homeHref: string; account: React.ReactNode; signOut: React.ReactNode };
+type Props = { items: Item[]; homeHref: string; account: React.ReactNode; signOut: React.ReactNode; outletSwitch?: React.ReactNode };
 
 /** A grouped sidebar on wide screens; on phones a top bar whose Menu button slides the same sidebar in. */
-export function AdminNav({ items, homeHref, account, signOut }: Props) {
+export function AdminNav({ items, homeHref, account, signOut, outletSwitch }: Props) {
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   useModal(panel, open, () => setOpen(false));
@@ -113,6 +114,7 @@ export function AdminNav({ items, homeHref, account, signOut }: Props) {
         <div className="px-3">
           <Brand href={homeHref} />
         </div>
+        {outletSwitch}
         <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin]">
           <Links items={items} />
         </div>
@@ -140,6 +142,7 @@ export function AdminNav({ items, homeHref, account, signOut }: Props) {
                 ×
               </button>
             </div>
+            {outletSwitch}
             <div className="min-h-0 flex-1 overflow-y-auto">
               <Links items={items} onPick={() => setOpen(false)} />
             </div>

@@ -1,4 +1,5 @@
 import "server-only";
+import { chosenOutletSlug } from "./outlets";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import {
   addonGroups,
@@ -22,7 +23,7 @@ export async function getStore(): Promise<StoreDTO> {
     .select()
     .from(outlets)
     .innerJoin(storeSettings, eq(storeSettings.outletId, outlets.id))
-    .where(eq(outlets.slug, env.outletSlug));
+    .where(eq(outlets.slug, await chosenOutletSlug()));
   if (!row) throw new Error(`Outlet "${env.outletSlug}" not found. Run npm run db:seed.`);
   const o = row.outlets;
   const s = row.store_settings;

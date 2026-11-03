@@ -3,8 +3,8 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { jwtVerify, SignJWT } from "jose";
-import { eq } from "drizzle-orm";
-import { getDb, staffRoles, staffUsers } from "@seiketsu/db";
+import { asc, eq } from "drizzle-orm";
+import { getDb, outlets, staffRoles, staffUsers } from "@seiketsu/db";
 import { env, sessionSecret } from "./env";
 
 const COOKIE = "sk_staff";
@@ -63,12 +63,16 @@ export const getStaff = cache(async (): Promise<Staff | null> => {
     return null;
   }
   const db = await getDb();
-  const [row] = await db
+  const rows = await db
     .select({ u: staffUsers, r: staffRoles })
     .from(staffUsers)
     .innerJoin(staffRoles, eq(staffRoles.staffUserId, staffUsers.id))
+    .innerJoin(outlets, eq(outlets.id, staffRoles.outletId))
     .where(eq(staffUsers.id, sub))
-    .limit(1);
+    .orderBy(asc(outlets.createdAt));
+  // Staff at more than one outlet work in the one they last switched to; otherwise the first outlet.
+  const picked = (await cookies()).get("seiketsu_admin_outlet")?.value;
+  const row = rows.find((x) => x.r.outletId === picked) ?? rows[0];
   if (!row || !row.u.isActive || row.u.sessionVersion !== v) return null;
   return { id: row.u.id, email: row.u.email, name: row.u.name, outletId: row.r.outletId, role: row.r.role };
 });
