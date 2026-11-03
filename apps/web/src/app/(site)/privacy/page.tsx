@@ -27,6 +27,10 @@ export default async function PrivacyPage() {
           If you send an enquiry about plans, bulk orders, catering or partnerships: your name, phone number, email, location, what you are
           interested in and your message. We use these only to reply to your enquiry.
         </li>
+        <li>
+          If you subscribe to a meal plan: your name, mobile number, email if you give it, delivery address, pincode, start date and any
+          notes, plus a record of each meal delivered. We use these to run your plan.
+        </li>
         <li>Payment status and reference numbers from Razorpay. We do not receive or store card numbers, UPI PINs or bank passwords.</li>
       </ul>
       <h2>How we use it</h2>

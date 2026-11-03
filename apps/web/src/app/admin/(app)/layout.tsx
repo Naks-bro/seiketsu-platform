@@ -16,6 +16,7 @@ function navFor(s: Staff) {
   if (can.reports(s)) items.push({ href: "/admin/reports", label: "Reports" });
   if (can.messaging(s)) items.push({ href: "/admin/messages", label: "Messages" });
   if (can.manageStaff(s)) items.push({ href: "/admin/staff", label: "Staff" });
+  if (can.manageOrders(s)) items.push({ href: "/admin/subscriptions", label: "Subscriptions" });
   if (can.manageSettings(s)) items.push({ href: "/admin/enquiries", label: "Enquiries" });
   if (can.manageSettings(s)) items.push({ href: "/admin/delivery-areas", label: "Delivery areas" });
   if (can.manageSettings(s)) items.push({ href: "/admin/area-requests", label: "Area requests" });

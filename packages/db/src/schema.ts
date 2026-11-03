@@ -8,6 +8,7 @@ import { sql } from "drizzle-orm";
 import {
   customType,
   bigint,
+  date,
   bigserial,
   boolean,
   index,
@@ -594,4 +595,75 @@ export const enquiries = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("enquiries_outlet_created").on(t.outletId, t.createdAt)],
+);
+
+/** Meal subscription plans, written by the owner in Admin › Subscriptions › Plans. */
+export const subscriptionPlans = pgTable(
+  "subscription_plans",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    tagline: text("tagline"),
+    description: text("description"),
+    mealsTotal: integer("meals_total").notNull(),
+    durationDays: integer("duration_days").notNull(),
+    deliveryDays: text("delivery_days").array().notNull().default(sql`'{}'::text[]`),
+    includes: text("includes").array().notNull().default(sql`'{}'::text[]`),
+    pricePaise: integer("price_paise").notNull(),
+    isActive: boolean("is_active").notNull().default(false),
+    sort: integer("sort").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("subscription_plans_outlet_slug").on(t.outletId, t.slug)],
+);
+
+/** One customer's subscription. Plan details are copied in, so editing a plan never changes what someone bought. */
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    planId: uuid("plan_id").notNull().references(() => subscriptionPlans.id),
+    publicToken: text("public_token").notNull().unique(),
+    planName: text("plan_name").notNull(),
+    name: text("name").notNull(),
+    phone: text("phone").notNull(),
+    email: text("email"),
+    address: text("address").notNull(),
+    pincode: text("pincode"),
+    startDate: date("start_date", { mode: "string" }).notNull(),
+    endDate: date("end_date", { mode: "string" }),
+    pausedOn: date("paused_on", { mode: "string" }),
+    status: text("status").notNull().default("pending"),
+    mealsTotal: integer("meals_total").notNull(),
+    mealsUsed: integer("meals_used").notNull().default(0),
+    durationDays: integer("duration_days").notNull(),
+    deliveryDays: text("delivery_days").array().notNull().default(sql`'{}'::text[]`),
+    pricePaise: integer("price_paise").notNull(),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    paymentNote: text("payment_note"),
+    notes: text("notes"),
+    staffNotes: text("staff_notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("subscriptions_outlet_status").on(t.outletId, t.status), index("subscriptions_phone").on(t.phone)],
+);
+
+/** What happened on each delivery day of a subscription: one row per subscription per date. */
+export const subscriptionDeliveries = pgTable(
+  "subscription_deliveries",
+  {
+    id: id(),
+    subscriptionId: uuid("subscription_id").notNull().references(() => subscriptions.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    status: text("status").notNull(),
+    note: text("note"),
+    staffId: uuid("staff_id").references(() => staffUsers.id),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("subscription_deliveries_sub_date").on(t.subscriptionId, t.date)],
 );

@@ -10,7 +10,7 @@ type Item = { href: string; label: string };
 const GROUPS: [string, string[]][] = [
   ["Run the day", ["/admin/orders", "/kitchen", "/pos"]],
   ["Menu & stock", ["/admin/menu", "/admin/inventory"]],
-  ["Customers", ["/admin/enquiries", "/admin/delivery-areas", "/admin/area-requests", "/admin/messages"]],
+  ["Customers", ["/admin/subscriptions", "/admin/enquiries", "/admin/delivery-areas", "/admin/area-requests", "/admin/messages"]],
   ["Business", ["/admin/reports", "/admin/staff", "/admin/settings"]],
 ];
 
@@ -21,6 +21,7 @@ const ICON: Record<string, string> = {
   "/pos": "M4 7h16v12H4zM8 7V5h8v2M8 12h2M14 12h2M8 15h2M14 15h2",
   "/admin/menu": "M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6",
   "/admin/inventory": "M3 8l9-5 9 5-9 5zM3 8v8l9 5 9-5V8M12 13v8",
+  "/admin/subscriptions": "M4 6h16v14H4zM4 10h16M8 3v5M16 3v5M8 14h3M13 14h3M8 17h3",
   "/admin/enquiries": "M4 5h16v11H8l-4 4zM8 9h8M8 12h5",
   "/admin/delivery-areas": "M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21ZM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z",
   "/admin/area-requests": "M4 12h11M11 6l6 6-6 6M20 4v16",

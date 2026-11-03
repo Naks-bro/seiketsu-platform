@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { getMenu, getStore } from "@/lib/server/catalog";
+import { listPlans } from "@/lib/server/subscriptions";
 import { Hero } from "@/components/site/home/hero";
 import { Marquee } from "@/components/site/home/bands";
 import { Lifestyle } from "@/components/site/home/lifestyle";
@@ -14,7 +15,7 @@ import { FollowTheFresh, Visit } from "@/components/site/home/visit";
 export default async function HomePage() {
   await connection();
   const store = await getStore();
-  const menu = await getMenu(store.outletId);
+  const [menu, plans] = await Promise.all([getMenu(store.outletId), listPlans(store.outletId, true)]);
   const all = menu.flatMap((c) => c.items);
   const flagged = all.filter((i) => i.isBestseller || i.isFeatured);
   // Until the owner flags favourites, show the first dish of each section.
@@ -30,7 +31,7 @@ export default async function HomePage() {
       <WhySeiketsu />
       <ExploreMenu menu={menu} />
       <Favourites items={favourites} canOrder={canOrder} />
-      <Subscriptions />
+      <Subscriptions plans={plans.map((p) => ({ slug: p.slug, name: p.name, tagline: p.tagline, pricePaise: p.pricePaise, mealsTotal: p.mealsTotal, durationDays: p.durationDays, deliveryDays: p.deliveryDays, includes: p.includes }))} />
       <HowWeMakeIt />
       <SeiketsuPromise />
       <Plans />

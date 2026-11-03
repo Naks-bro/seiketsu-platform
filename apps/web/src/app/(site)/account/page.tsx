@@ -5,6 +5,8 @@ import { desc, eq, ne, and } from "drizzle-orm";
 import { getDb, orders } from "@seiketsu/db";
 import { STATUS_LABEL } from "@seiketsu/core/order-status";
 import { getCustomer } from "@/lib/server/customer-auth";
+import { subscriptionsForPhone } from "@/lib/server/subscriptions";
+import { progress, SUB_STATUS_LABEL, type SubStatus } from "@seiketsu/core/subscriptions";
 import { env } from "@/lib/server/env";
 import { formatDateTime, formatINR } from "@/lib/format";
 import { PhoneLogin } from "./phone-login";
@@ -56,6 +58,7 @@ export default async function AccountPage() {
     .where(and(eq(orders.customerPhone, me.phone), ne(orders.status, "pending_payment"), ne(orders.status, "expired")))
     .orderBy(desc(orders.createdAt))
     .limit(20);
+  const subs = await subscriptionsForPhone(me.phone);
 
   return (
     <div className="mx-auto max-w-3xl space-y-12 px-4 pt-10 sm:px-6 sm:pt-14">
@@ -87,6 +90,28 @@ export default async function AccountPage() {
           hint={!me.email ? "Add your email above to subscribe." : undefined}
         />
       </section>
+
+      {subs.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="font-display text-2xl text-berry">Your subscriptions</h2>
+          <ul className="divide-y divide-line rounded-xl border border-line bg-white">
+            {subs.map((s) => {
+              const pr = progress(s.mealsUsed, s.mealsTotal);
+              return (
+                <li key={s.id}>
+                  <Link href={`/subscription/${s.publicToken}`} className="flex items-center justify-between gap-4 p-4 hover:bg-paper">
+                    <span>
+                      <span className="font-semibold">{s.planName}</span>
+                      <span className="block text-sm text-muted">{SUB_STATUS_LABEL[s.status as SubStatus]} · {pr.used} of {pr.total} meals</span>
+                    </span>
+                    <span className="text-sm font-medium text-berry">View →</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <section className="space-y-4">
         <h2 className="font-display text-2xl text-berry">Your orders</h2>
