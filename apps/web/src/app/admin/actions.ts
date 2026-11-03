@@ -156,6 +156,11 @@ export async function saveSettingsAction(_prev: ActionState, form: FormData): Pr
       freeDeliveryAbovePaise: freeAbove ? Math.round(rupees("Free delivery threshold").parse(freeAbove) * 100) : null,
       minOrderPaise: Math.round(rupees("Minimum order").parse(form.get("minOrder") || 0) * 100),
       prepTimeMinutes: z.coerce.number().int().min(5).max(180).parse(form.get("prepTime")),
+      loyaltyEnabled: form.get("loyaltyEnabled") === "on",
+      loyaltyEarnPer100: z.coerce.number().int().min(0).max(1000).parse(form.get("loyaltyEarnPer100") || 0),
+      loyaltyPointValuePaise: Math.round(z.coerce.number().min(0).max(1000).parse(form.get("loyaltyPointValue") || 0) * 100),
+      loyaltyMinRedeem: z.coerce.number().int().min(0).max(100000).parse(form.get("loyaltyMinRedeem") || 0),
+      loyaltyMaxRedeemPercent: z.coerce.number().int().min(0).max(100).parse(form.get("loyaltyMaxRedeemPercent") || 0),
     };
     if (can.manageTax(staff)) {
       update.taxEnabled = form.get("taxEnabled") === "on";

@@ -6,6 +6,8 @@ import { getDb, orders } from "@seiketsu/db";
 import { STATUS_LABEL } from "@seiketsu/core/order-status";
 import { getCustomer } from "@/lib/server/customer-auth";
 import { subscriptionsForPhone } from "@/lib/server/subscriptions";
+import { loyaltySettings, pointsForPhone } from "@/lib/server/rewards";
+import { getStore } from "@/lib/server/catalog";
 import { progress, SUB_STATUS_LABEL, type SubStatus } from "@seiketsu/core/subscriptions";
 import { env } from "@/lib/server/env";
 import { formatDateTime, formatINR } from "@/lib/format";
@@ -59,6 +61,7 @@ export default async function AccountPage() {
     .orderBy(desc(orders.createdAt))
     .limit(20);
   const subs = await subscriptionsForPhone(me.phone);
+  const [mine, loyalty] = await Promise.all([pointsForPhone(me.phone), getStore().then((s) => loyaltySettings(s.outletId))]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-12 px-4 pt-10 sm:px-6 sm:pt-14">
@@ -90,6 +93,20 @@ export default async function AccountPage() {
           hint={!me.email ? "Add your email above to subscribe." : undefined}
         />
       </section>
+
+      {loyalty.enabled && (
+        <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-butter/60 p-5">
+          <div>
+            <h2 className="font-display text-2xl text-berry">Your points</h2>
+            <p className="text-sm text-ink/70">
+              {loyalty.earnPer100} point{loyalty.earnPer100 === 1 ? "" : "s"} for every ₹100
+              {loyalty.pointValuePaise > 0 ? ` · each point is ₹${(loyalty.pointValuePaise / 100).toFixed(2).replace(/\.00$/, "")} off` : ""}
+              {loyalty.minRedeem > 0 ? ` once you have ${loyalty.minRedeem}` : ""}. Use them at checkout.
+            </p>
+          </div>
+          <p className="font-display text-5xl tabular text-ink">{mine?.balance ?? 0}</p>
+        </section>
+      )}
 
       {subs.length > 0 && (
         <section className="space-y-4">

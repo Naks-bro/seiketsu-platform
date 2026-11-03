@@ -36,6 +36,10 @@ export const checkoutSchema = z
     source: z.enum(["web", "qr"]).default("web"),
     /** Marketing opt-ins; order updates do not need consent. */
     marketing: z.object({ whatsapp: z.boolean().default(false), email: z.boolean().default(false) }).optional(),
+    /** Checked again on the server; a code that cannot be used fails the checkout with the reason. */
+    couponCode: z.string().trim().max(20).optional(),
+    /** Spend loyalty points. Only honoured for the signed-in customer's own phone. */
+    usePoints: z.boolean().optional(),
   })
   .superRefine((v, ctx) => {
     if (v.fulfilment === "delivery" && !v.address) {

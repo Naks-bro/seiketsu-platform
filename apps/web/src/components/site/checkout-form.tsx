@@ -14,6 +14,7 @@ import { isPincode, isServiceable } from "@seiketsu/core/delivery-area";
 import { useLocation } from "@/lib/location";
 
 type FieldErrors = Record<string, string>;
+type Rewards = { couponPaise: number; couponCode: string | null; couponError: string | null; loyalty: null | { balance: number; points: number; valuePaise: number } };
 
 const input = "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 outline-none focus:border-berry aria-[invalid=true]:border-nonveg";
 
@@ -72,14 +73,44 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
     if (ready) reconcile(menu);
   }, [ready, menu, reconcile]);
 
+  // Coupon and points: previewed from the server here, worked out again by the server at checkout.
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState("");
+  const [usePoints, setUsePoints] = useState(false);
+  const [rewards, setRewards] = useState<Rewards | null>(null);
+  const fullPhone = /^\d{10}$/.test(form.phone) ? form.phone : "";
+  const cartKey = JSON.stringify(lines.map((l) => [l.menuItemId, l.variantId, l.addOnIds, l.quantity]));
+  useEffect(() => {
+    if (!ready || cartKey === "[]") return;
+    const ctl = new AbortController();
+    const cart = JSON.parse(cartKey) as [string, string, string[], number][];
+    fetch("/api/checkout/rewards", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: ctl.signal,
+      body: JSON.stringify({
+        lines: cart.map(([menuItemId, variantId, addOnIds, quantity]) => ({ menuItemId, variantId, addOnIds, quantity })),
+        phone: fullPhone,
+        couponCode: coupon || undefined,
+      }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: Rewards | null) => setRewards(d))
+      .catch(() => {});
+    return () => ctl.abort();
+  }, [ready, cartKey, coupon, fullPhone]);
+  const couponPaise = coupon && rewards?.couponCode ? rewards.couponPaise : 0;
+  const pointsPaise = usePoints && rewards?.loyalty ? rewards.loyalty.valuePaise : 0;
+
   const quote = useMemo(() => {
     if (lines.length === 0) return null;
     return computeQuote(
       lines.map((l) => ({ unitPricePaise: l.unitPricePaise, addOnPricesPaise: l.addOns.map((a) => a.pricePaise), quantity: l.quantity })),
       store.pricing,
       fulfilment,
+      couponPaise + pointsPaise,
     );
-  }, [lines, store.pricing, fulfilment]);
+  }, [lines, store.pricing, fulfilment, couponPaise, pointsPaise]);
 
   const canOrder = store.isOpenNow && store.paymentsMode !== "disabled";
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -107,6 +138,8 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
           notes: form.notes || undefined,
           source: orderSource(),
           marketing,
+          couponCode: couponPaise ? coupon : undefined,
+          usePoints: pointsPaise > 0,
         }),
       });
       const data = await res.json();
@@ -257,9 +290,70 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
             </li>
           ))}
         </ul>
+        <div className="space-y-3 rounded-2xl border border-line bg-white p-4">
+          {coupon && rewards?.couponCode ? (
+            <p className="flex items-center justify-between gap-3 text-sm">
+              <span>
+                <span className="font-semibold">{rewards.couponCode}</span> applied · you save {formatINR(couponPaise)}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setCoupon("");
+                  setCouponInput("");
+                }}
+                className="text-muted underline hover:text-ink"
+              >
+                Remove
+              </button>
+            </p>
+          ) : (
+            <div>
+              <label htmlFor="coupon" className="block text-sm font-medium">Coupon code</label>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  id="coupon"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      setCoupon(couponInput.trim());
+                    }
+                  }}
+                  autoComplete="off"
+                  maxLength={20}
+                  className={`${input} uppercase`}
+                  aria-describedby={coupon && rewards?.couponError ? "coupon-error" : undefined}
+                />
+                <button type="button" onClick={() => setCoupon(couponInput.trim())} disabled={!couponInput.trim()} className="shrink-0 rounded-xl border border-berry px-4 text-sm font-semibold text-berry hover:bg-berry/5 disabled:opacity-40">
+                  Apply
+                </button>
+              </div>
+              {coupon && rewards?.couponError && <p id="coupon-error" role="alert" className="mt-1.5 text-sm text-nonveg">{rewards.couponError}</p>}
+            </div>
+          )}
+          {rewards?.loyalty &&
+            (rewards.loyalty.points > 0 ? (
+              <label className="flex items-start gap-2 text-sm">
+                <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} className="mt-0.5 size-4 accent-[var(--color-berry)]" />
+                <span>
+                  Use {rewards.loyalty.points} of your {rewards.loyalty.balance} points <span className="font-semibold text-veg">(−{formatINR(rewards.loyalty.valuePaise)})</span>
+                </span>
+              </label>
+            ) : (
+              <p className="text-sm text-muted">You have {rewards.loyalty.balance} points. You’ll earn more with this order.</p>
+            ))}
+        </div>
         {quote && (
           <dl className="tabular space-y-1.5 border-t border-line pt-3 text-sm">
             <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatINR(quote.subtotalPaise)}</dd></div>
+            {couponPaise > 0 && (
+              <div className="flex justify-between text-veg"><dt>Coupon {rewards?.couponCode}</dt><dd>−{formatINR(couponPaise)}</dd></div>
+            )}
+            {pointsPaise > 0 && (
+              <div className="flex justify-between text-veg"><dt>{rewards?.loyalty?.points} points</dt><dd>−{formatINR(pointsPaise)}</dd></div>
+            )}
             {quote.deliveryFeePaise > 0 && <div className="flex justify-between"><dt>Delivery</dt><dd>{formatINR(quote.deliveryFeePaise)}</dd></div>}
             {store.pricing.tax.enabled && (
               <div className="flex justify-between text-muted">

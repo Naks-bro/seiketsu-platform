@@ -13,6 +13,11 @@ type Settings = {
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
   pincodeCount: number;
+  loyaltyEnabled: boolean;
+  loyaltyEarnPer100: number;
+  loyaltyPointValue: number;
+  loyaltyMinRedeem: number;
+  loyaltyMaxRedeemPercent: number;
   deliveryFee: number;
   freeDeliveryAbove: number | "";
   minOrder: number;
@@ -87,6 +92,18 @@ export function SettingsForm({ settings: s, canEditTax }: { settings: Settings; 
           <span className="font-medium">Typical prep time (minutes)</span>
           <input name="prepTime" type="number" min={5} max={180} defaultValue={s.prepTime} className={`${box} mt-1 w-full`} />
         </label>
+      </fieldset>
+
+      <fieldset className={section}>
+        <legend className="px-1 font-display text-xl">Loyalty points</legend>
+        <Check name="loyaltyEnabled" label="Give and accept loyalty points" defaultChecked={s.loyaltyEnabled} />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-sm"><span className="font-medium">Points per ₹100 spent</span><input name="loyaltyEarnPer100" type="number" min={0} step="1" defaultValue={s.loyaltyEarnPer100} className={`${box} mt-1 w-full`} /></label>
+          <label className="text-sm"><span className="font-medium">1 point is worth (₹)</span><input name="loyaltyPointValue" type="number" min={0} step="0.01" defaultValue={s.loyaltyPointValue} className={`${box} mt-1 w-full`} /></label>
+          <label className="text-sm"><span className="font-medium">Spend from (points)</span><input name="loyaltyMinRedeem" type="number" min={0} step="1" defaultValue={s.loyaltyMinRedeem} className={`${box} mt-1 w-full`} /></label>
+          <label className="text-sm"><span className="font-medium">Points pay up to (% of order)</span><input name="loyaltyMaxRedeemPercent" type="number" min={0} max={100} step="1" defaultValue={s.loyaltyMaxRedeemPercent} className={`${box} mt-1 w-full`} /></label>
+        </div>
+        <p className="text-xs text-muted">Points are earned on food paid for (after coupons), added once the payment goes through and taken back if the order is refunded. Customers must be signed in to spend them.</p>
       </fieldset>
 
       <fieldset className={section} disabled={!canEditTax}>

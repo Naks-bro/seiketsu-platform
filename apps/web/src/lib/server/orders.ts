@@ -6,6 +6,7 @@ import {
   addons,
   customers,
   consentEvents,
+  couponRedemptions,
   getDb,
   invoiceCounters,
   menuItemAddonGroups,
@@ -25,6 +26,7 @@ import { z } from "zod";
 import { checkTransition, REFUND_ON, type OrderStatus } from "@seiketsu/core/order-status";
 import { computeQuote } from "@seiketsu/core/pricing";
 import { isServiceable } from "@seiketsu/core/delivery-area";
+import { evaluateCoupon, loyaltySettings, pointsForPhone, redeemable, reverseLoyalty, settleLoyalty } from "./rewards";
 import { eventForStatus, financialYear, formatInvoiceNumber, type CustomerEvent } from "@seiketsu/core/messaging";
 import { getStore } from "./catalog";
 import { env } from "./env";
@@ -122,12 +124,63 @@ async function resolveLines(db: Db, inputLines: CartLine[], outletId: string) {
   });
 }
 
-function quoteFor(lines: Awaited<ReturnType<typeof resolveLines>>, pricing: Parameters<typeof computeQuote>[1], fulfilment: "pickup" | "delivery") {
+function quoteFor(lines: Awaited<ReturnType<typeof resolveLines>>, pricing: Parameters<typeof computeQuote>[1], fulfilment: "pickup" | "delivery", discountPaise = 0) {
   return computeQuote(
     lines.map((l) => ({ unitPricePaise: l.variant.pricePaise, addOnPricesPaise: l.addons.map((a) => a.pricePaise), quantity: l.line.quantity })),
     pricing,
     fulfilment,
+    discountPaise,
   );
+}
+
+type Rewards = { couponId: string | null; couponCode: string | null; couponPaise: number; points: number; pointsPaise: number };
+
+/**
+ * Coupon and points for an order, worked out on the server from the database. A code that can't be used throws
+ * with the reason. Points are only spent for the signed-in customer's own phone number.
+ */
+async function rewardsFor(outletId: string, subtotalPaise: number, phone: string, couponCode: string | undefined, usePoints: boolean | undefined, sessionPhone: string | null): Promise<Rewards> {
+  const r: Rewards = { couponId: null, couponCode: null, couponPaise: 0, points: 0, pointsPaise: 0 };
+  if (couponCode?.trim()) {
+    const c = await evaluateCoupon(outletId, couponCode, phone, subtotalPaise);
+    if ("error" in c) throw new OrderError(c.error ?? "That coupon can’t be used.", 400);
+    r.couponId = c.coupon.id;
+    r.couponCode = c.coupon.code;
+    r.couponPaise = c.discountPaise;
+  }
+  if (usePoints && sessionPhone && sessionPhone === phone) {
+    const mine = await pointsForPhone(phone);
+    if (mine) {
+      const spend = redeemable(mine.balance, subtotalPaise - r.couponPaise, await loyaltySettings(outletId));
+      r.points = spend.points;
+      r.pointsPaise = spend.valuePaise;
+    }
+  }
+  return r;
+}
+
+/** What the checkout page shows before paying: the coupon's effect and the points the customer could spend. */
+export async function previewRewards(args: { lines: CheckoutData["lines"]; phone: string | null; couponCode?: string; sessionPhone: string | null }) {
+  const store = await getStore();
+  const db = await getDb();
+  const lines = await resolveLines(db, args.lines, store.outletId);
+  const subtotalPaise = quoteFor(lines, store.pricing, "pickup").subtotalPaise;
+  const out = { couponPaise: 0, couponCode: null as string | null, couponError: null as string | null, loyalty: null as null | { balance: number; points: number; valuePaise: number } };
+  if (args.couponCode?.trim()) {
+    const c = await evaluateCoupon(store.outletId, args.couponCode, args.phone ?? "", subtotalPaise);
+    if ("error" in c) out.couponError = c.error ?? null;
+    else {
+      out.couponPaise = c.discountPaise;
+      out.couponCode = c.coupon.code;
+    }
+  }
+  const settings = await loyaltySettings(store.outletId);
+  if (settings.enabled && args.sessionPhone) {
+    const mine = await pointsForPhone(args.sessionPhone);
+    const balance = mine?.balance ?? 0;
+    out.loyalty = { balance, ...redeemable(balance, subtotalPaise - out.couponPaise, settings) };
+  }
+  return out;
 }
 
 const variantLabel = (v: { label: string | null; portionAmount: number | null; portionUnit: string | null }) =>
@@ -150,7 +203,7 @@ export type PaymentParams = {
   prefill: { name: string; contact: string; email?: string };
 };
 
-export async function createCheckout(input: CheckoutData): Promise<CheckoutResult> {
+export async function createCheckout(input: CheckoutData, opts: { sessionPhone?: string | null } = {}): Promise<CheckoutResult> {
   if (env.paymentsMode === "disabled") {
     throw new OrderError("Online payment is not set up yet. Please order on WhatsApp for now.", 503);
   }
@@ -168,10 +221,12 @@ export async function createCheckout(input: CheckoutData): Promise<CheckoutResul
   const db = await getDb();
   const lines = await resolveLines(db, input.lines, store.outletId);
 
-  const quote = quoteFor(lines, store.pricing, input.fulfilment);
+  let quote = quoteFor(lines, store.pricing, input.fulfilment);
   if (quote.belowMinimum) {
     throw new OrderError(`Minimum order is \u20b9${store.pricing.minOrderPaise / 100}.`);
   }
+  const rewards = await rewardsFor(store.outletId, quote.subtotalPaise, input.customer.phone, input.couponCode, input.usePoints, opts.sessionPhone ?? null);
+  if (rewards.couponPaise + rewards.pointsPaise > 0) quote = quoteFor(lines, store.pricing, input.fulfilment, rewards.couponPaise + rewards.pointsPaise);
 
   const settings = await db.query.storeSettings.findFirst({ where: (s, { eq }) => eq(s.outletId, store.outletId) });
   const expiresAt = new Date(Date.now() + (settings?.paymentExpiryMinutes ?? 30) * 60_000);
@@ -213,6 +268,8 @@ export async function createCheckout(input: CheckoutData): Promise<CheckoutResul
         notes: input.notes || null,
         subtotalPaise: quote.subtotalPaise,
         discountPaise: quote.discountPaise,
+        couponCode: rewards.couponCode,
+        loyaltyPointsUsed: rewards.points,
         deliveryFeePaise: quote.deliveryFeePaise,
         taxPaise: quote.taxPaise,
         totalPaise: quote.totalPaise,
@@ -220,6 +277,9 @@ export async function createCheckout(input: CheckoutData): Promise<CheckoutResul
         expiresAt,
       })
       .returning();
+    if (rewards.couponId) {
+      await tx.insert(couponRedemptions).values({ couponId: rewards.couponId, orderId: o.id, customerPhone: input.customer.phone, discountPaise: rewards.couponPaise });
+    }
 
     for (const [i, l] of lines.entries()) {
       const [oi] = await tx
@@ -364,6 +424,8 @@ export async function markPaymentCaptured(args: {
   });
   if (result.changed) {
     await deductStockSafely(result.order.id);
+    // Points never hold up an order: a failure here is logged and can be put right by hand in Customers.
+    await settleLoyalty(result.order.id).catch((err) => console.error("[loyalty] could not settle", result.order.id, err));
     await notify(result.order, "placed");
   }
   return result.order;
@@ -536,6 +598,7 @@ export async function refundOrder(args: { orderId: string; staffId: string; outl
     await tx.update(orders).set({ paymentState: "refunded" }).where(eq(orders.id, row.o.id));
     await audit(tx, { actorId: args.staffId, outletId: row.o.outletId, action: "order.refund", entity: "order", entityId: row.o.id, data: { amount, refundId: r.id } });
   });
+  await reverseLoyalty(row.o.id).catch((err) => console.error("[loyalty] could not reverse", row.o.id, err));
   await notify(row.o, "refunded", { amountPaise: amount });
   return { refundId: r.id, amountPaise: amount, status: r.status };
 }

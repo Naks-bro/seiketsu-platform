@@ -71,6 +71,12 @@ export const storeSettings = pgTable("store_settings", {
   pickupEnabled: boolean("pickup_enabled").notNull().default(true),
   deliveryEnabled: boolean("delivery_enabled").notNull().default(false),
   deliveryPincodes: text("delivery_pincodes").array().notNull().default(sql`'{}'::text[]`),
+  /** Loyalty points: all off until the owner sets them. */
+  loyaltyEnabled: boolean("loyalty_enabled").notNull().default(false),
+  loyaltyEarnPer100: integer("loyalty_earn_per_100").notNull().default(0),
+  loyaltyPointValuePaise: integer("loyalty_point_value_paise").notNull().default(0),
+  loyaltyMinRedeem: integer("loyalty_min_redeem").notNull().default(0),
+  loyaltyMaxRedeemPercent: integer("loyalty_max_redeem_percent").notNull().default(0),
   deliveryFeePaise: integer("delivery_fee_paise").notNull().default(0),
   freeDeliveryAbovePaise: integer("free_delivery_above_paise"),
   minOrderPaise: integer("min_order_paise").notNull().default(0),
@@ -189,6 +195,9 @@ export const customers = pgTable("customers", {
   phone: text("phone").notNull().unique(),
   name: text("name").notNull(),
   email: text("email"),
+  /** Staff-only CRM notes and tags. */
+  notes: text("notes"),
+  tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
   /** @deprecated replaced by the per-channel flags below */
   marketingConsent: boolean("marketing_consent").notNull().default(false),
   marketingWhatsapp: boolean("marketing_whatsapp").notNull().default(false),
@@ -228,6 +237,8 @@ export const orders = pgTable(
     tableLabel: text("table_label"),
     subtotalPaise: integer("subtotal_paise").notNull(),
     discountPaise: integer("discount_paise").notNull().default(0),
+    couponCode: text("coupon_code"),
+    loyaltyPointsUsed: integer("loyalty_points_used").notNull().default(0),
     deliveryFeePaise: integer("delivery_fee_paise").notNull().default(0),
     taxPaise: integer("tax_paise").notNull().default(0),
     totalPaise: integer("total_paise").notNull(),
@@ -666,4 +677,57 @@ export const subscriptionDeliveries = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("subscription_deliveries_sub_date").on(t.subscriptionId, t.date)],
+);
+
+/** Discount codes, set up by the owner in Admin › Coupons. */
+export const coupons = pgTable(
+  "coupons",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    code: text("code").notNull(),
+    description: text("description"),
+    kind: text("kind").notNull(),
+    value: integer("value").notNull(),
+    minSubtotalPaise: integer("min_subtotal_paise").notNull().default(0),
+    maxDiscountPaise: integer("max_discount_paise"),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    usageLimit: integer("usage_limit"),
+    perCustomerLimit: integer("per_customer_limit").default(1),
+    firstOrderOnly: boolean("first_order_only").notNull().default(false),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("coupons_outlet_code").on(t.outletId, t.code)],
+);
+
+export const couponRedemptions = pgTable(
+  "coupon_redemptions",
+  {
+    id: id(),
+    couponId: uuid("coupon_id").notNull().references(() => coupons.id),
+    orderId: uuid("order_id").notNull().unique().references(() => orders.id),
+    customerPhone: text("customer_phone").notNull(),
+    discountPaise: integer("discount_paise").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("coupon_redemptions_coupon").on(t.couponId), index("coupon_redemptions_phone").on(t.customerPhone)],
+);
+
+/** Every change to a customer's points. The balance is the sum; one row per order and reason, so settling twice is harmless. */
+export const loyaltyLedger = pgTable(
+  "loyalty_ledger",
+  {
+    id: id(),
+    customerId: uuid("customer_id").notNull().references(() => customers.id),
+    orderId: uuid("order_id").references(() => orders.id),
+    points: integer("points").notNull(),
+    reason: text("reason").notNull(),
+    note: text("note"),
+    staffId: uuid("staff_id").references(() => staffUsers.id),
+    createdAt: createdAt(),
+  },
+  (t) => [index("loyalty_ledger_customer").on(t.customerId), uniqueIndex("loyalty_ledger_order_reason").on(t.orderId, t.reason)],
 );

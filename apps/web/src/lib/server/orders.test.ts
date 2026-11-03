@@ -341,3 +341,52 @@ describe("reports", () => {
     expect(r.bestSellers[0].qty).toBeGreaterThan(0);
   });
 });
+
+describe("coupons and points", () => {
+  it("applies a valid coupon on the server, once per customer, and refuses bad codes", async () => {
+    const { coupons, couponRedemptions } = await import("@seiketsu/db");
+    await db.insert(coupons).values({ outletId, code: "WELCOME10", kind: "percent", value: 10, perCustomerLimit: 1 });
+    const { item, v } = await variantOf("Green Machine");
+    const lines = [{ menuItemId: item.id, variantId: v.id, addOnIds: [], quantity: 2 }];
+    const who = { name: "Coupon Customer", phone: "9811122233", email: "" };
+
+    await expect(orderSvc.createCheckout({ lines, customer: who, fulfilment: "pickup", source: "web", couponCode: "NOPE" })).rejects.toThrow(/isn’t valid/);
+    const r = await orderSvc.createCheckout({ lines, customer: who, fulfilment: "pickup", source: "web", couponCode: " welcome10 " });
+    const o = await orderByToken(r.token);
+    expect(o).toMatchObject({ couponCode: "WELCOME10", discountPaise: Math.floor((v.pricePaise * 2) / 10), totalPaise: v.pricePaise * 2 - Math.floor((v.pricePaise * 2) / 10) });
+    expect(await db.select().from(couponRedemptions).where(eq(couponRedemptions.orderId, o.id))).toHaveLength(1);
+    await expect(orderSvc.createCheckout({ lines, customer: who, fulfilment: "pickup", source: "web", couponCode: "WELCOME10" })).rejects.toThrow(/already used/);
+  });
+
+  it("earns points when paid, spends them only for the signed-in phone, and reverses them on refund", async () => {
+    const { loyaltyLedger, customers: customerTable } = await import("@seiketsu/db");
+    await db.update(storeSettings).set({ loyaltyEnabled: true, loyaltyEarnPer100: 10, loyaltyPointValuePaise: 100, loyaltyMinRedeem: 0, loyaltyMaxRedeemPercent: 50 }).where(eq(storeSettings.outletId, outletId));
+    const { item, v } = await variantOf("Green Machine");
+    const lines = [{ menuItemId: item.id, variantId: v.id, addOnIds: [], quantity: 3 }];
+    const who = { name: "Points Customer", phone: "9822233344", email: "" };
+
+    const r1 = await orderSvc.createCheckout({ lines, customer: who, fulfilment: "pickup", source: "web" });
+    await orderSvc.confirmCheckoutPayment({ token: r1.token, razorpayOrderId: r1.payment.razorpayOrderId, razorpayPaymentId: "pay_pts_1" });
+    const [c] = await db.select().from(customerTable).where(eq(customerTable.phone, who.phone));
+    const earned = Math.floor((v.pricePaise * 3) / 10000) * 10;
+    const balance = async () => (await db.select().from(loyaltyLedger).where(eq(loyaltyLedger.customerId, c.id))).reduce((a, l) => a + l.points, 0);
+    expect(await balance()).toBe(earned);
+
+    // Someone else typing this phone number can't spend the points.
+    const stranger = await orderSvc.createCheckout({ lines, customer: who, fulfilment: "pickup", source: "web", usePoints: true }, { sessionPhone: "9000000000" });
+    expect((await orderByToken(stranger.token)).loyaltyPointsUsed).toBe(0);
+
+    const r2 = await orderSvc.createCheckout({ lines, customer: who, fulfilment: "pickup", source: "web", usePoints: true }, { sessionPhone: who.phone });
+    const o2 = await orderByToken(r2.token);
+    const spend = Math.min(earned, Math.floor((v.pricePaise * 3) / 2 / 100));
+    expect(o2).toMatchObject({ loyaltyPointsUsed: spend, discountPaise: spend * 100 });
+    await orderSvc.confirmCheckoutPayment({ token: r2.token, razorpayOrderId: r2.payment.razorpayOrderId, razorpayPaymentId: "pay_pts_2" });
+    const earned2 = Math.floor((v.pricePaise * 3 - spend * 100) / 10000) * 10;
+    expect(await balance()).toBe(earned - spend + earned2);
+
+    await orderSvc.transitionOrder({ orderId: o2.id, to: "rejected", staffId, outletId, reason: "Test refund" });
+    await orderSvc.refundOrder({ orderId: o2.id, staffId, outletId, reason: "Test refund" });
+    expect(await balance()).toBe(earned);
+    await db.update(storeSettings).set({ loyaltyEnabled: false }).where(eq(storeSettings.outletId, outletId));
+  });
+});

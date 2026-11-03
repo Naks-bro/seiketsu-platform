@@ -4,6 +4,7 @@ import { createCheckout } from "@/lib/server/orders";
 import { handleError, jsonError, readJson } from "@/lib/server/http";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { clientIp } from "@/lib/server/request";
+import { getCustomer } from "@/lib/server/customer-auth";
 
 export async function POST(req: Request) {
   try {
@@ -11,7 +12,8 @@ export async function POST(req: Request) {
       return jsonError("Too many attempts. Please wait a few minutes.", 429);
     }
     const input = checkoutSchema.parse(await readJson(req));
-    return NextResponse.json(await createCheckout(input));
+    const me = await getCustomer();
+    return NextResponse.json(await createCheckout(input, { sessionPhone: me?.phone ?? null }));
   } catch (err) {
     return handleError(err);
   }
