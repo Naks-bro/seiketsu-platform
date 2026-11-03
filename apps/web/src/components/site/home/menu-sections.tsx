@@ -22,15 +22,17 @@ const TONES = ["bg-butter", "bg-pink/20", "bg-olive/20", "bg-orange/20", "bg-pap
 export function Categories({ menu }: { menu: CategoryDTO[] }) {
   return (
     <section className="bg-cream" aria-labelledby="cat-h">
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 pb-12 pt-14 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 id="cat-h" data-reveal className="font-display text-5xl leading-none text-ink sm:text-6xl">What are you <em className="italic text-berry">craving?</em></h2>
+          <h2 id="cat-h" data-reveal className="max-w-2xl font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
+            Whatever you’re in the mood for, there’s something at <em className="italic text-berry">Seiketsu.</em>
+          </h2>
           <Link href="/menu" className="font-semibold text-berry hover:underline">See the full menu →</Link>
         </div>
-        <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {menu.map((c, i) => (
             <li key={c.id} data-reveal style={{ "--d": `${i * 60}ms` } as React.CSSProperties}>
-              <Link href={`/menu#${c.slug}`} className={`group flex aspect-[4/5] flex-col overflow-hidden rounded-[1.75rem] p-4 transition duration-500 hover:-translate-y-1 sm:p-5 ${TONES[i % TONES.length]}`}>
+              <Link href={`/menu#${c.slug}`} className={`group flex aspect-[4/5] flex-col lg:aspect-[5/4] overflow-hidden rounded-[1.75rem] p-4 transition duration-500 hover:-translate-y-1 sm:p-5 ${TONES[i % TONES.length]}`}>
                 <span className="font-display text-xl leading-tight text-ink sm:text-3xl">{c.name}</span>
                 <span aria-hidden className="relative my-2 flex-1 transition duration-700 group-hover:scale-110 group-hover:-rotate-3">
                   {CATEGORY_ART[c.slug] ? (

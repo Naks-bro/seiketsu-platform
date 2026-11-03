@@ -42,6 +42,7 @@
   @keyframes toast-in { from { opacity: 0; transform: translateY(16px) scale(0.96); } }
   @keyframes bump { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.25); } 70% { transform: scale(0.95); } }
   @keyframes marquee { to { transform: translateX(-50%); } }
+  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-10px) rotate(var(--r, 0deg)); } }
 }
 
@@ -51,6 +52,14 @@
   transform: translateY(24px);
   transition: opacity 0.8s var(--ease-out-quint), transform 0.8s var(--ease-out-quint);
   transition-delay: var(--d, 0ms);
+}
+.js .draw-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 2.2s var(--ease-out-quint) 0.3s;
+}
+.js .is-in .draw-path {
+  stroke-dashoffset: 0;
 }
 .js [data-reveal].is-in {
   opacity: 1;

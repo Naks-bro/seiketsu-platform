@@ -10,7 +10,7 @@ export function Visit({ store }: { store: StoreDTO }) {
     <section id="visit" className="scroll-mt-20 bg-cream" aria-labelledby="visit-h">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-24 sm:px-6 md:grid-cols-2">
         <div className="space-y-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Come say hello</p>
+          <p className="font-display text-xl italic text-olive-ink">Real food that feels like a warm hug.</p>
           <h2 id="visit-h" data-reveal className="font-display text-5xl leading-none text-ink sm:text-6xl">
             Visit us in <em className="italic text-berry">Versova.</em>
           </h2>

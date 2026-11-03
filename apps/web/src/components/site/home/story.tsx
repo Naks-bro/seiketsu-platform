@@ -21,60 +21,18 @@ export function Story() {
           </h2>
           <div data-reveal className="space-y-4 text-lg leading-relaxed text-ink/75">
             <p>
-              Convenient food often puts speed before nutrition. Healthy food can feel restrictive, repetitive, or disconnected from the
-              pleasure of eating. Seiketsu was created to bridge that gap.
+              Convenient food often prioritises speed over nutritional value. Meanwhile, healthy food can feel restrictive, repetitive or
+              disconnected from the pleasure of eating. Seiketsu was created to bridge that gap.
             </p>
             <p>
-              Inspired by the Japanese idea of cleanliness and purity, we believe better nourishment begins with thoughtful choices, from
-              the ingredients we use to the way we prepare and serve food.
+              Inspired by the Japanese concept of cleanliness and purity, the brand believes that better nourishment begins with thoughtful
+              choices, from the ingredients we use to the way we prepare and experience food.
             </p>
           </div>
           <p data-reveal className="flex items-center gap-3 font-display text-2xl italic text-ink">
-            <Sparkle className="size-5 text-orange" /> Clean eating is a choice, not a restriction.
+            <Sparkle className="size-5 text-orange" /> Clean eating is not a restriction. It is a conscious lifestyle choice.
           </p>
         </div>
-      </div>
-    </section>
-  );
-}
-
-const PROMISE = [
-  ["Nutrition", "Taste", "bg-berry text-cream"],
-  ["Freshness", "Convenience", "bg-butter text-ink"],
-  ["Wellbeing", "Enjoyment", "bg-olive text-cream"],
-  ["Quality", "Everyday access", "bg-pink text-cream"],
-];
-
-export function BrandPromise() {
-  return (
-    <section className="bg-paper" aria-labelledby="promise-h">
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <h2 id="promise-h" data-reveal className="max-w-xl font-display text-5xl leading-[1.02] text-ink sm:text-6xl">
-            Cleaner choices. <span className="text-berry">Better experiences.</span>
-          </h2>
-          <p data-reveal className="max-w-sm text-ink/70">
-            We bring together the things people usually have to choose between. Eating thoughtfully should never mean giving up the pleasure of food.
-          </p>
-        </div>
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {PROMISE.map(([a, b, tone], i) => (
-            <li
-              key={a}
-              data-reveal
-              style={{ "--d": `${i * 90}ms` } as React.CSSProperties}
-              className={`group flex min-h-56 flex-col justify-between rounded-[1.75rem] p-7 transition duration-500 hover:-translate-y-1.5 hover:-rotate-1 ${tone}`}
-            >
-              <span className="font-display text-6xl leading-none opacity-30 transition group-hover:rotate-90 group-hover:opacity-60" aria-hidden>×</span>
-              <p className="font-display text-3xl leading-tight">
-                {a}
-                <span className="sr-only"> and </span>
-                <span className="block opacity-75" aria-hidden>× {b}</span>
-                <span className="sr-only">{b}</span>
-              </p>
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );
@@ -88,30 +46,40 @@ const JOURNEY = [
 
 export function Journey() {
   return (
-    <section className="relative overflow-hidden bg-cream" aria-labelledby="journey-h">
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Part of Arkoun’s food journey</p>
-        <h2 id="journey-h" data-reveal className="mx-auto mt-3 max-w-3xl text-center font-display text-5xl leading-[1.02] text-ink sm:text-6xl">
-          From how food is grown to how it’s <em className="italic text-berry">enjoyed.</em>
+    <section className="relative overflow-hidden bg-olive-ink text-cream" aria-labelledby="journey-h">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-14">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-butter">Part of Arkoun’s food journey</p>
+        <h2 id="journey-h" data-reveal className="mt-3 max-w-3xl font-display text-4xl leading-[1.04] sm:text-5xl">
+          From how food is grown to how it is <em className="italic text-butter">experienced.</em>
         </h2>
-        <ol className="relative mt-16 grid gap-12 md:grid-cols-3 md:gap-8">
-          <svg aria-hidden className="absolute left-[16%] right-[16%] top-16 hidden h-8 w-[68%] md:block" viewBox="0 0 600 30" preserveAspectRatio="none">
-            <path d="M0 15 C 100 -5, 200 35, 300 15 S 500 -5, 600 15" fill="none" stroke="#a51c47" strokeWidth="2.5" strokeDasharray="2 10" strokeLinecap="round" />
+
+        <div data-reveal className="relative mt-12">
+          {/* The line that ties the three together draws itself in as the section appears. */}
+          <svg aria-hidden className="absolute left-[16.6%] top-6 hidden h-20 w-[66.8%] md:block" viewBox="0 0 600 100" preserveAspectRatio="none">
+            <path className="draw-path" pathLength={1} d="M0 50 C 90 -10, 210 110, 300 50 S 510 -10, 600 50" fill="none" stroke="#fce9ab" strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
           </svg>
-          {JOURNEY.map(({ n, verb, name, body, Art }, i) => (
-            <li key={n} data-reveal style={{ "--d": `${i * 150}ms` } as React.CSSProperties} className="relative text-center">
-              <div className="mx-auto grid size-32 place-items-center rounded-full border-2 border-ink bg-white shadow-[6px_6px_0_var(--color-ink)]">
-                <Art className="w-24" />
-              </div>
-              <p className="mt-6 text-xs font-bold tracking-[0.2em] text-berry">{n} · {verb.toUpperCase()}</p>
-              <h3 className="mt-1 font-display text-3xl text-ink">{name}</h3>
-              <p className="mx-auto mt-2 max-w-xs text-ink/70">{body}</p>
-            </li>
-          ))}
-        </ol>
-        <p className="mx-auto mt-14 max-w-2xl text-center text-sm text-muted">
-          Seiketsu is the consumer-facing part of Arkoun’s vision for food: a philosophy that begins with growing and sourcing better food
-          and ends on your plate.
+          <span aria-hidden className="absolute bottom-0 left-[2.75rem] top-0 w-px bg-cream/25 md:hidden" />
+          <ol className="relative grid gap-10 md:grid-cols-3 md:gap-8">
+            {JOURNEY.map(({ n, verb, name, body, Art }) => (
+              <li key={n} className="relative grid grid-cols-[5.5rem_1fr] gap-5 md:block md:text-center">
+                <div className="relative mx-auto grid size-[5.5rem] place-items-center rounded-full bg-cream shadow-[0_0_0_8px_rgb(255_252_245/0.08)] md:size-32">
+                  <Art className="w-14 md:w-24" />
+                </div>
+                <div>
+                  <p className="flex items-baseline gap-3 md:mt-5 md:justify-center">
+                    <span className="font-display text-5xl leading-none text-transparent [-webkit-text-stroke:1px_rgb(252_233_171/0.7)]">{n}</span>
+                    <span className="text-xs font-bold tracking-[0.25em] text-butter">{verb.toUpperCase()}</span>
+                  </p>
+                  <h3 className="mt-1 font-display text-3xl">{name}</h3>
+                  <p className="mx-auto mt-2 max-w-xs text-cream/75">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <p className="mx-auto mt-12 max-w-2xl border-t border-cream/20 pt-6 text-center font-display text-xl italic leading-snug text-cream/90">
+          Together, these verticals connect the journey from how food is grown to how it is experienced and consumed.
         </p>
       </div>
     </section>

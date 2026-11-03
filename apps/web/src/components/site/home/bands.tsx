@@ -47,32 +47,3 @@ export function Manifesto() {
     </section>
   );
 }
-
-const PERSONALITY = [
-  ["Pure", "Clear, considered, uncomplicated."],
-  ["Intelligent", "Guided by nutrition, not trends."],
-  ["Fresh", "Vibrant and uplifting."],
-  ["Refined", "Thoughtful in every detail."],
-  ["Aspirational", "A lifestyle, not a set of rules."],
-  ["Confident", "No judgement. Ever."],
-];
-
-export function Personality() {
-  return (
-    <section className="bg-ink py-20 text-cream" aria-labelledby="pers-h">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 id="pers-h" className="max-w-2xl font-display text-4xl leading-tight sm:text-5xl">
-          Knowledgeable, never clinical. Premium, never <em className="italic text-butter">intimidating.</em>
-        </h2>
-        <ul className="mt-12 grid gap-px overflow-hidden rounded-3xl bg-cream/10 sm:grid-cols-2 lg:grid-cols-3">
-          {PERSONALITY.map(([k, v], i) => (
-            <li key={k} data-reveal style={{ "--d": `${i * 70}ms` } as React.CSSProperties} className="bg-ink p-7">
-              <p className="font-display text-3xl uppercase tracking-wide text-butter">{k}</p>
-              <p className="mt-2 text-cream/70">{v}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  );
-}

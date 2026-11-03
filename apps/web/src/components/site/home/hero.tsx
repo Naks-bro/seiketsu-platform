@@ -3,42 +3,51 @@ import type { StoreDTO } from "@/lib/types";
 import { formatHours, istDayIndex } from "@seiketsu/core/store-hours";
 import { CheckDeliveryButton, HeroVideo } from "./client";
 
+const REEL_URL = "https://www.instagram.com/sei_ketsu/reel/De9VjlEo1Ts/";
+
 export function Hero({ store }: { store: StoreDTO }) {
   const today = store.hours?.[istDayIndex(new Date())] ?? null;
+  const status = store.isOpenNow ? `Open today${today ? ` · ${formatHours(today)}` : ""}` : store.hours ? "Closed right now" : "Opening soon";
   return (
-    <section className="grid bg-berry text-cream md:min-h-[calc(100svh-4rem)] md:grid-cols-[1fr_1fr] lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="relative order-1 aspect-[4/5] max-h-[72svh] w-full overflow-hidden bg-berry-deep md:order-2 md:aspect-auto md:max-h-none">
-        <HeroVideo src="/landing/hero.mp4" poster="/landing/hero-poster.webp" label="Seiketsu reel: sandwiches, wraps and bowls, the art of clean eating" />
-      </div>
-
-      <div className="order-2 flex flex-col justify-between gap-12 px-6 py-12 sm:px-10 md:order-1 md:py-14 lg:py-16 lg:pl-[max(4rem,calc((100vw-72rem)/2+1.5rem))] lg:pr-16">
-        <p className="text-sm text-cream/70">Versova, Mumbai</p>
-
+    <section className="relative overflow-hidden bg-berry text-cream">
+      {/* One soft light behind the film, so it sits on the page rather than on a flat colour. */}
+      <div aria-hidden className="pointer-events-none absolute -right-40 top-1/2 size-[44rem] -translate-y-1/2 rounded-full bg-pink/25 blur-[120px]" />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:px-6 md:min-h-[calc(100svh-4rem)] md:grid-cols-[1.05fr_0.95fr] md:gap-16 md:py-14">
         <div className="space-y-8">
-          <h1 className="max-w-[11ch] font-display text-[clamp(3rem,6.4vw,6.25rem)] font-medium leading-[0.95] tracking-[-0.025em]">
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-cream/75">
+            <span>Versova, Mumbai</span>
+            <span aria-hidden className="size-1 rounded-full bg-cream/40" />
+            <span className="flex items-center gap-2">
+              {store.isOpenNow && <span aria-hidden className="size-2 rounded-full bg-[#7bd389]" />}
+              {status}
+            </span>
+          </p>
+          <h1 className="max-w-[11ch] font-display text-[clamp(3.1rem,6.6vw,6.5rem)] font-medium leading-[0.95] tracking-[-0.025em]">
             The art of clean eating.
           </h1>
-          <p className="max-w-[34ch] text-lg leading-relaxed text-cream/85">
+          <p className="max-w-[36ch] text-lg leading-relaxed text-cream/85">
             A premium nutrition fresh house. Salads, wraps, bowls, cold-pressed juices and smoothies, made to order, with the
             nutrition on every dish.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Link href="/menu" className="rounded-full bg-cream px-7 py-3.5 font-semibold text-berry transition hover:bg-butter">
+            <Link href="/menu" className="rounded-full bg-cream px-8 py-4 font-semibold text-berry shadow-[0_12px_30px_-12px_rgb(0_0_0/0.5)] transition hover:-translate-y-0.5 hover:bg-butter">
               Order now
             </Link>
-            <CheckDeliveryButton className="inline-flex items-center gap-2 rounded-full border border-cream/40 px-6 py-3.5 font-semibold text-cream transition hover:border-cream hover:bg-cream/10" />
+            <CheckDeliveryButton className="inline-flex items-center gap-2 rounded-full border border-cream/40 px-6 py-4 font-semibold text-cream transition hover:border-cream hover:bg-cream/10" />
           </div>
         </div>
 
-        <p className="text-sm text-cream/70">
-          {store.isOpenNow ? (
-            <>Open today{today ? ` · ${formatHours(today)}` : ""}</>
-          ) : store.hours ? (
-            "Closed right now. Order when we open."
-          ) : (
-            "Online ordering opens soon."
-          )}
-        </p>
+        <figure className="mx-auto w-full max-w-sm md:max-w-[min(100%,calc((100svh-10rem)*0.8))]">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-berry-deep shadow-[0_40px_90px_-35px_rgb(0_0_0/0.7)] ring-1 ring-cream/15">
+            <HeroVideo src="/landing/hero.mp4" poster="/landing/hero-poster.webp" label="Seiketsu reel: sandwiches, wraps and bowls, the art of clean eating" />
+          </div>
+          <figcaption className="mt-3 flex items-center justify-between text-xs text-cream/65">
+            <span>@sei_ketsu</span>
+            <a href={REEL_URL} target="_blank" rel="noreferrer" className="font-medium text-cream/85 underline-offset-4 hover:text-cream hover:underline">
+              Watch on Instagram
+            </a>
+          </figcaption>
+        </figure>
       </div>
     </section>
   );
