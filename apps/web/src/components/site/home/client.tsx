@@ -62,7 +62,16 @@ export function HeroVideo({ src, poster, label }: { src: string; poster: string;
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
+    const sync = () => setPlaying(!v.paused);
+    v.addEventListener("play", sync);
+    v.addEventListener("pause", sync);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) v.pause();
+    // Autoplay may have started before this effect ran.
+    queueMicrotask(sync);
+    return () => {
+      v.removeEventListener("play", sync);
+      v.removeEventListener("pause", sync);
+    };
   }, []);
   function toggle() {
     const v = ref.current;
@@ -72,11 +81,11 @@ export function HeroVideo({ src, poster, label }: { src: string; poster: string;
   }
   return (
     <>
-      <video ref={ref} className="size-full object-cover" src={src} poster={poster} autoPlay muted loop playsInline preload="metadata" aria-label={label} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
+      <video ref={ref} className="size-full object-cover" src={src} poster={poster} autoPlay muted loop playsInline preload="metadata" aria-label={label} />
       <button
         type="button"
         onClick={toggle}
-        className="absolute left-4 top-4 grid size-10 place-items-center rounded-full bg-ink/60 text-cream backdrop-blur transition hover:bg-ink/80"
+        className="absolute bottom-4 right-4 grid size-10 place-items-center rounded-full bg-ink/50 text-cream transition hover:bg-ink/75"
         aria-label={playing ? "Pause video" : "Play video"}
       >
         {playing ? (
