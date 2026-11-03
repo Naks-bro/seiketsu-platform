@@ -142,10 +142,18 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
 - **Adding to the cart** never opens it. A token flies to the cart, the badge bumps and a toast offers
   "View cart". All motion is skipped under reduced motion. The cart lists every extra with its price,
   lets each line be edited, and shows progress to free delivery and the minimum order.
-- **Home page**: built from the brand brief ("Premium nutrition fresh house"). The pictures are the
-  supplied brand art, café photos (no people) and hand-drawn SVG illustrations in
-  `components/site/home/doodles.tsx`. Swap in real dish photography when it exists. `public/landing/`
-  holds the resized café photos and posters.
+- **Home page**: follows the owner's copy deck "Seiketsu - website + landing page" word for word: hero,
+  Built for your lifestyle (four tabs), Why Seiketsu, Explore the menu, Seiketsu subscriptions, How we make
+  it better, The Seiketsu promise and The Seiketsu plans. Brand copy no longer names Versova or Andheri West;
+  the shop address only appears where it comes from **Settings** (Visit us, pickup). The menu tiles group the
+  menu's sections as the deck does: Wraps & Sandwiches = wraps + sandwiches, Nourishing Bowls = meals + pasta.
+  Pictures are the supplied brand art, café photos (no people) and hand-drawn SVGs in
+  `components/site/home/doodles.tsx`; `public/landing/juice-bottle-cut.webp` is a cut-out of the supplied
+  juice-bottle art. Swap in real dish photography when it exists.
+- **Plans enquiries**: the "Let's find your perfect plan" form (name, phone, email, location, interest,
+  message) is validated, rate-limited per IP and bot-trapped. "Explore subscription plans" scrolls to it with
+  Subscription Plans ticked. Staff see enquiries in **Admin → Enquiries** (counts per interest, mark replied,
+  CSV). No subscription plans or prices are shown, because none have been set yet.
 - **Hero video**: `public/landing/hero.mp4` is the brand reel from Instagram (@sei_ketsu), re-encoded to
   720×900 H.264 with no sound; `hero-poster.webp` is its first frame. It loops muted, has a pause button,
   and stays paused for visitors who prefer reduced motion. To change it, replace both files (4:5, under ~2 MB).

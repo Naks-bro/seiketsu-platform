@@ -4,23 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { MenuItemDTO } from "@/lib/types";
 import { useCart } from "@/lib/cart";
-import { openLocationSheet, requestLocation, useLocation } from "@/lib/location";
+import { requestLocation } from "@/lib/location";
 import { flyToCart } from "../fly-to-cart";
 import { showToast } from "../toast";
 import { cartLineFor, isSimple } from "../menu/cart-line";
-
-export function CheckDeliveryButton({ className }: { className: string }) {
-  const { location } = useLocation();
-  return (
-    <button type="button" onClick={openLocationSheet} className={className}>
-      <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" />
-        <circle cx="12" cy="9.5" r="2.5" />
-      </svg>
-      {location?.mode === "delivery" ? `Delivering to ${location.pincode}` : location?.mode === "pickup" ? "Pickup in Versova" : "Check delivery"}
-    </button>
-  );
-}
 
 /** ADD on a favourite: simple dishes go straight in; the rest open on the menu. */
 export function QuickAdd({ item, canOrder }: { item: MenuItemDTO; canOrder: boolean }) {

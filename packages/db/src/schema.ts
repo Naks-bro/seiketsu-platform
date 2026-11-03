@@ -577,3 +577,21 @@ export const areaRequests = pgTable(
   },
   (t) => [index("area_requests_outlet_created").on(t.outletId, t.createdAt), index("area_requests_pincode").on(t.pincode)],
 );
+
+/** "Let's find your perfect plan" enquiries from the home page. */
+export const enquiries = pgTable(
+  "enquiries",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    name: text("name").notNull(),
+    phone: text("phone").notNull(),
+    email: text("email").notNull(),
+    location: text("location").notNull(),
+    interest: text("interest").notNull(),
+    message: text("message"),
+    contactedAt: timestamp("contacted_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("enquiries_outlet_created").on(t.outletId, t.createdAt)],
+);

@@ -23,6 +23,10 @@ export default async function PrivacyPage() {
           If you ask to be told when we deliver to your area: your name, mobile number, area, pincode and, if you give it, your email. We
           use these only to contact you about delivery to your area.
         </li>
+        <li>
+          If you send an enquiry about plans, bulk orders, catering or partnerships: your name, phone number, email, location, what you are
+          interested in and your message. We use these only to reply to your enquiry.
+        </li>
         <li>Payment status and reference numbers from Razorpay. We do not receive or store card numbers, UPI PINs or bank passwords.</li>
       </ul>
       <h2>How we use it</h2>

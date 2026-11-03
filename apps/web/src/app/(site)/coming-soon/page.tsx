@@ -23,12 +23,12 @@ export default async function ComingSoonPage({ searchParams }: { searchParams: P
             We’re sorry, we don’t deliver {pin ? <>to <span className="tabular whitespace-nowrap">{pin}</span></> : "there"} <em className="font-normal">yet.</em>
           </h1>
           <p className="max-w-md text-lg leading-relaxed text-muted">
-            Our kitchen in Versova cooks everything fresh, so we keep deliveries close. We’re growing, and the neighbourhoods that ask
+            Our kitchen cooks everything fresh, so we keep deliveries close. We’re growing, and the neighbourhoods that ask
             first are the ones we reach first. Leave your details and we’ll get back to you soon.
           </p>
           <Scooter className="w-full max-w-xs" />
           <div className="rounded-2xl border border-line bg-paper p-5">
-            <p className="font-semibold">Close to Versova?</p>
+            <p className="font-semibold">Close to our kitchen?</p>
             <p className="mt-1 text-sm text-muted">
               Order for pickup from {store.addressLines[0]}. We’ll message you when it’s ready.
             </p>

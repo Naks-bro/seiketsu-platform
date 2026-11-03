@@ -66,12 +66,13 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           <div className="space-y-4">
             <Image src="/brand/wordmark-berry.png" alt="Seiketsu" width={131} height={26} className="h-7 w-auto brightness-0 invert" />
             <p className="font-display text-3xl leading-tight text-butter">The art of clean eating.</p>
-            <p className="max-w-xs text-sm text-cream/70">A premium nutrition fresh house in Versova. Fresh ingredients, thoughtful nutrition, exceptional taste.</p>
+            <p className="max-w-xs text-sm text-cream/70">Good food, thoughtful ingredients, feel-good living.</p>
           </div>
           <nav aria-label="Explore" className="space-y-2 text-sm">
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-cream/50">Explore</h2>
             <Link href="/menu" className="block hover:text-butter">Menu</Link>
-            <Link href="/#story" className="block hover:text-butter">Our story</Link>
+            <Link href="/#why" className="block hover:text-butter">Why Seiketsu</Link>
+            <Link href="/#plans" className="block hover:text-butter">Plans &amp; enquiries</Link>
             <Link href="/delivery" className="block hover:text-butter">Delivery &amp; pickup</Link>
             <Link href="/account" className="block hover:text-butter">{accountLabel}</Link>
           </nav>
@@ -108,7 +109,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         </div>
         <div className="border-t border-cream/10">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-cream/60 sm:px-6">
-            <p>© {new Date().getFullYear()} Seiketsu, Versova</p>
+            <p>© {new Date().getFullYear()} Seiketsu</p>
             <nav aria-label="Policies" className="flex flex-wrap gap-x-5 gap-y-2">
               {POLICY_LINKS.map((l) => (
                 <Link key={l.href} href={l.href} className="hover:text-cream">{l.label}</Link>

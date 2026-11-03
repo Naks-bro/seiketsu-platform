@@ -17,7 +17,7 @@ export default async function MenuPage() {
     <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-10">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Made fresh to order · Versova</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Made fresh to order</p>
           <h1 className="font-display text-5xl leading-none text-berry sm:text-6xl">The menu</h1>
         </div>
         <p className="max-w-sm text-sm text-muted">

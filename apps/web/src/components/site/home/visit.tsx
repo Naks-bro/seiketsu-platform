@@ -12,7 +12,7 @@ export function Visit({ store }: { store: StoreDTO }) {
         <div className="space-y-6">
           <p className="font-display text-xl italic text-olive-ink">Real food that feels like a warm hug.</p>
           <h2 id="visit-h" data-reveal className="font-display text-5xl leading-none text-ink sm:text-6xl">
-            Visit us in <em className="italic text-berry">Versova.</em>
+            Come <em className="italic text-berry">visit us.</em>
           </h2>
           <address className="not-italic text-lg leading-relaxed text-ink/80">
             {store.addressLines.map((l) => (
@@ -42,7 +42,7 @@ export function Visit({ store }: { store: StoreDTO }) {
         </div>
         <div className="relative">
           <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] shadow-[var(--shadow-lift)]">
-            <Image src="/landing/cafe-counter.webp" alt="The Seiketsu counter in Versova, with our menu standee beside it" fill sizes="(min-width: 768px) 540px, 92vw" className="object-cover" />
+            <Image src="/landing/cafe-counter.webp" alt="The Seiketsu counter, with our menu standee beside it" fill sizes="(min-width: 768px) 540px, 92vw" className="object-cover" />
           </div>
           <Tomato className="absolute -left-6 -top-6 w-16" />
           <Leaf className="absolute -bottom-6 right-8 w-16 rotate-12" />

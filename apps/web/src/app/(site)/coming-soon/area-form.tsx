@@ -45,7 +45,7 @@ export function AreaForm({ pin }: { pin: string }) {
         {field("name", "Your name", <input id="name" name="name" autoComplete="name" className={box} {...a("name")} />)}
         {field("phone", "Mobile number", <input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" className={box} {...a("phone")} />)}
       </div>
-      {field("area", "Area, locality or society", <input id="area" name="area" autoComplete="address-level3" placeholder="e.g. Lokhandwala, Andheri West" className={box} {...a("area")} />)}
+      {field("area", "Area, locality or society", <input id="area" name="area" autoComplete="address-level3" placeholder="e.g. your locality or society" className={box} {...a("area")} />)}
       <div className="grid gap-4 sm:grid-cols-[10rem_1fr]">
         {field("pincode", "Pincode", <input id="pincode" name="pincode" inputMode="numeric" maxLength={6} defaultValue={pin} autoComplete="postal-code" className={`${box} tabular`} {...a("pincode")} />)}
         {field("email", "Email (optional)", <input id="email" name="email" type="email" autoComplete="email" className={box} {...a("email")} />)}

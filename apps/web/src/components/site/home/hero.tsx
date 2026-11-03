@@ -1,39 +1,43 @@
 import Link from "next/link";
 import type { StoreDTO } from "@/lib/types";
 import { formatHours, istDayIndex } from "@seiketsu/core/store-hours";
-import { CheckDeliveryButton, HeroVideo } from "./client";
+import { HeroVideo } from "./client";
 
 const REEL_URL = "https://www.instagram.com/sei_ketsu/reel/De9VjlEo1Ts/";
 
 export function Hero({ store }: { store: StoreDTO }) {
   const today = store.hours?.[istDayIndex(new Date())] ?? null;
-  const status = store.isOpenNow ? `Open today${today ? ` · ${formatHours(today)}` : ""}` : store.hours ? "Closed right now" : "Opening soon";
+  const status = store.isOpenNow ? `Open now${today ? ` · ${formatHours(today)}` : ""}` : store.hours ? "Closed right now" : "Opening soon";
   return (
     <section className="relative overflow-hidden bg-berry text-cream">
       {/* One soft light behind the film, so it sits on the page rather than on a flat colour. */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-1/2 size-[44rem] -translate-y-1/2 rounded-full bg-pink/25 blur-[120px]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:px-6 md:min-h-[calc(100svh-4rem)] md:grid-cols-[1.05fr_0.95fr] md:gap-16 md:py-14">
-        <div className="space-y-8">
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-cream/75">
-            <span>Versova, Mumbai</span>
-            <span aria-hidden className="size-1 rounded-full bg-cream/40" />
-            <span className="flex items-center gap-2">
-              {store.isOpenNow && <span aria-hidden className="size-2 rounded-full bg-[#7bd389]" />}
-              {status}
-            </span>
+        <div className="space-y-6">
+          <p className="flex items-center gap-2 text-sm text-cream/75">
+            {store.isOpenNow && <span aria-hidden className="size-2 rounded-full bg-[#7bd389]" />}
+            {status}
           </p>
           <h1 className="max-w-[11ch] font-display text-[clamp(3.1rem,6.6vw,6.5rem)] font-medium leading-[0.95] tracking-[-0.025em]">
             The art of clean eating.
           </h1>
-          <p className="max-w-[36ch] text-lg leading-relaxed text-cream/85">
-            A premium nutrition fresh house. Salads, wraps, bowls, cold-pressed juices and smoothies, made to order, with the
-            nutrition on every dish.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/menu" className="rounded-full bg-cream px-8 py-4 font-semibold text-berry shadow-[0_12px_30px_-12px_rgb(0_0_0/0.5)] transition hover:-translate-y-0.5 hover:bg-butter">
+          <p className="font-display text-2xl italic text-butter sm:text-3xl">Eat Better. Feel Better. Live Better.</p>
+          <div className="max-w-[46ch] space-y-3 leading-relaxed text-cream/85">
+            <p className="text-lg">
+              Bringing together hydroponically grown greens and vegetables, fresh ingredients and thoughtfully crafted recipes, Seiketsu
+              makes eating well an experience to look forward to.
+            </p>
+            <p className="text-cream/70">
+              From wholesome salads and wraps to nourishing bowls, cold-pressed juices and smoothies, discover a better way to eat every day.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Link href="/#explore" className="rounded-full bg-cream px-8 py-4 font-semibold text-berry shadow-[0_12px_30px_-12px_rgb(0_0_0/0.5)] transition hover:-translate-y-0.5 hover:bg-butter">
+              Explore our menu
+            </Link>
+            <Link href="/menu" className="rounded-full border border-cream/40 px-8 py-4 font-semibold text-cream transition hover:border-cream hover:bg-cream/10">
               Order now
             </Link>
-            <CheckDeliveryButton className="inline-flex items-center gap-2 rounded-full border border-cream/40 px-6 py-4 font-semibold text-cream transition hover:border-cream hover:bg-cream/10" />
           </div>
         </div>
 

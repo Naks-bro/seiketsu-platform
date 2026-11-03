@@ -1,48 +1,61 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { AddonGroupDTO, CategoryDTO, MenuItemDTO } from "@/lib/types";
+import type { CategoryDTO, MenuItemDTO } from "@/lib/types";
 import { formatINR, fromPrice } from "@/lib/format";
 import { DietMark } from "@/components/diet-mark";
 import { itemDiets } from "@seiketsu/core/diet-filter";
-import { AddonIconMark } from "../addon-icons";
 import { QuickAdd } from "./client";
 import { Bowl } from "./doodles";
 
-/** Owner-supplied brand art per category; categories without art get a drawn bowl. */
-const CATEGORY_ART: Record<string, string> = {
-  wraps: "/art/grilled_wrap.webp",
-  sandwiches: "/art/sandwich_on_plate.webp",
-  pasta: "/art/green_pasta_bowl.webp",
-  meals: "/art/mixed_pasta_bowl.webp",
-  juices: "/art/red_juice_bottle.webp",
-  smoothies: "/art/chocolate_bottle.webp",
-};
-const TONES = ["bg-butter", "bg-pink/20", "bg-olive/20", "bg-orange/20", "bg-paper", "bg-berry/10", "bg-butter/60"];
+/** The owner's five menu groups, mapped onto the menu's sections. */
+const GROUPS = [
+  { title: "Salads", body: "Fresh greens, vibrant vegetables and delicious combinations.", slugs: ["salads"], img: null, tone: "bg-olive/20" },
+  { title: "Wraps & Sandwiches", body: "Wholesome, flavour-packed options for meals on the go.", slugs: ["wraps", "sandwiches"], img: "/art/wrap_halves.webp", tone: "bg-butter" },
+  { title: "Nourishing Bowls", body: "A satisfying mix of thoughtfully selected ingredients.", slugs: ["meals", "pasta"], img: "/art/mixed_pasta_bowl.webp", tone: "bg-pink/15" },
+  { title: "Cold-Pressed Juices", body: "Freshly pressed goodness in every sip.", slugs: ["juices"], img: "/landing/juice-bottle-cut.webp", tone: "bg-orange/20" },
+  { title: "Smoothies", body: "Refreshing blends made to brighten your day.", slugs: ["smoothies"], img: "/art/chocolate_bottle.webp", tone: "bg-berry/10" },
+];
 
-export function Categories({ menu }: { menu: CategoryDTO[] }) {
+export function ExploreMenu({ menu }: { menu: CategoryDTO[] }) {
+  const tiles = GROUPS.map((g) => {
+    const cats = menu.filter((c) => g.slugs.includes(c.slug) && c.items.length > 0);
+    const items = cats.flatMap((c) => c.items);
+    return { ...g, href: cats[0] ? `/menu#${cats[0].slug}` : "/menu", count: items.length, from: items.length ? fromPrice(items.flatMap((x) => x.variants.map((v) => v.pricePaise))) : null };
+  }).filter((t) => t.count > 0);
+
   return (
-    <section className="bg-cream" aria-labelledby="cat-h">
-      <div className="mx-auto max-w-6xl px-4 pb-12 pt-14 sm:px-6">
+    <section id="explore" className="scroll-mt-20 bg-cream" aria-labelledby="explore-h">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 id="cat-h" data-reveal className="max-w-2xl font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
-            Whatever you’re in the mood for, there’s something at <em className="italic text-berry">Seiketsu.</em>
-          </h2>
-          <Link href="/menu" className="font-semibold text-berry hover:underline">See the full menu →</Link>
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Explore the menu</p>
+            <h2 id="explore-h" data-reveal className="mt-2 font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
+              Something Fresh for Every <em className="italic text-berry">Craving.</em>
+            </h2>
+            <p data-reveal className="mt-3 text-ink/70">
+              From light bites to satisfying meals and refreshing drinks, there’s always something good waiting for you.
+            </p>
+          </div>
+          <Link href="/menu" className="rounded-full bg-berry px-6 py-3 text-sm font-semibold text-cream transition hover:bg-berry-deep">
+            View full menu
+          </Link>
         </div>
-        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {menu.map((c, i) => (
-            <li key={c.id} data-reveal style={{ "--d": `${i * 60}ms` } as React.CSSProperties}>
-              <Link href={`/menu#${c.slug}`} className={`group flex aspect-[4/5] flex-col lg:aspect-[5/4] overflow-hidden rounded-[1.75rem] p-4 transition duration-500 hover:-translate-y-1 sm:p-5 ${TONES[i % TONES.length]}`}>
-                <span className="font-display text-xl leading-tight text-ink sm:text-3xl">{c.name}</span>
-                <span aria-hidden className="relative my-2 flex-1 transition duration-700 group-hover:scale-110 group-hover:-rotate-3">
-                  {CATEGORY_ART[c.slug] ? (
-                    <Image src={CATEGORY_ART[c.slug]} alt="" fill sizes="(min-width: 1024px) 260px, 45vw" className="object-contain mix-blend-multiply" />
-                  ) : (
-                    <Bowl className="absolute inset-0 size-full" />
-                  )}
+        <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          {tiles.map((t, i) => (
+            <li key={t.title} data-reveal style={{ "--d": `${i * 60}ms` } as React.CSSProperties} className={i < 2 ? "lg:col-span-3" : "lg:col-span-2"}>
+              <Link href={t.href} className={`group relative flex h-56 flex-col lg:h-60 overflow-hidden rounded-[1.75rem] p-5 transition duration-500 hover:-translate-y-1 sm:p-6 ${t.tone}`}>
+                <span className="relative z-10 max-w-[75%] font-display text-2xl leading-tight text-ink sm:text-[1.75rem]">{t.title}</span>
+                <span className="relative z-10 mt-2 max-w-[60%] text-sm text-ink/70">{t.body}</span>
+                <span className="relative z-10 mt-auto text-xs text-ink/70 sm:text-sm">
+                  {t.count} {t.count === 1 ? "choice" : "choices"}
+                  {t.from != null && <> · from <span className="tabular">{formatINR(t.from)}</span></>}
                 </span>
-                <span className="text-xs text-ink/70 sm:text-sm">
-                  {c.items.length} {c.items.length === 1 ? "choice" : "choices"} · from <span className="tabular">{formatINR(fromPrice(c.items.flatMap((x) => x.variants.map((v) => v.pricePaise))))}</span>
+                <span aria-hidden className="absolute -bottom-2 right-0 h-[62%] w-[40%] transition duration-700 group-hover:scale-110 group-hover:-rotate-3">
+                  {t.img ? (
+                    <Image src={t.img} alt="" fill sizes="(min-width: 1024px) 240px, 45vw" className="object-contain object-right-bottom mix-blend-multiply" />
+                  ) : (
+                    <Bowl className="absolute bottom-2 right-2 w-[85%]" />
+                  )}
                 </span>
               </Link>
             </li>
@@ -56,11 +69,15 @@ export function Categories({ menu }: { menu: CategoryDTO[] }) {
 export function Favourites({ items, canOrder }: { items: MenuItemDTO[]; canOrder: boolean }) {
   if (!items.length) return null;
   return (
-    <section className="overflow-hidden bg-paper" aria-labelledby="fav-h">
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Worth returning for</p>
-        <h2 id="fav-h" data-reveal className="mt-2 font-display text-5xl leading-none text-ink sm:text-6xl">Crowd favourites</h2>
-        <ul className="no-scrollbar relative -mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
+    <section id="favourites" className="scroll-mt-20 overflow-hidden bg-paper" aria-labelledby="fav-h">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h2 id="fav-h" data-reveal className="font-display text-4xl leading-none text-ink sm:text-5xl">
+            Find your <em className="italic text-berry">favourite.</em>
+          </h2>
+          <Link href="/menu" className="font-semibold text-berry hover:underline">View full menu →</Link>
+        </div>
+        <ul className="no-scrollbar relative -mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
           {items.map((i) => {
             const kcal = i.variants.map((v) => v.nutrition?.kcal).filter((n): n is number => n != null);
             const protein = i.variants.map((v) => v.nutrition?.proteinG).filter((n): n is number => n != null);
@@ -87,47 +104,6 @@ export function Favourites({ items, canOrder }: { items: MenuItemDTO[]; canOrder
             );
           })}
         </ul>
-      </div>
-    </section>
-  );
-}
-
-export function BuildYourBowl({ groups }: { groups: AddonGroupDTO[] }) {
-  if (!groups.length) return null;
-  return (
-    <section className="bg-berry text-cream" aria-labelledby="build-h">
-      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-24 sm:px-6 md:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-butter">Your bowl, your way</p>
-          <h2 id="build-h" data-reveal className="font-display text-5xl leading-[1.02] sm:text-6xl">
-            Customise <em className="italic text-butter">every</em> bite.
-          </h2>
-          <p data-reveal className="max-w-md text-lg text-cream/80">
-            Pick your size, then stack it up. Every salad, wrap, meal, sandwich and pasta can take extras from our shelves.
-          </p>
-          <Link href="/menu" className="inline-flex items-center gap-2 rounded-full bg-cream px-7 py-4 font-semibold text-berry transition hover:-translate-y-0.5 hover:bg-butter">
-            Build yours →
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {groups.map((g, gi) => (
-            <div key={g.id} data-reveal style={{ "--d": `${gi * 90}ms` } as React.CSSProperties} className="rounded-[1.5rem] bg-cream/10 p-5 ring-1 ring-cream/15 backdrop-blur">
-              <p className="font-display text-2xl">{g.name}</p>
-              <ul className="mt-3 space-y-2">
-                {g.addons.slice(0, 4).map((a) => (
-                  <li key={a.id} className="flex items-center gap-3 text-sm">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-cream text-berry">
-                      <AddonIconMark icon={a.icon} className="size-5" />
-                    </span>
-                    <span className="flex-1">{a.name}</span>
-                    <span className="tabular text-cream/70">+{formatINR(a.pricePaise)}</span>
-                  </li>
-                ))}
-                {g.addons.length > 4 && <li className="pl-12 text-xs text-cream/60">+{g.addons.length - 4} more</li>}
-              </ul>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

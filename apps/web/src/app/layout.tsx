@@ -7,9 +7,9 @@ const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: "Seiketsu, Versova | The art of clean eating", template: "%s | Seiketsu" },
+  title: { default: "Seiketsu | The art of clean eating", template: "%s | Seiketsu" },
   description:
-    "Seiketsu is a premium nutrition fresh house in Versova, Andheri West. Fresh salads, wraps, bowls, cold-pressed juices and smoothies, with nutrition for every dish. Order online for delivery or pickup.",
+    "Good food, thoughtful ingredients, feel-good living. Discover a fresh selection of salads, wraps, nourishing bowls, cold-pressed juices and smoothies, crafted to bring together great taste and everyday nutrition.",
   openGraph: { siteName: "Seiketsu", locale: "en_IN", type: "website" },
 };
 

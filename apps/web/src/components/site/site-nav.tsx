@@ -7,7 +7,8 @@ import { useModal } from "./use-modal";
 
 const LINKS = [
   { href: "/menu", label: "Menu" },
-  { href: "/#story", label: "Our story" },
+  { href: "/#why", label: "Why Seiketsu" },
+  { href: "/#plans", label: "Plans" },
   { href: "/#visit", label: "Visit us" },
 ];
 
