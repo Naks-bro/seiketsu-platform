@@ -43,15 +43,18 @@ export function HowWeMakeIt() {
             <span aria-hidden className="absolute bottom-0 left-[2.75rem] top-0 w-px bg-cream/25 md:hidden" />
             <ol className="relative grid gap-8 md:grid-cols-4 md:gap-6">
               {STEPS.map(({ n, title, body, Art }, i) => (
-                <li key={n} className={`relative grid grid-cols-[5.5rem_1fr] gap-5 transition duration-700 md:block md:text-center ${lit(i) ? "opacity-100" : "opacity-35"}`}>
-                  <div
-                    className={`relative mx-auto grid size-[5.5rem] place-items-center rounded-full shadow-[0_0_0_8px_rgb(255_252_245/0.08)] transition duration-700 md:size-28 ${
-                      lit(i) ? "scale-100 bg-cream" : "scale-90 bg-cream/40"
-                    }`}
-                  >
-                    <Art className={`w-14 transition duration-700 md:w-20 ${lit(i) ? "rotate-0" : "-rotate-12"}`} />
+                <li key={n} className="relative grid grid-cols-[5.5rem_1fr] gap-5 md:block md:text-center">
+                  {/* A solid green disc sits under each icon so the line always passes behind it. */}
+                  <div className="relative mx-auto size-[5.5rem] rounded-full bg-olive-ink md:size-28">
+                    <div
+                      className={`grid size-full place-items-center rounded-full shadow-[0_0_0_8px_rgb(255_252_245/0.08)] transition duration-700 ${
+                        lit(i) ? "scale-100 bg-cream" : "scale-90 bg-cream/20"
+                      }`}
+                    >
+                      <Art className={`w-14 transition duration-700 md:w-20 ${lit(i) ? "rotate-0 opacity-100" : "-rotate-12 opacity-40"}`} />
+                    </div>
                   </div>
-                  <div className={`transition duration-700 ${lit(i) ? "translate-y-0" : "translate-y-3"}`}>
+                  <div className={`transition duration-700 ${lit(i) ? "translate-y-0 opacity-100" : "translate-y-3 opacity-35"}`}>
                     <p className="font-display text-4xl leading-none text-transparent [-webkit-text-stroke:1px_rgb(252_233_171/0.7)] md:mt-5">{n}</p>
                     <h3 className="mt-2 font-display text-2xl">{title}</h3>
                     <p className="mx-auto mt-2 max-w-[16rem] text-sm text-cream/75">{body}</p>
