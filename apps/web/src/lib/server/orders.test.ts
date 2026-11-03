@@ -101,7 +101,10 @@ describe("checkout", () => {
   });
 
   it("refuses items hidden for owner review", async () => {
+    const { item } = await variantOf("Pomegranate Juice");
+    await db.update(menuItems).set({ needsReview: true }).where(eq(menuItems.id, item.id));
     await expect(checkout([{ name: "Pomegranate Juice" }])).rejects.toThrow(/sold out/);
+    await db.update(menuItems).set({ needsReview: false }).where(eq(menuItems.id, item.id));
   });
 
   it("refuses sold-out items", async () => {
