@@ -158,6 +158,23 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
   720×900 H.264 with no sound; `hero-poster.webp` is its first frame. It loops muted, has a pause button,
   and stays paused for visitors who prefer reduced motion. To change it, replace both files (4:5, under ~2 MB).
 
+## Subscriptions, coupons, loyalty, customers and outlets
+
+- **Subscriptions** (Admin › Subscriptions): the owner writes plans under *Plans* (name, meals, days, delivery days,
+  what's included, price, on/off). Switched-on plans show on the home page; customers request one at `/subscribe/<plan>`
+  (delivery-area and start-date checks) and follow it at `/subscription/<token>` and in their account. *Today* lists
+  meals due, with Delivered / Skip / Undo; *Subscribers* shows status, payment (marked by hand for now) and the meal log.
+  Pausing moves the end date on by the days paused. Online payment for plans is not built yet.
+- **Coupons** (Admin › Coupons): percent or flat, minimum order, cap, dates, total and per-customer limits, first order
+  only. Checked on the server at checkout; the discount comes off food before delivery and GST. Not used at the counter.
+- **Loyalty points** (Settings › Loyalty points): off until set. Earned on food paid for (after coupons) once payment
+  goes through, reversed on refund. Customers must be signed in to spend them, up to the owner's percentage of an order.
+- **Customers** (Admin › Customers): paid orders, spend, last order, points, consent, notes and tags, points
+  adjustments and CSV export.
+- **Outlets** (Admin › Outlets, owner): a new outlet copies the current one's settings and menu availability and
+  starts closed with delivery off. Staff at several outlets switch in the sidebar. Customers are sent to the outlet that
+  delivers to their pincode (a listed pincode wins over "delivers everywhere") and choose an outlet for pickup.
+
 ## Customer login, messaging and bills
 
 - **Login**: `/account`. Phone number + 6-digit code sent on WhatsApp (SMS fallback or "Send by SMS instead").
