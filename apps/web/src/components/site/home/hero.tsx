@@ -30,7 +30,7 @@ export function Hero({ store }: { store: StoreDTO }) {
               makes eating well an experience to look forward to.
             </p>
             <p className="text-cream/70">
-              From wholesome salads and wraps to nourishing bowls, cold-pressed juices and smoothies, discover a better way to eat every day.
+              From wholesome salads and wraps to nourishing bowls, fresh-pressed juices and smoothies, discover a better way to eat every day.
             </p>
           </div>
           <div className="flex flex-wrap gap-3 pt-2">

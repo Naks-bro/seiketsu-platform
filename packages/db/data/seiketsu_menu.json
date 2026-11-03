@@ -77,10 +77,8 @@
     "name": "Healthy Quinoa Salad Bowl",
     "price_text": "₹ Veg (450g) 380 / Chicken (450g) 460",
     "description": "Fluﬀy quinoa, fresh spinach, crisp cucumber, colorful bell peppers, juicy cherry tomatoes and avocado with honey balsamic dressing.",
-    "nutrition_source_text": "",
-    "flags": [
-      "prices from the Nov 2026 printed menu; nutrition was given per Small/Large and needs re-supplying for Veg/Chicken"
-    ],
+    "nutrition_source_text": "Veg: 414 kcal • Protein 10 g • Carbs 54 g • Fat 19 g • Fiber 10 g | Chicken: 519 kcal • Protein 39 g • Carbs 43 g • Fat 22 g • Fiber 8 g",
+    "flags": [],
     "included": true
   },
   {
@@ -336,7 +334,7 @@
     "category": "Juices",
     "name": "Watermelon Mint Refresher",
     "price_text": "₹ (300ml) 230",
-    "description": "A crisp, refreshing combination of celery, tangy green apple and naturally sweet carrot with a clean, fresh ﬁnish.",
+    "description": "Freshly pressed watermelon with fresh mint.",
     "nutrition_source_text": "95 kcal • Protein 2 g • Carbs 23 g • Fat 0 g • Fiber 1 g",
     "flags": [],
     "included": true
@@ -363,11 +361,9 @@
     "category": "Juices",
     "name": "Pomegranate Juice",
     "price_text": "₹ (300ml) 240",
-    "description": "",
-    "nutrition_source_text": "",
-    "flags": [
-      "added from the printed menu; no description or nutrition supplied"
-    ],
+    "description": "Freshly pressed pomegranate.",
+    "nutrition_source_text": "165 kcal • Protein 0 g • Carbs 40 g • Fat 1 g • Fiber 0 g",
+    "flags": [],
     "included": true
   },
   {

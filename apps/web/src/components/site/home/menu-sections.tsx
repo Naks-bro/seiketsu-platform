@@ -12,7 +12,7 @@ const GROUPS = [
   { title: "Salads", body: "Fresh greens, vibrant vegetables and delicious combinations.", slugs: ["salads"], img: null, tone: "bg-olive/20" },
   { title: "Wraps & Sandwiches", body: "Wholesome, flavour-packed options for meals on the go.", slugs: ["wraps", "sandwiches"], img: "/art/wrap_halves.webp", tone: "bg-butter" },
   { title: "Nourishing Bowls", body: "A satisfying mix of thoughtfully selected ingredients.", slugs: ["meals", "pasta"], img: "/art/mixed_pasta_bowl.webp", tone: "bg-pink/15" },
-  { title: "Cold-Pressed Juices", body: "Freshly pressed goodness in every sip.", slugs: ["juices"], img: "/landing/juice-bottle-cut.webp", tone: "bg-orange/20" },
+  { title: "Fresh-Pressed Juices", body: "Freshly pressed goodness in every sip.", slugs: ["juices"], img: "/landing/juice-bottle-cut.webp", tone: "bg-orange/20" },
   { title: "Smoothies", body: "Refreshing blends made to brighten your day.", slugs: ["smoothies"], img: "/art/chocolate_bottle.webp", tone: "bg-berry/10" },
 ];
 

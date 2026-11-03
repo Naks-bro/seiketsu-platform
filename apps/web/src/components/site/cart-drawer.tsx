@@ -209,7 +209,7 @@ export function CartDrawer({ pricing, pickupFrom }: { pricing: CartPricing; pick
               <BagIcon className="size-9" />
             </div>
             <p className="font-display text-2xl">Your cart is empty.</p>
-            <p className="text-sm text-muted">Pick a bowl, wrap or cold-pressed juice to get started.</p>
+            <p className="text-sm text-muted">Pick a bowl, wrap or fresh-pressed juice to get started.</p>
             <Link href="/menu" onClick={() => setDrawerOpen(false)} className="rounded-full bg-berry px-6 py-3 text-sm font-semibold text-cream hover:bg-berry-deep">
               Browse the menu
             </Link>

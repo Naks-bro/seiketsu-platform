@@ -71,13 +71,13 @@ describe("menu parser on the real Seiketsu menu", () => {
     ]);
   });
 
-  it("holds back dishes whose nutrition has not been supplied, rather than guessing it", () => {
-    const flagged = items.filter((i) => i.needsReview);
-    expect(flagged.map((i) => i.name).sort()).toEqual(["Healthy Quinoa Salad Bowl", "Pomegranate Juice"]);
-    expect(byName("Healthy Quinoa Salad Bowl").variants.map((v) => [v.label, v.diet, v.pricePaise])).toEqual([
-      ["Veg", "veg", 38000],
-      ["Chicken", "non_veg", 46000],
+  it("carries the owner-approved nutrition estimates for the quinoa bowl and pomegranate juice", () => {
+    expect(items.filter((i) => i.needsReview)).toEqual([]);
+    expect(byName("Healthy Quinoa Salad Bowl").variants.map((v) => [v.label, v.diet, v.pricePaise, v.nutrition?.kcal])).toEqual([
+      ["Veg", "veg", 38000, 414],
+      ["Chicken", "non_veg", 46000, 519],
     ]);
+    expect(byName("Pomegranate Juice").variants[0].nutrition).toEqual({ kcal: 165, proteinG: 0, carbsG: 40, fatG: 1, fibreG: 0 });
   });
 
   it("parses extras as single-price items", () => {

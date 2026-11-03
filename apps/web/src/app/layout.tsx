@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: { default: "Seiketsu | The art of clean eating", template: "%s | Seiketsu" },
   description:
-    "Good food, thoughtful ingredients, feel-good living. Discover a fresh selection of salads, wraps, nourishing bowls, cold-pressed juices and smoothies, crafted to bring together great taste and everyday nutrition.",
+    "Good food, thoughtful ingredients, feel-good living. Discover a fresh selection of salads, wraps, nourishing bowls, fresh-pressed juices and smoothies, crafted to bring together great taste and everyday nutrition.",
   openGraph: { siteName: "Seiketsu", locale: "en_IN", type: "website" },
 };
 

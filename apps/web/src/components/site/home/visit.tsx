@@ -57,7 +57,7 @@ const REEL_URL = "https://www.instagram.com/sei_ketsu/reel/De9VjlEo1Ts/";
 
 export function FollowTheFresh({ instagram }: { instagram: string | null }) {
   const tiles = [
-    { src: "/landing/poster-bottles-salads.webp", alt: "Seiketsu poster of cold-pressed juices and salads" },
+    { src: "/landing/poster-bottles-salads.webp", alt: "Seiketsu poster of fresh-pressed juices and salads" },
     { src: "/landing/cafe-standee.webp", alt: "The Seiketsu counter and menu standee" },
     { src: "/landing/poster-food-bottles.webp", alt: "Seiketsu poster of bowls, wraps and juices" },
   ];
