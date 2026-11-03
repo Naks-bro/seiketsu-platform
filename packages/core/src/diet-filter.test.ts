@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { allowedAddon, allowedVariants, itemDiets, matchesDiet } from "./diet-filter";
-import { isServiceable } from "./delivery-area";
+import { extractPincodes, isServiceable, mergePincodes } from "./delivery-area";
 import { EXTRA_GROUPS, extraPlacement } from "./extras";
 
 const bowl = { diet: null, variants: [{ id: "p", diet: "veg" as const }, { id: "c", diet: "non_veg" as const }] };
@@ -56,5 +56,25 @@ describe("extras groups", () => {
     expect(names).toHaveLength(14);
     expect(extraPlacement("tandoori chicken")).toEqual({ group: "Proteins", icon: "chicken" });
     expect(extraPlacement("Something new").group).toBe("Sauces & dips");
+  });
+});
+
+describe("pincode import", () => {
+
+  it("reads pincodes however they are typed or stored in a spreadsheet", () => {
+    const r = extractPincodes(["400061, 400053\n400 058", 400050, "400102 - Jogeshwari", "Pincode", null, true, "400061"]);
+    expect(r.valid.sort()).toEqual(["400050", "400053", "400058", "400061", "400102"]);
+    expect(r.invalid).toEqual([]);
+  });
+
+  it("flags near-misses but ignores phone numbers, years and counts", () => {
+    const r = extractPincodes(["40006", "4000611", "012345", "9876543210", "2026", "12"]);
+    expect(r.valid).toEqual([]);
+    expect(r.invalid.sort()).toEqual(["012345", "40006", "4000611"]);
+  });
+
+  it("adds without duplicates, or replaces the list", () => {
+    expect(mergePincodes(["400061"], ["400053", "400061", "bad"], "add")).toEqual(["400053", "400061"]);
+    expect(mergePincodes(["400061"], ["400053"], "replace")).toEqual(["400053"]);
   });
 });

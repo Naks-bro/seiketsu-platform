@@ -4,12 +4,15 @@ import { areaDemand, listAreaRequests } from "@/lib/server/area-requests";
 import { PageHeader } from "@/components/admin/ui";
 import { formatDateTime } from "@/lib/format";
 import { markContactedAction } from "../../area-actions";
+import { addPincodeAction } from "../../delivery-area-actions";
+import { getStore } from "@/lib/server/catalog";
 
 export const metadata: Metadata = { title: "Area requests" };
 
 export default async function AreaRequestsPage() {
   const staff = await requirePage(can.manageSettings);
-  const [demand, rows] = await Promise.all([areaDemand(staff.outletId), listAreaRequests(staff.outletId)]);
+  const [demand, rows, store] = await Promise.all([areaDemand(staff.outletId), listAreaRequests(staff.outletId), getStore()]);
+  const served = new Set(store.deliveryPincodes);
 
   return (
     <div className="space-y-8">
@@ -37,10 +40,20 @@ export default async function AreaRequestsPage() {
                     {d.total} request{d.total === 1 ? "" : "s"}
                     {d.waiting > 0 && <> · <span className="text-berry">{d.waiting} to contact</span></>}
                   </p>
+                  {served.has(d.pincode) ? (
+                    <p className="mt-1 text-xs text-veg">Now delivering</p>
+                  ) : (
+                    <form action={addPincodeAction} className="mt-1">
+                      <input type="hidden" name="pin" value={d.pincode} />
+                      <button type="submit" className="text-xs font-medium text-berry hover:underline">
+                        Start delivering here<span className="sr-only">: {d.pincode}</span>
+                      </button>
+                    </form>
+                  )}
                 </li>
               ))}
             </ul>
-            <p className="mt-2 text-xs text-muted">To start delivering somewhere, add the pincode in Settings → Delivery pincodes.</p>
+            <p className="mt-2 text-xs text-muted">Adding a pincode here or in Delivery areas starts delivery there straight away.</p>
           </section>
 
           <section aria-labelledby="list-h">

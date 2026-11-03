@@ -36,7 +36,7 @@ export default async function SettingsPage() {
           announcement: s.announcement ?? "",
           pickupEnabled: s.pickupEnabled,
           deliveryEnabled: s.deliveryEnabled,
-          deliveryPincodes: s.deliveryPincodes.join(", "),
+          pincodeCount: s.deliveryPincodes.length,
           deliveryFee: s.deliveryFeePaise / 100,
           freeDeliveryAbove: s.freeDeliveryAbovePaise != null ? s.freeDeliveryAbovePaise / 100 : "",
           minOrder: s.minOrderPaise / 100,

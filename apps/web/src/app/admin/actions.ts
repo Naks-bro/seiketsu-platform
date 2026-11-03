@@ -143,10 +143,6 @@ export async function saveSettingsAction(_prev: ActionState, form: FormData): Pr
     const hours = Array.from({ length: 7 }, (_, d) =>
       form.get(`open_${d}`) === "on" ? { open: hhmm.parse(form.get(`from_${d}`)), close: hhmm.parse(form.get(`to_${d}`)) } : null,
     );
-    const pins = String(form.get("deliveryPincodes") ?? "")
-      .split(/[\s,]+/)
-      .filter(Boolean);
-    if (pins.some((p) => !/^\d{6}$/.test(p))) return { error: "Pincodes must be 6 digits, separated by commas." };
     const freeAbove = String(form.get("freeDeliveryAbove") ?? "").trim();
 
     const update: Partial<typeof storeSettings.$inferInsert> = {
@@ -156,7 +152,6 @@ export async function saveSettingsAction(_prev: ActionState, form: FormData): Pr
       announcement: String(form.get("announcement") ?? "").trim().slice(0, 200) || null,
       pickupEnabled: form.get("pickupEnabled") === "on",
       deliveryEnabled: form.get("deliveryEnabled") === "on",
-      deliveryPincodes: pins,
       deliveryFeePaise: Math.round(rupees("Delivery fee").parse(form.get("deliveryFee") || 0) * 100),
       freeDeliveryAbovePaise: freeAbove ? Math.round(rupees("Free delivery threshold").parse(freeAbove) * 100) : null,
       minOrderPaise: Math.round(rupees("Minimum order").parse(form.get("minOrder") || 0) * 100),

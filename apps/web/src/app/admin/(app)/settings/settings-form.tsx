@@ -12,7 +12,7 @@ type Settings = {
   announcement: string;
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
-  deliveryPincodes: string;
+  pincodeCount: number;
   deliveryFee: number;
   freeDeliveryAbove: number | "";
   minOrder: number;
@@ -78,11 +78,11 @@ export function SettingsForm({ settings: s, canEditTax }: { settings: Settings; 
           <label className="text-sm"><span className="font-medium">Free delivery above (₹)</span><input name="freeDeliveryAbove" type="number" min={0} step="1" defaultValue={s.freeDeliveryAbove} placeholder="Never" className={`${box} mt-1 w-full`} /></label>
           <label className="text-sm"><span className="font-medium">Minimum order (₹)</span><input name="minOrder" type="number" min={0} step="1" defaultValue={s.minOrder} className={`${box} mt-1 w-full`} /></label>
         </div>
-        <label className="block text-sm">
-          <span className="font-medium">Delivery pincodes</span>
-          <input name="deliveryPincodes" defaultValue={s.deliveryPincodes} placeholder="400061, 400053" className={`${box} mt-1 w-full`} />
-          <span className="text-xs text-muted">Leave empty to accept any pincode.</span>
-        </label>
+        <p className="text-sm">
+          <span className="font-medium">Delivery pincodes: </span>
+          {s.pincodeCount ? `${s.pincodeCount} set` : "none set, so any pincode is accepted"} ·{" "}
+          <a href="/admin/delivery-areas" className="font-medium text-berry hover:underline">Manage delivery areas</a>
+        </p>
         <label className="block text-sm sm:w-48">
           <span className="font-medium">Typical prep time (minutes)</span>
           <input name="prepTime" type="number" min={5} max={180} defaultValue={s.prepTime} className={`${box} mt-1 w-full`} />

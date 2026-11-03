@@ -64,7 +64,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <footer className="mt-24 bg-ink text-cream">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-10 pt-16 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="space-y-4">
-            <Image src="/brand/wordmark-berry.png" alt="Seiketsu" width={131} height={26} className="h-7 w-auto brightness-0 invert" />
+            <Image src="/brand/wordmark-cream.png" alt="Seiketsu" width={126} height={20} className="h-7 w-auto" />
             <p className="font-display text-3xl leading-tight text-butter">The art of clean eating.</p>
             <p className="max-w-xs text-sm text-cream/70">Good food, thoughtful ingredients, feel-good living.</p>
           </div>
