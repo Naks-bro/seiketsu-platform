@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { StoreDTO } from "@/lib/types";
 import { formatHours, istDayIndex } from "@seiketsu/core/store-hours";
 import { HeroVideo } from "./client";
+import { ScrollOut } from "./scroll";
 
 const REEL_URL = "https://www.instagram.com/sei_ketsu/reel/De9VjlEo1Ts/";
 
@@ -10,10 +11,11 @@ export function Hero({ store }: { store: StoreDTO }) {
   const status = store.isOpenNow ? `Open now${today ? ` · ${formatHours(today)}` : ""}` : store.hours ? "Closed right now" : "Opening soon";
   return (
     <section className="relative overflow-hidden bg-berry text-cream">
+      <ScrollOut />
       {/* One soft light behind the film, so it sits on the page rather than on a flat colour. */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-1/2 size-[44rem] -translate-y-1/2 rounded-full bg-pink/25 blur-[120px]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:px-6 md:min-h-[calc(100svh-4rem)] md:grid-cols-[1.05fr_0.95fr] md:gap-16 md:py-14">
-        <div className="space-y-6">
+        <div className="space-y-6" style={{ transform: "translate3d(0, calc(var(--h, 0) * 90px), 0)", opacity: "calc(1 - var(--h, 0) * 0.9)" }}>
           <p className="flex items-center gap-2 text-sm text-cream/75">
             {store.isOpenNow && <span aria-hidden className="size-2 rounded-full bg-[#7bd389]" />}
             {status}
@@ -41,7 +43,10 @@ export function Hero({ store }: { store: StoreDTO }) {
           </div>
         </div>
 
-        <figure className="mx-auto w-full max-w-sm md:max-w-[min(100%,calc((100svh-10rem)*0.8))]">
+        <figure
+          className="mx-auto w-full max-w-sm md:max-w-[min(100%,calc((100svh-10rem)*0.8))]"
+          style={{ transform: "translate3d(0, calc(var(--h, 0) * -60px), 0) scale(calc(1 - var(--h, 0) * 0.08)) rotate(calc(var(--h, 0) * -2deg))" }}
+        >
           <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-berry-deep shadow-[0_40px_90px_-35px_rgb(0_0_0/0.7)] ring-1 ring-cream/15">
             <HeroVideo src="/landing/hero.mp4" poster="/landing/hero-poster.webp" label="Seiketsu reel: sandwiches, wraps and bowls, the art of clean eating" />
           </div>
@@ -53,6 +58,12 @@ export function Hero({ store }: { store: StoreDTO }) {
           </figcaption>
         </figure>
       </div>
+      <a href="#lifestyle" className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-cream/60 hover:text-cream md:flex">
+        Scroll
+        <span aria-hidden className="relative h-10 w-px overflow-hidden bg-cream/25">
+          <span className="absolute inset-x-0 top-0 h-1/2 animate-[scroll-cue_1.8s_ease-in-out_infinite] bg-cream" />
+        </span>
+      </a>
     </section>
   );
 }

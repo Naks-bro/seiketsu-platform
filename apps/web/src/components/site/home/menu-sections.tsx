@@ -52,9 +52,11 @@ export function ExploreMenu({ menu }: { menu: CategoryDTO[] }) {
                 </span>
                 <span aria-hidden className="absolute -bottom-2 right-0 h-[62%] w-[40%] transition duration-700 group-hover:scale-110 group-hover:-rotate-3">
                   {t.img ? (
-                    <Image src={t.img} alt="" fill sizes="(min-width: 1024px) 240px, 45vw" className="object-contain object-right-bottom mix-blend-multiply" />
+                    <span className="drift-in absolute inset-0">
+                      <Image src={t.img} alt="" fill sizes="(min-width: 1024px) 240px, 45vw" className="object-contain object-right-bottom mix-blend-multiply" />
+                    </span>
                   ) : (
-                    <Bowl className="absolute bottom-2 right-2 w-[85%]" />
+                    <Bowl className="drift-in absolute bottom-2 right-2 w-[85%]" />
                   )}
                 </span>
               </Link>
