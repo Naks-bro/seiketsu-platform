@@ -31,6 +31,7 @@
   --animate-fade-in: fade-in 0.2s ease-out both;
   --animate-sheet-up: sheet-up 0.35s var(--ease-out-quint) both;
   --animate-drawer-in: drawer-in 0.35s var(--ease-out-quint) both;
+  --animate-drawer-left: drawer-left 0.3s var(--ease-out-quint) both;
   --animate-toast-in: toast-in 0.35s var(--ease-spring) both;
   --animate-bump: bump 0.45s var(--ease-spring);
   --animate-marquee: marquee 38s linear infinite;
@@ -39,6 +40,7 @@
   @keyframes fade-in { from { opacity: 0; } }
   @keyframes sheet-up { from { opacity: 0; transform: translateY(24px) scale(0.98); } }
   @keyframes drawer-in { from { transform: translateX(100%); } }
+  @keyframes drawer-left { from { transform: translateX(-100%); } }
   @keyframes toast-in { from { opacity: 0; transform: translateY(16px) scale(0.96); } }
   @keyframes bump { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.25); } 70% { transform: scale(0.95); } }
   @keyframes marquee { to { transform: translateX(-50%); } }
