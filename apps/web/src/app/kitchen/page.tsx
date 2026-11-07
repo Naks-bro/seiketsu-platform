@@ -7,6 +7,6 @@ import { KitchenBoard } from "./board";
 export default async function KitchenPage() {
   await connection();
   const staff = await requireStaff();
-  const [tickets, store] = await Promise.all([activeTickets(staff.outletId), getStore()]);
+  const [tickets, store] = await Promise.all([activeTickets(staff.outletId), getStore(staff.outletId)]);
   return <KitchenBoard tickets={tickets} outletId={staff.outletId} prepMinutes={store.prepTimeMinutes} staffName={staff.name} />;
 }

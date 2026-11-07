@@ -8,6 +8,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { drizzle as drizzlePg, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema.ts";
+import { assertProductionConfig } from "@seiketsu/core/runtime-config";
 
 export type Db = PostgresJsDatabase<typeof schema>;
 
@@ -29,7 +30,13 @@ async function connect(url: string): Promise<Conn> {
   if (url.startsWith("postgres://") || url.startsWith("postgresql://")) {
     const { default: postgres } = await import("postgres");
     // prepare:false works with Supabase transaction pooler (port 6543).
-    const sql = postgres(url, { prepare: false, max: Number(process.env.DB_POOL_MAX ?? 5) });
+    const sql = postgres(url, {
+      prepare: false,
+      max: Number(process.env.DB_POOL_MAX ?? 3),
+      idle_timeout: 20,
+      connect_timeout: 10,
+      ssl: process.env.NODE_ENV === "production" ? "verify-full" : undefined,
+    });
     return { db: drizzlePg(sql, { schema }), close: () => sql.end(), kind: "postgres" };
   }
   const raw = url.replace(/^pglite:/, "") || "./.data/pglite";
@@ -51,6 +58,7 @@ const g = globalThis as unknown as { __seiketsuDb?: Promise<Conn> };
 
 /** Shared connection for the app (kept across hot reloads). */
 export function getConn(): Promise<Conn> {
+  if (process.env.NODE_ENV === "production") assertProductionConfig(process.env);
   g.__seiketsuDb ??= connect(process.env.DATABASE_URL ?? "pglite:./.data/pglite");
   return g.__seiketsuDb;
 }

@@ -12,7 +12,10 @@
     "typecheck": "tsc -p packages/core && tsc -p packages/db && npm run typecheck -w web",
     "db:generate": "npm run generate -w @seiketsu/db",
     "db:migrate": "npm run migrate -w @seiketsu/db",
-    "db:seed": "npm run seed -w @seiketsu/db"
+    "db:seed": "npm run seed -w @seiketsu/db",
+    "lint": "npm run lint -w web",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "deploy:check": "tsx --env-file-if-exists=.env scripts/deployment-check.ts"
   },
   "devDependencies": {
     "@types/node": "^24",
@@ -22,7 +25,8 @@
     "vitest": "^5.0.5"
   },
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   },
-  "type": "module"
+  "type": "module",
+  "packageManager": "npm@11.9.0"
 }

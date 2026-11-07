@@ -1,15 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, staffRoles, staffUsers } from "@seiketsu/db";
+import { getDb, outlets, staffRoles, staffUsers, type Db } from "@seiketsu/db";
 import { hashPassword, verifyPassword } from "@seiketsu/core/password";
 import { can, requireStaff, startSession, type StaffRole } from "@/lib/server/auth";
 import { audit } from "@/lib/server/audit";
 import { rateLimit } from "@/lib/server/rate-limit";
 
 export type StaffState = { error?: string; ok?: string } | undefined;
+
+type StaffDb = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 const ROLES = ["owner", "manager", "cashier", "kitchen", "inventory"] as const satisfies readonly StaffRole[];
 const password = z.string().min(10, "Passwords need at least 10 characters").max(200);
@@ -21,8 +23,8 @@ async function owner() {
 }
 
 /** Refuses changes that would leave the outlet without an active owner. */
-async function keepsAnOwner(outletId: string, exceptUserId: string) {
-  const db = await getDb();
+async function keepsAnOwner(outletId: string, exceptUserId: string, db?: StaffDb) {
+  db ??= await getDb();
   const [r] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(staffRoles)
@@ -61,27 +63,44 @@ export async function addStaffAction(_prev: StaffState, form: FormData): Promise
   }
 }
 
+async function requireAuthorityOverSharedUser(userId: string, ownerId: string, db?: StaffDb) {
+  db ??= await getDb();
+  const memberships = await db.select().from(staffRoles).where(eq(staffRoles.staffUserId, userId));
+  const owned = new Set((await db.select().from(staffRoles).where(and(eq(staffRoles.staffUserId, ownerId), eq(staffRoles.role, "owner")))).map((r) => r.outletId));
+  if (memberships.some((r) => !owned.has(r.outletId))) throw new Error("This login is shared with another outlet. Only an owner of all its outlets can change its password or activation.");
+  return memberships;
+}
+
 export async function updateStaffAction(form: FormData) {
   const me = await owner();
   const { userId, op, role } = z
     .object({ userId: z.string().uuid(), op: z.enum(["role", "deactivate", "activate"]), role: z.enum(ROLES).optional() })
+    .refine((v) => v.op !== "role" || !!v.role, { message: "Choose a role" })
     .parse(Object.fromEntries(form));
   const db = await getDb();
-  const [link] = await db.select().from(staffRoles).where(and(eq(staffRoles.staffUserId, userId), eq(staffRoles.outletId, me.outletId)));
-  if (!link) throw new Error("Staff member not found.");
-  const losingOwner = link.role === "owner" && (op === "deactivate" || (op === "role" && role !== "owner"));
-  if (losingOwner && !(await keepsAnOwner(me.outletId, userId))) throw new Error("Keep at least one active owner.");
+  await db.transaction(async (tx) => {
+    // Staff role/activation changes are rare; lock outlets in one order to keep last-owner checks atomic.
+    await tx.select({ id: outlets.id }).from(outlets).orderBy(asc(outlets.id)).for("update");
+    const [link] = await tx.select().from(staffRoles).where(and(eq(staffRoles.staffUserId, userId), eq(staffRoles.outletId, me.outletId)));
+    if (!link) throw new Error("Staff member not found.");
+    const losingOwner = link.role === "owner" && (op === "deactivate" || (op === "role" && role !== "owner"));
+    if (losingOwner && !(await keepsAnOwner(me.outletId, userId, tx))) throw new Error("Keep at least one active owner.");
 
-  if (op === "role" && role) {
-    await db.update(staffRoles).set({ role }).where(and(eq(staffRoles.staffUserId, userId), eq(staffRoles.outletId, me.outletId)));
-  } else {
-    // Signing out everywhere on (de)activation.
-    await db
-      .update(staffUsers)
-      .set({ isActive: op === "activate", sessionVersion: sql`${staffUsers.sessionVersion} + 1` })
-      .where(eq(staffUsers.id, userId));
-  }
-  await audit(db, { actorId: me.id, outletId: me.outletId, action: `staff.${op}`, entity: "staff", entityId: userId, data: { role: role ?? null } });
+    if (op === "role" && role) {
+      await tx.update(staffRoles).set({ role }).where(and(eq(staffRoles.staffUserId, userId), eq(staffRoles.outletId, me.outletId)));
+    } else {
+      const memberships = await requireAuthorityOverSharedUser(userId, me.id, tx);
+      if (op === "deactivate") {
+        for (const link of memberships) if (link.role === "owner" && !(await keepsAnOwner(link.outletId, userId, tx))) throw new Error("Keep at least one active owner in every outlet.");
+      }
+      // Signing out everywhere on (de)activation.
+      await tx
+        .update(staffUsers)
+        .set({ isActive: op === "activate", sessionVersion: sql`${staffUsers.sessionVersion} + 1` })
+        .where(eq(staffUsers.id, userId));
+    }
+    await audit(tx, { actorId: me.id, outletId: me.outletId, action: `staff.${op}`, entity: "staff", entityId: userId, data: { role: role ?? null } });
+  });
   revalidatePath("/admin/staff");
 }
 
@@ -92,6 +111,7 @@ export async function resetStaffPasswordAction(_prev: StaffState, form: FormData
     const db = await getDb();
     const [link] = await db.select().from(staffRoles).where(and(eq(staffRoles.staffUserId, userId), eq(staffRoles.outletId, me.outletId)));
     if (!link) return { error: "Staff member not found." };
+    await requireAuthorityOverSharedUser(userId, me.id);
     await db
       .update(staffUsers)
       .set({ passwordHash: await hashPassword(pw), sessionVersion: sql`${staffUsers.sessionVersion} + 1` })

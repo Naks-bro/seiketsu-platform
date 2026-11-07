@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireStaff } from "@/lib/server/auth";
+import { orderIssuer } from "@/lib/server/order-view";
 import { getStore } from "@/lib/server/catalog";
 import { loadOrder } from "@/lib/server/order-view";
 import { businessLabel } from "@/lib/legal";
@@ -16,7 +17,7 @@ export default async function ReceiptPage({ params, searchParams }: { params: Pr
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const view = await loadOrder({ id });
   if (!view || view.order.outletId !== staff.outletId) notFound();
-  const store = await getStore();
+  const store = orderIssuer(view.order, await getStore(view.order.outletId));
   const { order, items, payments } = view;
   const paid = payments.find((p) => p.status === "captured" || p.status === "refunded");
   const tax = order.taxSnapshot;

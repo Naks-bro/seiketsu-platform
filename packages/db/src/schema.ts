@@ -60,7 +60,7 @@ export const outlets = pgTable("outlets", {
   mapUrl: text("map_url"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: createdAt(),
-});
+}).enableRLS();
 
 export const storeSettings = pgTable("store_settings", {
   outletId: uuid("outlet_id").primaryKey().references(() => outlets.id),
@@ -90,7 +90,7 @@ export const storeSettings = pgTable("store_settings", {
   /** WhatsApp/SMS/email switches, estimated rates and spend budgets */
   messaging: jsonb("messaging").$type<MessagingSettings>().notNull().default(DEFAULT_MESSAGING),
   updatedAt: updatedAt(),
-});
+}).enableRLS();
 
 // ── Menu ───────────────────────────────────────────────────────────
 
@@ -100,7 +100,7 @@ export const categories = pgTable("categories", {
   name: text("name").notNull(),
   sort: integer("sort").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
-});
+}).enableRLS();
 
 export const menuItems = pgTable(
   "menu_items",
@@ -123,7 +123,7 @@ export const menuItems = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [index("menu_items_category_idx").on(t.categoryId)],
-);
+).enableRLS();
 
 export const menuItemVariants = pgTable(
   "menu_item_variants",
@@ -144,7 +144,7 @@ export const menuItemVariants = pgTable(
     isActive: boolean("is_active").notNull().default(true),
   },
   (t) => [index("variants_item_idx").on(t.menuItemId)],
-);
+).enableRLS();
 
 /** Per-outlet availability; a missing row means unavailable at that outlet. */
 export const outletMenuItems = pgTable(
@@ -155,7 +155,7 @@ export const outletMenuItems = pgTable(
     isAvailable: boolean("is_available").notNull().default(true),
   },
   (t) => [primaryKey({ columns: [t.outletId, t.menuItemId] })],
-);
+).enableRLS();
 
 export const addonGroups = pgTable("addon_groups", {
   id: id(),
@@ -165,7 +165,7 @@ export const addonGroups = pgTable("addon_groups", {
   sort: integer("sort").notNull().default(0),
   /** One of the owner's "Extras" shelves (Proteins, Cheese, ...); the admin toggles them together. */
   isExtra: boolean("is_extra").notNull().default(false),
-});
+}).enableRLS();
 
 export const addons = pgTable("addons", {
   id: id(),
@@ -177,7 +177,7 @@ export const addons = pgTable("addons", {
   icon: text("icon"),
   isAvailable: boolean("is_available").notNull().default(true),
   sort: integer("sort").notNull().default(0),
-});
+}).enableRLS();
 
 export const menuItemAddonGroups = pgTable(
   "menu_item_addon_groups",
@@ -186,7 +186,7 @@ export const menuItemAddonGroups = pgTable(
     groupId: uuid("group_id").notNull().references(() => addonGroups.id),
   },
   (t) => [primaryKey({ columns: [t.menuItemId, t.groupId] })],
-);
+).enableRLS();
 
 // ── Customers & orders ─────────────────────────────────────────────
 
@@ -207,7 +207,7 @@ export const customers = pgTable("customers", {
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
-});
+}).enableRLS();
 
 export type OrderAddress = { line1: string; landmark?: string; pincode: string; instructions?: string };
 export type TaxSnapshot = { enabled: boolean; rateBps: number; inclusive: boolean; gstin: string | null };
@@ -239,6 +239,10 @@ export const orders = pgTable(
     discountPaise: integer("discount_paise").notNull().default(0),
     couponCode: text("coupon_code"),
     loyaltyPointsUsed: integer("loyalty_points_used").notNull().default(0),
+    loyaltyPointsEarned: integer("loyalty_points_earned"),
+    rewardsReleasedAt: timestamp("rewards_released_at", { withTimezone: true }),
+    lastReconciledAt: timestamp("last_reconciled_at", { withTimezone: true }),
+    issuerSnapshot: jsonb("issuer_snapshot").$type<{ name: string; addressLines: string[]; phone: string | null; instagram: string | null }>(),
     deliveryFeePaise: integer("delivery_fee_paise").notNull().default(0),
     taxPaise: integer("tax_paise").notNull().default(0),
     totalPaise: integer("total_paise").notNull(),
@@ -259,7 +263,7 @@ export const orders = pgTable(
     index("orders_created_idx").on(t.createdAt),
     index("orders_phone_idx").on(t.customerPhone),
   ],
-);
+).enableRLS();
 
 export const orderItems = pgTable(
   "order_items",
@@ -278,7 +282,7 @@ export const orderItems = pgTable(
     note: text("note"),
   },
   (t) => [index("order_items_order_idx").on(t.orderId)],
-);
+).enableRLS();
 
 export const orderItemAddons = pgTable(
   "order_item_addons",
@@ -290,7 +294,7 @@ export const orderItemAddons = pgTable(
     pricePaise: integer("price_paise").notNull(),
   },
   (t) => [index("order_item_addons_item_idx").on(t.orderItemId)],
-);
+).enableRLS();
 
 export const orderEvents = pgTable(
   "order_events",
@@ -305,7 +309,7 @@ export const orderEvents = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("order_events_order_idx").on(t.orderId)],
-);
+).enableRLS();
 
 // ── Payments ───────────────────────────────────────────────────────
 
@@ -330,7 +334,7 @@ export const payments = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [index("payments_order_idx").on(t.orderId)],
-);
+).enableRLS();
 
 export const refunds = pgTable("refunds", {
   id: id(),
@@ -342,7 +346,7 @@ export const refunds = pgTable("refunds", {
   createdBy: uuid("created_by"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
-});
+}).enableRLS();
 
 /** One row per Razorpay webhook delivery; the primary key makes repeats a no-op. */
 export const webhookEvents = pgTable("webhook_events", {
@@ -352,7 +356,7 @@ export const webhookEvents = pgTable("webhook_events", {
   receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
   processedAt: timestamp("processed_at", { withTimezone: true }),
   error: text("error"),
-});
+}).enableRLS();
 
 // ── Staff, audit, rate limits ──────────────────────────────────────
 
@@ -366,7 +370,7 @@ export const staffUsers = pgTable("staff_users", {
   sessionVersion: integer("session_version").notNull().default(1),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: createdAt(),
-});
+}).enableRLS();
 
 export const staffRoles = pgTable(
   "staff_roles",
@@ -376,7 +380,7 @@ export const staffRoles = pgTable(
     role: staffRoleEnum("role").notNull(),
   },
   (t) => [primaryKey({ columns: [t.staffUserId, t.outletId] })],
-);
+).enableRLS();
 
 export const auditLog = pgTable(
   "audit_log",
@@ -391,7 +395,7 @@ export const auditLog = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("audit_entity_idx").on(t.entity, t.entityId)],
-);
+).enableRLS();
 
 /** Fixed-window counters shared by every server instance. */
 export const rateLimits = pgTable(
@@ -402,13 +406,13 @@ export const rateLimits = pgTable(
     count: integer("count").notNull().default(0),
   },
   (t) => [uniqueIndex("rate_limits_key_window").on(t.key, t.windowStart)],
-);
+).enableRLS();
 
 /** Last invoice number used in each financial year (e.g. "2026-27"). */
 export const invoiceCounters = pgTable("invoice_counters", {
   financialYear: text("financial_year").primaryKey(),
   last: integer("last").notNull().default(0),
-});
+}).enableRLS();
 
 // ── Customer login, consent & messaging ────────────────────────────
 
@@ -426,7 +430,7 @@ export const otpChallenges = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("otp_phone_idx").on(t.phone, t.createdAt)],
-);
+).enableRLS();
 
 /** Append-only record of every marketing opt-in and opt-out. */
 export const consentEvents = pgTable(
@@ -441,7 +445,7 @@ export const consentEvents = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("consent_customer_idx").on(t.customerId)],
-);
+).enableRLS();
 
 /** Every message sent (or skipped), with its estimated cost. */
 export const messageLog = pgTable(
@@ -473,7 +477,7 @@ export const messageLog = pgTable(
     index("message_log_provider_idx").on(t.providerMessageId),
     index("message_log_order_idx").on(t.orderId),
   ],
-);
+).enableRLS();
 const bytea = customType<{ data: Buffer; driverData: Buffer | Uint8Array }>({
   dataType: () => "bytea",
   fromDriver: (v) => (Buffer.isBuffer(v) ? v : Buffer.from(v)),
@@ -487,7 +491,7 @@ export const menuImages = pgTable("menu_images", {
   data: bytea("data").notNull(),
   createdBy: uuid("created_by"),
   createdAt: createdAt(),
-});
+}).enableRLS();
 
 // ── Inventory ──────────────────────────────────────────────────────
 // Quantities are thousandths of the ingredient's unit (1.5 kg = 1_500_000 g-milli);
@@ -502,7 +506,7 @@ export const suppliers = pgTable("suppliers", {
   notes: text("notes"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: createdAt(),
-});
+}).enableRLS();
 
 export const ingredients = pgTable(
   "ingredients",
@@ -523,7 +527,7 @@ export const ingredients = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [uniqueIndex("ingredients_outlet_name").on(t.outletId, t.name)],
-);
+).enableRLS();
 
 /** How much of each ingredient one portion of a dish size (or one extra) uses. */
 export const recipeLines = pgTable(
@@ -540,7 +544,7 @@ export const recipeLines = pgTable(
     uniqueIndex("recipe_addon_ingredient").on(t.addonId, t.ingredientId),
     index("recipe_ingredient_idx").on(t.ingredientId),
   ],
-);
+).enableRLS();
 
 /** Append-only stock ledger: every delivery, sale, wastage and count. */
 export const stockMovements = pgTable(
@@ -568,7 +572,7 @@ export const stockMovements = pgTable(
     index("stock_moves_outlet_idx").on(t.outletId, t.createdAt),
     index("stock_moves_order_idx").on(t.orderId),
   ],
-);
+).enableRLS();
 
 // ── Delivery area requests ─────────────────────────────────────────
 
@@ -588,7 +592,7 @@ export const areaRequests = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("area_requests_outlet_created").on(t.outletId, t.createdAt), index("area_requests_pincode").on(t.pincode)],
-);
+).enableRLS();
 
 /** "Let's find your perfect plan" enquiries from the home page. */
 export const enquiries = pgTable(
@@ -606,7 +610,7 @@ export const enquiries = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("enquiries_outlet_created").on(t.outletId, t.createdAt)],
-);
+).enableRLS();
 
 /** Meal subscription plans, written by the owner in Admin › Subscriptions › Plans. */
 export const subscriptionPlans = pgTable(
@@ -629,7 +633,7 @@ export const subscriptionPlans = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [uniqueIndex("subscription_plans_outlet_slug").on(t.outletId, t.slug)],
-);
+).enableRLS();
 
 /** One customer's subscription. Plan details are copied in, so editing a plan never changes what someone bought. */
 export const subscriptions = pgTable(
@@ -662,7 +666,7 @@ export const subscriptions = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [index("subscriptions_outlet_status").on(t.outletId, t.status), index("subscriptions_phone").on(t.phone)],
-);
+).enableRLS();
 
 /** What happened on each delivery day of a subscription: one row per subscription per date. */
 export const subscriptionDeliveries = pgTable(
@@ -677,7 +681,7 @@ export const subscriptionDeliveries = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("subscription_deliveries_sub_date").on(t.subscriptionId, t.date)],
-);
+).enableRLS();
 
 /** Discount codes, set up by the owner in Admin › Coupons. */
 export const coupons = pgTable(
@@ -701,7 +705,7 @@ export const coupons = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [uniqueIndex("coupons_outlet_code").on(t.outletId, t.code)],
-);
+).enableRLS();
 
 export const couponRedemptions = pgTable(
   "coupon_redemptions",
@@ -714,7 +718,7 @@ export const couponRedemptions = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("coupon_redemptions_coupon").on(t.couponId), index("coupon_redemptions_phone").on(t.customerPhone)],
-);
+).enableRLS();
 
 /** Every change to a customer's points. The balance is the sum; one row per order and reason, so settling twice is harmless. */
 export const loyaltyLedger = pgTable(
@@ -730,4 +734,4 @@ export const loyaltyLedger = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("loyalty_ledger_customer").on(t.customerId), uniqueIndex("loyalty_ledger_order_reason").on(t.orderId, t.reason)],
-);
+).enableRLS();

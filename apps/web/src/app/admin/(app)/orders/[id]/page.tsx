@@ -21,7 +21,8 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
   if (!view || view.order.outletId !== staff.outletId) notFound();
   const { order, items, events, payments, refunds } = view;
   const captured = payments.find((p) => p.status === "captured" || p.status === "refunded");
-  const canRefund = can.refund(staff) && (order.status === "rejected" || order.status === "cancelled") && order.paymentState === "paid";
+  const refundPending = refunds.some((r) => !["processed", "failed"].includes(r.status));
+  const canRefund = !refundPending && can.refund(staff) && (order.status === "rejected" || order.status === "cancelled") && order.paymentState === "paid";
   const wa = whatsappLink(`91${order.customerPhone}`, `Hi ${order.customerName.split(" ")[0]}, this is Seiketsu about your order ${order.orderNumber}.`);
 
   return (
@@ -119,6 +120,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
             <p key={r.id} className="text-muted">Refund {formatINR(r.amountPaise)} · {r.status}</p>
           ))}
           {order.statusReason && <p className="mt-2">Reason: {order.statusReason}</p>}
+          {refundPending && <p role="status" className="mt-2 rounded-lg bg-butter/60 p-3">Refund confirmation is pending. We are checking with the payment provider. Do not issue another refund.</p>}
           {canRefund && <RefundForm orderId={order.id} />}
         </section>
       </aside>

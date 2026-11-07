@@ -2,9 +2,9 @@
  * Integration tests: real order/payment code against an in-memory Postgres
  * (PGlite), with the local payment simulator standing in for Razorpay.
  */
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
-process.env.DATABASE_URL = "pglite:memory";
+process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? "pglite:memory";
 process.env.PAYMENTS_MODE = "simulator";
 process.env.RAZORPAY_WEBHOOK_SECRET = "whsec_test";
 
@@ -388,5 +388,184 @@ describe("coupons and points", () => {
     await orderSvc.refundOrder({ orderId: o2.id, staffId, outletId, reason: "Test refund" });
     expect(await balance()).toBe(earned);
     await db.update(storeSettings).set({ loyaltyEnabled: false }).where(eq(storeSettings.outletId, outletId));
+  });
+});
+
+describe("financial recovery and isolation regressions", () => {
+  async function paidOrder() {
+    const r = await checkout([{ name: "Green Machine" }]);
+    await orderSvc.confirmCheckoutPayment({ token: r.token, razorpayOrderId: r.payment.razorpayOrderId, razorpayPaymentId: `pay_recovery_${crypto.randomUUID()}` });
+    return orderByToken(r.token);
+  }
+
+  async function input(phone: string) {
+    const { item, v } = await variantOf("Green Machine");
+    return { lines: [{ menuItemId: item.id, variantId: v.id, addOnIds: [], quantity: 2 }], customer: { name: "Recovery test", phone, email: "" }, fulfilment: "pickup" as const, source: "web" as const };
+  }
+
+  it("reserves points across outstanding checkouts, releases on expiry, and refunds late capture", async () => {
+    const { customers, loyaltyLedger } = await import("@seiketsu/db");
+    const { pointsBalance } = await import("./rewards");
+    const who = await input("9890000001");
+    const [c] = await db.insert(customers).values({ phone: who.customer.phone, name: "Owner" }).returning();
+    await db.insert(loyaltyLedger).values({ customerId: c.id, points: 50, reason: "adjust" });
+    await db.update(storeSettings).set({ loyaltyEnabled: true, loyaltyEarnPer100: 0, loyaltyPointValuePaise: 100, loyaltyMinRedeem: 0, loyaltyMaxRedeemPercent: 50 }).where(eq(storeSettings.outletId, outletId));
+    const first = await orderSvc.createCheckout({ ...who, usePoints: true }, { sessionPhone: who.customer.phone });
+    const second = await orderSvc.createCheckout({ ...who, usePoints: true }, { sessionPhone: who.customer.phone });
+    expect((await orderByToken(first.token)).loyaltyPointsUsed).toBe(50);
+    expect((await orderByToken(second.token)).loyaltyPointsUsed).toBe(0);
+    expect(await pointsBalance(c.id)).toBe(0);
+    const original = await orderByToken(first.token);
+    const [expired] = await db.update(orders).set({ expiresAt: new Date(Date.now() - 1000) }).where(eq(orders.id, original.id)).returning();
+    await orderSvc.reconcileOrder(expired);
+    await orderSvc.reconcileOrder(await orderByToken(first.token));
+    expect(await pointsBalance(c.id)).toBe(50);
+    await orderSvc.confirmCheckoutPayment({ token: first.token, razorpayOrderId: first.payment.razorpayOrderId, razorpayPaymentId: "pay_late_points" });
+    expect(await orderByToken(first.token)).toMatchObject({ status: "rejected", paymentState: "refunded" });
+    expect(await pointsBalance(c.id)).toBe(50);
+    await db.update(storeSettings).set({ loyaltyEnabled: false }).where(eq(storeSettings.outletId, outletId));
+  });
+
+  it("serializes competing uses of the last coupon allocation", async () => {
+    const { coupons } = await import("@seiketsu/db");
+    await db.insert(coupons).values({ outletId, code: "LASTUSE", kind: "flat", value: 100, usageLimit: 1, perCustomerLimit: 1 });
+    const results = await Promise.allSettled(["9890000002", "9890000003"].map(async (phone) => orderSvc.createCheckout({ ...await input(phone), couponCode: "LASTUSE" })));
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((r) => r.status === "rejected")).toHaveLength(1);
+  });
+
+  it("releases a coupon on expiry and declines to fulfill its late discounted capture", async () => {
+    const { coupons } = await import("@seiketsu/db");
+    await db.insert(coupons).values({ outletId, code: "EXPIRES", kind: "flat", value: 100, usageLimit: 1 });
+    const first = await orderSvc.createCheckout({ ...await input("9890000004"), couponCode: "EXPIRES" });
+    const o = await orderByToken(first.token);
+    const [expired] = await db.update(orders).set({ expiresAt: new Date(Date.now() - 1000) }).where(eq(orders.id, o.id)).returning();
+    await orderSvc.reconcileOrder(expired);
+    await expect(orderSvc.createCheckout({ ...await input("9890000005"), couponCode: "EXPIRES" })).resolves.toHaveProperty("token");
+    await orderSvc.confirmCheckoutPayment({ token: first.token, razorpayOrderId: first.payment.razorpayOrderId, razorpayPaymentId: "pay_late_coupon" });
+    expect(await orderByToken(first.token)).toMatchObject({ status: "rejected", paymentState: "refunded" });
+  });
+
+  it("keeps pending refunds paid, allows retry after failure, and finalizes success exactly once", async () => {
+    const { gateway } = await import("./gateway");
+    const { refunds } = await import("@seiketsu/db");
+    const o = await paidOrder();
+    await orderSvc.transitionOrder({ orderId: o.id, to: "rejected", staffId, outletId, reason: "Recovery test" });
+    const spy = vi.spyOn(gateway(), "refund").mockResolvedValue({ id: "rfnd_pending_test", status: "pending" });
+    try {
+      await orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Recovery test" });
+      expect((await orderByToken(o.publicToken)).paymentState).toBe("paid");
+      await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Duplicate" })).rejects.toThrow(/already pending/);
+      expect(spy).toHaveBeenCalledTimes(1);
+      await orderSvc.updateRefundStatus("rfnd_pending_test", "failed");
+      expect((await orderByToken(o.publicToken)).paymentState).toBe("paid");
+      spy.mockResolvedValue({ id: "rfnd_retry_test", status: "processed" });
+      await orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Retry confirmed failure" });
+      await orderSvc.updateRefundStatus("rfnd_retry_test", "processed");
+      await orderSvc.updateRefundStatus("rfnd_retry_test", "pending");
+      const [p] = await db.select().from(payments).where(eq(payments.orderId, o.id));
+      expect(p.refundedPaise).toBe(o.totalPaise);
+      expect((await orderByToken(o.publicToken)).paymentState).toBe("refunded");
+      expect((await db.select().from(refunds).where(eq(refunds.paymentId, p.id))).map((r) => r.status).sort()).toEqual(["failed", "processed"]);
+    } finally { spy.mockRestore(); }
+  });
+
+  it("recovers a timed-out refund using the durable intent without resending it", async () => {
+    const { gateway } = await import("./gateway");
+    const { refunds } = await import("@seiketsu/db");
+    const o = await paidOrder();
+    await orderSvc.transitionOrder({ orderId: o.id, to: "rejected", staffId, outletId, reason: "Timeout" });
+    const spy = vi.spyOn(gateway(), "refund").mockRejectedValue(new Error("provider timeout"));
+    const list = vi.spyOn(gateway(), "paymentRefunds");
+    try {
+      await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Timeout" })).rejects.toThrow(/confirmation is pending/);
+      const [p] = await db.select().from(payments).where(eq(payments.orderId, o.id));
+      const [r] = await db.select().from(refunds).where(eq(refunds.paymentId, p.id));
+      expect(r.status).toBe("unknown");
+      await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Retry" })).rejects.toThrow(/already pending/);
+      list.mockResolvedValue([{ id: "rfnd_timeout_recovered", intentId: r.id, amountPaise: r.amountPaise, status: "processed" }]);
+      await orderSvc.reconcileRefunds();
+      expect((await orderByToken(o.publicToken)).paymentState).toBe("refunded");
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally { spy.mockRestore(); list.mockRestore(); }
+  });
+
+  it("serializes duplicate refund submissions", async () => {
+    const { gateway } = await import("./gateway");
+    const o = await paidOrder();
+    await orderSvc.transitionOrder({ orderId: o.id, to: "rejected", staffId, outletId, reason: "Duplicate test" });
+    const spy = vi.spyOn(gateway(), "refund").mockResolvedValue({ id: "rfnd_concurrent", status: "pending" });
+    try {
+      const results = await Promise.allSettled([1, 2].map(() => orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Duplicate test" })));
+      expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+      expect(spy).toHaveBeenCalledTimes(1);
+      await orderSvc.updateRefundStatus("rfnd_concurrent", "processed");
+    } finally { spy.mockRestore(); }
+  });
+
+  it("allows retry after an explicit provider rejection, without treating a timeout as a rejection", async () => {
+    const { gateway } = await import("./gateway");
+    const { refunds } = await import("@seiketsu/db");
+    const o = await paidOrder();
+    await orderSvc.transitionOrder({ orderId: o.id, to: "rejected", staffId, outletId, reason: "Provider rejection" });
+    const spy = vi.spyOn(gateway(), "refund").mockRejectedValue({ statusCode: 400 });
+    try {
+      await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Provider rejection" })).rejects.toThrow(/declined/);
+      const [p] = await db.select().from(payments).where(eq(payments.orderId, o.id));
+      expect((await db.select().from(refunds).where(eq(refunds.paymentId, p.id)))[0].status).toBe("failed");
+      spy.mockResolvedValue({ id: "rfnd_declined_retry", status: "processed" });
+      await orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "Corrected request" });
+      expect((await orderByToken(o.publicToken)).paymentState).toBe("refunded");
+    } finally { spy.mockRestore(); }
+  });
+
+  it("reserves first-order eligibility across different first-order coupon codes", async () => {
+    const { coupons } = await import("@seiketsu/db");
+    await db.insert(coupons).values(["FIRSTA", "FIRSTB"].map((code) => ({ outletId, code, kind: "flat", value: 100, firstOrderOnly: true })));
+    const who = await input("9890000010");
+    await orderSvc.createCheckout({ ...who, couponCode: "FIRSTA" });
+    await expect(orderSvc.createCheckout({ ...who, couponCode: "FIRSTB" })).rejects.toThrow(/first/i);
+  });
+
+  it("does not overwrite a verified profile with guest checkout contact details", async () => {
+    const { customers } = await import("@seiketsu/db");
+    const who = await input("9890000006");
+    await db.insert(customers).values({ phone: who.customer.phone, name: "Verified name", email: "verified@example.com" });
+    const r = await orderSvc.createCheckout({ ...who, customer: { ...who.customer, name: "Guest supplied", email: "guest@example.com" } });
+    const [c] = await db.select().from(customers).where(eq(customers.phone, who.customer.phone));
+    expect(c).toMatchObject({ name: "Verified name", email: "verified@example.com" });
+    expect((await orderByToken(r.token)).customerName).toBe("Guest supplied");
+  });
+
+  it("uses the staff outlet's tax and snapshots the invoice issuer and portions", async () => {
+    const { createOutlet } = await import("./outlets");
+    const { orderIssuer } = await import("./order-view");
+    const other = await createOutlet(outletId, { slug: "pos-tax-test", name: "Other outlet", addressLines: ["Other address"], phone: null, whatsapp: null, instagram: null, mapUrl: null }, staffId);
+    await db.update(storeSettings).set({ taxEnabled: true, taxRateBps: 500, taxInclusive: false, gstin: "OTHERGSTIN" }).where(eq(storeSettings.outletId, other.id));
+    const r = await orderSvc.createPosOrder({ lines: (await input("9890000007")).lines, payment: "cash" }, { id: staffId, outletId: other.id });
+    const [o] = await db.select().from(orders).where(eq(orders.id, r.id));
+    expect(o.taxPaise).toBe(Math.round(o.subtotalPaise * 0.05));
+    expect(o.taxSnapshot).toMatchObject({ enabled: true, rateBps: 500, gstin: "OTHERGSTIN" });
+    expect(orderIssuer(o, { name: "Wrong outlet", addressLines: [], phone: null, instagram: null }).name).toBe("Other outlet");
+    const { orderItems } = await import("@seiketsu/db");
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, o.id));
+    expect(items[0].variantLabel).toContain("ml");
+    expect(items[0].variantLabel).not.toContain("{v.");
+  });
+
+  it("rotates reconciliation batches instead of starving remaining stale orders", async () => {
+    const { sql } = await import("drizzle-orm");
+    await db.update(orders).set({ lastReconciledAt: new Date() });
+    await db.update(orders).set({ expiresAt: new Date(Date.now() - 5000), createdAt: new Date(Date.now() - 600_000) }).where(eq(orders.status, "pending_payment"));
+    const a = await orderSvc.createCheckout(await input("9890000008"));
+    const b = await orderSvc.createCheckout(await input("9890000009"));
+    for (const token of [a.token, b.token]) await db.update(orders).set({ lastReconciledAt: null, createdAt: new Date(Date.now() - 600_000), expiresAt: new Date(Date.now() - 5000) }).where(eq(orders.publicToken, token));
+    await orderSvc.reconcileStale(1);
+    await orderSvc.reconcileStale(1);
+    expect((await orderByToken(a.token)).status).toBe("expired");
+    expect((await orderByToken(b.token)).status).toBe("expired");
+    const flags = await db.execute(sql`select relname from pg_class where relname in ('orders', 'customers', 'payments', 'staff_users') and relrowsecurity`);
+    const rows = Array.isArray(flags) ? flags : (flags as unknown as { rows: unknown[] }).rows;
+    expect(rows).toHaveLength(4);
   });
 });

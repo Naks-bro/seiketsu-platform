@@ -53,7 +53,7 @@ const messaging = {
    * For testing before MSG91 delivery works. Delete the variable before launch.
    */
   testLogins: new Map(
-    (optional("TEST_LOGINS") ?? "")
+    (!isProd ? optional("TEST_LOGINS") ?? "" : "")
       .split(",")
       .map((pair) => pair.trim().split(":"))
       .filter(([phone, code]) => /^[6-9]\d{9}$/.test(phone ?? "") && /^\d{4,8}$/.test(code ?? ""))

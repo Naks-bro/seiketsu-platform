@@ -159,3 +159,31 @@ describe("recipes and sales", () => {
     expect((await inv.lowStock(outletId)).map((i) => i.name)).toContain("Test avocado");
   });
 });
+
+describe("outlet recipes and rejection races", () => {
+  it("preserves each outlet's recipe and never deducts rejected stock again", async () => {
+    const { createOutlet } = await import("./outlets");
+    const { recipeLines } = await import("@seiketsu/db");
+    const { v } = await variantOf("Green Machine");
+    const other = await createOutlet(outletId, { name: "Recipe branch", slug: "recipe-branch", addressLines: ["Other address"], phone: null, whatsapp: null, instagram: null, mapUrl: null }, staff.id);
+    const otherStaff = { id: staff.id, outletId: other.id };
+    const mainIngredient = await inv.saveIngredient({ name: "Main recipe test", unit: "g" }, staff);
+    const otherIngredient = await inv.saveIngredient({ name: "Branch recipe test", unit: "g" }, otherStaff);
+    await inv.recordMovement({ ingredientId: mainIngredient, kind: "count", qty: 100, qtyUnit: "g" }, staff);
+    await inv.recordMovement({ ingredientId: otherIngredient, kind: "count", qty: 200, qtyUnit: "g" }, otherStaff);
+    await inv.saveRecipe({ variantId: v.id, lines: [{ ingredientId: mainIngredient, qty: 10, qtyUnit: "g" }] }, staff);
+    await inv.saveRecipe({ variantId: v.id, lines: [{ ingredientId: otherIngredient, qty: 20, qtyUnit: "g" }] }, otherStaff);
+    expect(await db.select().from(recipeLines).where(eq(recipeLines.variantId, v.id))).toHaveLength(2);
+    const a = await orderSvc.createPosOrder({ lines: [await line("Green Machine")], payment: "cash" }, staff);
+    await orderSvc.createPosOrder({ lines: [await line("Green Machine")], payment: "cash" }, otherStaff);
+    expect((await stockOf(mainIngredient)).stockMilli).toBe(90_000);
+    expect((await stockOf(otherIngredient)).stockMilli).toBe(180_000);
+    await orderSvc.transitionOrder({ orderId: a.id, to: "rejected", staffId: staff.id, outletId, reason: "Rejected before preparation" });
+    expect((await stockOf(mainIngredient)).stockMilli).toBe(100_000);
+    expect(await inv.deductStockForOrder(a.id)).toBe(0);
+    expect((await stockOf(mainIngredient)).stockMilli).toBe(100_000);
+    await inv.saveRecipe({ variantId: v.id, lines: [] }, otherStaff);
+    const remaining = await db.select().from(recipeLines).where(eq(recipeLines.variantId, v.id));
+    expect(remaining.map((r) => r.ingredientId)).toEqual([mainIngredient]);
+  });
+});

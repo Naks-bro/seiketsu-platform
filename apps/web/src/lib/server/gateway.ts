@@ -22,6 +22,7 @@ export interface PaymentGateway {
   capture(paymentId: string, amountPaise: number): Promise<GatewayPayment>;
   orderPayments(razorpayOrderId: string): Promise<GatewayPayment[]>;
   refund(paymentId: string, amountPaise: number, notes: Record<string, string>): Promise<{ id: string; status: string }>;
+  paymentRefunds(paymentId: string): Promise<{ id: string; status: string; intentId: string | null; amountPaise: number }[]>;
 }
 
 type RzpPayment = {
@@ -50,30 +51,46 @@ const toPayment = (p: RzpPayment): GatewayPayment => ({
   feeTaxPaise: num(p.tax),
 });
 
+/** An ambiguous write timeout is handled by the persisted intent, never by blindly retrying. */
+function bounded<T>(work: Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Payment provider timed out")), 10_000);
+    work.then((result) => { clearTimeout(timer); resolve(result); }, (error) => { clearTimeout(timer); reject(error); });
+  });
+}
+
 function razorpayGateway(): PaymentGateway {
   const rzp = new Razorpay({ key_id: env.razorpay.keyId!, key_secret: env.razorpay.keySecret! });
   return {
     async createOrder({ amountPaise, receipt, notes }) {
-      const o = await rzp.orders.create({ amount: amountPaise, currency: "INR", receipt, notes });
+      const o = await bounded(rzp.orders.create({ amount: amountPaise, currency: "INR", receipt, notes }));
       return { id: o.id };
     },
     async fetchPayment(id) {
       try {
-        return toPayment((await rzp.payments.fetch(id)) as unknown as RzpPayment);
+        return toPayment((await bounded(rzp.payments.fetch(id))) as unknown as RzpPayment);
       } catch {
         return null;
       }
     },
     async capture(id, amountPaise) {
-      return toPayment((await rzp.payments.capture(id, amountPaise, "INR")) as unknown as RzpPayment);
+      return toPayment((await bounded(rzp.payments.capture(id, amountPaise, "INR"))) as unknown as RzpPayment);
     },
     async orderPayments(orderId) {
-      const r = (await rzp.orders.fetchPayments(orderId)) as unknown as { items: RzpPayment[] };
+      const r = (await bounded(rzp.orders.fetchPayments(orderId))) as unknown as { items: RzpPayment[] };
       return r.items.map(toPayment);
     },
     async refund(paymentId, amountPaise, notes) {
-      const r = await rzp.payments.refund(paymentId, { amount: amountPaise, notes });
+      const r = await bounded(rzp.payments.refund(paymentId, { amount: amountPaise, notes, receipt: notes.refund_intent }));
       return { id: r.id, status: String(r.status) };
+    },
+    async paymentRefunds(paymentId) {
+      const items = [];
+      for (let skip = 0; ; skip += 100) {
+        const page = await bounded(rzp.payments.fetchMultipleRefund(paymentId, { count: 100, skip }));
+        items.push(...page.items.map((r) => ({ id: r.id, status: String(r.status), intentId: String(r.notes?.refund_intent ?? r.receipt ?? "") || null, amountPaise: Number(r.amount) })));
+        if (page.items.length < 100) return items;
+      }
     },
   };
 }
@@ -97,6 +114,7 @@ function simulatorGateway(): PaymentGateway {
     async refund() {
       return { id: rid("rfnd"), status: "processed" };
     },
+    async paymentRefunds() { return []; },
   };
 }
 

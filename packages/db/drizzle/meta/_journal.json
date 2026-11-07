@@ -71,6 +71,13 @@
       "when": 1793716804916,
       "tag": "0009_rewards_and_crm",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794041033766,
+      "tag": "0010_financial_safety",
+      "breakpoints": true
     }
   ]
 }

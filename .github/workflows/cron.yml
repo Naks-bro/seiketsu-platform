@@ -1,3 +1,4 @@
+# Set repository variable RECONCILE_SCHEDULER=vercel when handing scheduling to Vercel.
 # Every 10 minutes: re-check unpaid orders with Razorpay, expire stale ones,
 # and send owner alerts (spend, failures, OTP spikes). Free replacement for
 # Vercel Cron. Needs repository secrets SITE_URL and CRON_SECRET.
@@ -9,6 +10,7 @@ on:
 
 jobs:
   reconcile:
+    if: github.event_name == 'workflow_dispatch' || vars.RECONCILE_SCHEDULER != 'vercel'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

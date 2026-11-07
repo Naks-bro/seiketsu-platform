@@ -5,9 +5,9 @@
  */
 export const LEGAL = {
   /** Registered business / legal entity name, as on the Razorpay account. */
-  businessName: null as string | null,
+  businessName: process.env.LEGAL_BUSINESS_NAME?.trim() || null,
   /** Public support email for orders, refunds and privacy requests. */
-  supportEmail: null as string | null,
+  supportEmail: process.env.SUPPORT_EMAIL?.trim() || null,
   /** Date the policy text was last reviewed by the owner (YYYY-MM-DD). */
   lastUpdated: "2026-11-02",
 };

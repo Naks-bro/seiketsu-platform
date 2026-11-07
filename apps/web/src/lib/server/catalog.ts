@@ -17,14 +17,14 @@ import { isOpenAt } from "@seiketsu/core/store-hours";
 import type { CategoryDTO, MenuItemDTO, StoreDTO } from "../types";
 import { env } from "./env";
 
-export async function getStore(): Promise<StoreDTO> {
+export async function getStore(outletId?: string): Promise<StoreDTO> {
   const db = await getDb();
   const [row] = await db
     .select()
     .from(outlets)
     .innerJoin(storeSettings, eq(storeSettings.outletId, outlets.id))
-    .where(eq(outlets.slug, await chosenOutletSlug()));
-  if (!row) throw new Error(`Outlet "${env.outletSlug}" not found. Run npm run db:seed.`);
+    .where(outletId ? eq(outlets.id, outletId) : eq(outlets.slug, await chosenOutletSlug()));
+  if (!row) throw new Error(`Outlet "${outletId ?? env.outletSlug}" not found. Run npm run db:seed.`);
   const o = row.outlets;
   const s = row.store_settings;
   const mapQuery = encodeURIComponent(["Seiketsu", ...o.addressLines].join(", "));

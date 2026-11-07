@@ -1,8 +1,14 @@
 # Seiketsu platform
 
 Ordering and operations platform for Seiketsu, Versova (Mumbai).
-**Phase 1** (this release): customer website and menu, cart, checkout, Razorpay payments,
-live order tracking, and a basic admin for orders, menu availability and store settings.
+Customer ordering, Razorpay payments, staff POS, kitchen operations, inventory,
+subscriptions, coupons, loyalty and multiple outlets.
+
+Deployment setup: [Supabase + Vercel](DEPLOYMENT.md). Security monitoring:
+[Snyk npm workspace setup](SECURITY-SCANNING.md). Use Node 24 and the root npm lockfile.
+The financial and outlet-isolation fixes include migration `0010_financial_safety`;
+apply it before running this release against an existing database. It retires old unpaid
+discounted quotes; customers can place a new order, and late captures go to refunds.
 
 ## What is in the repo
 
@@ -19,7 +25,7 @@ Drizzle ORM, Razorpay, Supabase Realtime (optional), Tailwind CSS. Hosting: Verc
 
 ## Run it locally (no accounts needed)
 
-Requires Node 22+.
+Requires Node 24.
 
 ```bash
 npm install
@@ -41,8 +47,8 @@ until hours are set, online ordering stays closed.
 ## Tests
 
 ```bash
-npm test                        # 54 tests: unit + integration against an in-memory Postgres
-npx tsc --noEmit -p apps/web    # type check
+npm test                        # business logic and integration regression suite
+npm run typecheck               # all workspaces
 npm run lint -w web
 npm run build                   # production build
 ```
@@ -211,31 +217,16 @@ expiry and late payment, kitchen status order, rejection with reason and refund.
   MSG91 account. Send one test of each template before going live (see "Messaging" below).
 - Message costs are estimates from the rates in Admin › Messages, not MSG91's actual bill.
 - Refunds are full refunds only.
-- Recipes belong to dish sizes, which are shared by all outlets; with a second outlet, ingredients are
-  per outlet but a dish's recipe would need to list each outlet's ingredients.
+- Menu definitions and prices are shared across outlets; availability, recipes, stock and tax settings are outlet-specific.
 - Stock is not reserved while an order waits for online payment; it comes out when payment is captured.
 - Dish photos must be uploaded in the menu editor; the supplied food images are illustrations.
 
 ## Data that needs the owner's confirmation
 
-The printed menu (Nov 2026) named the two unnamed salads (Spicy Tofu Protein Salad Bowl, Fresh Zucchini
-Noodles Salad Bowl) and added their Small prices. Migration `0005_menu_from_print` applies this and the
-other printed-menu changes to an existing database.
+- Estimated nutrition for Healthy Quinoa Salad Bowl and Pomegranate Juice; confirm actual recipes and portions.
+- Which extras go with each dish, and the source spellings "Honey Musterd Dip" and "Ceamy Mozzarella".
+- GST registration/rate, opening hours, delivery coverage, fees and minimum order in Admin > Settings.
+- Legal entity name (`LEGAL_BUSINESS_NAME`), support email (`SUPPORT_EMAIL`) and policy wording before public launch.
+- Real dish photography, provider templates and test-mode payment/refund delivery before accepting live orders.
 
-Shown in **Admin → Menu → Hidden until corrected**:
-- Healthy Quinoa Salad Bowl: now Veg (450g) ₹380 / Chicken (450g) ₹460. Its nutrition was given for
-  Small/Large, so it needs nutrition for each option before it shows again.
-- Pomegranate Juice (300ml) ₹240: new on the printed menu, with no description or nutrition yet.
-
-Also to confirm:
-- Watermelon Mint Refresher has the same description as Celery – Green Apple – Carrot.
-- Spelling in the source: "Honey Musterd Dip", "Ceamy Mozzarella".
-- The printed menu gives the phone as 95847 58479; the site uses +91 79776 97408 (WhatsApp 917977697408).
-- Which extras go with which dishes (currently: all salads, wraps, meals, sandwiches and pasta).
-- Veg/non-veg marks are shown only where the menu states them (Paneer/Veg/Egg/Chicken). About 20 dishes
-  (most salads, pasta, juices, smoothies) are unmarked, so **Veg only** hides them until marked in the editor.
-- GST registration, rate and whether prices include it (GST is off until set).
-- Opening hours, delivery area, delivery fee and minimum order (delivery is off until set).
-- Policy pages (`/terms`, `/privacy`, `/refunds`, `/delivery`, `/contact`) are drafts: review the wording,
-  and fill in the legal business name and support email in `apps/web/src/lib/legal.ts`.
-  Razorpay checks these pages before enabling live payments.
+The confirmed phone is +91 95847 58479. Diet marks and printed-menu changes are applied by the checked-in migrations.

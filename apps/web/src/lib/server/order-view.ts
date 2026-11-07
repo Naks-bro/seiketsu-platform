@@ -2,6 +2,11 @@ import "server-only";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import { getDb, orderEvents, orderItemAddons, orderItems, orders, payments, refunds } from "@seiketsu/db";
 
+/** New invoices retain their issuer details even after an outlet is renamed or edited. */
+export function orderIssuer<T extends { name: string; addressLines: string[]; phone: string | null; instagram: string | null }>(order: typeof orders.$inferSelect, fallback: T) {
+  return { ...fallback, ...order.issuerSnapshot };
+}
+
 export async function loadOrder(where: { token: string } | { id: string }) {
   const db = await getDb();
   const [order] = await db

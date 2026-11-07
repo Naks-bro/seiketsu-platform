@@ -15,7 +15,7 @@ if (!email || !password) {
   process.exit(1);
 }
 
-const conn = await openDb(process.env.DATABASE_URL ?? "pglite:./.data/pglite");
+const conn = await openDb(process.env.DATABASE_MIGRATION_URL?.trim() || process.env.DATABASE_URL?.trim() || "pglite:./.data/pglite");
 const db = conn.db;
 const [outlet] = await db.select().from(s.outlets).limit(1);
 if (!outlet) throw new Error("Run the seed first: npm run db:seed");

@@ -8,6 +8,7 @@ import {
   orderItemAddons,
   orderItems,
   orders,
+  outlets,
   recipeLines,
   stockMovements,
   suppliers,
@@ -229,7 +230,7 @@ export async function deductStockForOrder(orderId: string) {
     const [o] = await tx
       .update(orders)
       .set({ stockDeductedAt: new Date() })
-      .where(and(eq(orders.id, orderId), isNull(orders.stockDeductedAt), inArray(orders.paymentState, ["paid", "partially_refunded"])))
+      .where(and(eq(orders.id, orderId), isNull(orders.stockDeductedAt), inArray(orders.paymentState, ["paid", "partially_refunded"]), notInArray(orders.status, ["rejected", "cancelled", "expired", "payment_failed", "pending_payment"])))
       .returning({ id: orders.id, outletId: orders.outletId });
     if (!o) return 0;
     const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, o.id));
@@ -353,7 +354,13 @@ export async function saveRecipe(raw: unknown, staff: { id: string; outletId: st
     return { variantId: input.variantId ?? null, addonId: input.addonId ?? null, ingredientId: l.ingredientId, qtyMilli };
   });
   await db.transaction(async (tx) => {
-    await tx.delete(recipeLines).where(input.variantId ? eq(recipeLines.variantId, input.variantId) : eq(recipeLines.addonId, input.addonId!));
+    // Serialize replacement per outlet, including empty recipes, without touching another branch.
+    await tx.select({ id: outlets.id }).from(outlets).where(eq(outlets.id, staff.outletId)).for("update");
+    const outletIngredients = tx.select({ id: ingredients.id }).from(ingredients).where(eq(ingredients.outletId, staff.outletId));
+    await tx.delete(recipeLines).where(and(
+      input.variantId ? eq(recipeLines.variantId, input.variantId) : eq(recipeLines.addonId, input.addonId!),
+      inArray(recipeLines.ingredientId, outletIngredients),
+    ));
     if (rows.length) await tx.insert(recipeLines).values(rows);
     await audit(tx, {
       actorId: staff.id,

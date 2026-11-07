@@ -77,12 +77,12 @@ export function JumpMenu({ cats, active }: { cats: CategoryDTO[]; active: string
   const panel = useRef<HTMLDivElement>(null);
   useModal(panel, open, () => setOpen(false));
   return (
-    <div className="md:hidden">
+    <div className="flex justify-end md:hidden">
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
-        className="fixed bottom-28 right-4 z-30 flex items-center gap-2 rounded-full bg-ink px-4 py-3 text-sm font-semibold text-cream shadow-xl"
+        className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-cream shadow-lg"
       >
         <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden><path d="M4 7h16M4 12h16M4 17h10" /></svg>
         Menu

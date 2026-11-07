@@ -51,6 +51,7 @@ export async function updateOutletAction(_prev: OutletState, form: FormData): Pr
   if (!can.manageStaff(staff)) return { error: "Only the owner can change outlets." };
   try {
     const id = z.string().uuid().parse(form.get("id"));
+    if (!(await staffOutlets(staff.id)).some((o) => o.id === id && o.role === "owner")) throw new OutletError("You do not own that outlet.");
     await updateOutlet(id, { ...fields(form), isActive: form.get("isActive") === "on" });
     await audit(await getDb(), { actorId: staff.id, outletId: id, action: "outlet.update", entity: "outlet", entityId: id });
   } catch (e) {

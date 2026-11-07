@@ -6,7 +6,7 @@ import { PosScreen } from "./pos-screen";
 export default async function PosPage() {
   await connection();
   const staff = await requireStaff();
-  const store = await getStore();
+  const store = await getStore(staff.outletId);
   const menu = await getMenu(store.outletId);
   return <PosScreen menu={menu} pricing={store.pricing} staffName={staff.name} />;
 }

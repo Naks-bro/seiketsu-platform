@@ -1,6 +1,6 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { and, eq, gt, inArray, lt, or, sql } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, lt, or, sql } from "drizzle-orm";
 import {
   addonGroups,
   addons,
@@ -9,6 +9,7 @@ import {
   couponRedemptions,
   getDb,
   invoiceCounters,
+  loyaltyLedger,
   menuItemAddonGroups,
   menuItems,
   menuItemVariants,
@@ -26,7 +27,8 @@ import { z } from "zod";
 import { checkTransition, REFUND_ON, type OrderStatus } from "@seiketsu/core/order-status";
 import { computeQuote } from "@seiketsu/core/pricing";
 import { isServiceable } from "@seiketsu/core/delivery-area";
-import { evaluateCoupon, loyaltySettings, pointsForPhone, redeemable, reverseLoyalty, settleLoyalty } from "./rewards";
+import { evaluateCoupon, loyaltySettings, pointsForPhone, redeemable, releaseRewardsIn, settleLoyaltyIn, type RewardDb } from "./rewards";
+import { pointsEarned } from "@seiketsu/core/loyalty";
 import { eventForStatus, financialYear, formatInvoiceNumber, type CustomerEvent } from "@seiketsu/core/messaging";
 import { getStore } from "./catalog";
 import { env } from "./env";
@@ -139,19 +141,19 @@ type Rewards = { couponId: string | null; couponCode: string | null; couponPaise
  * Coupon and points for an order, worked out on the server from the database. A code that can't be used throws
  * with the reason. Points are only spent for the signed-in customer's own phone number.
  */
-async function rewardsFor(outletId: string, subtotalPaise: number, phone: string, couponCode: string | undefined, usePoints: boolean | undefined, sessionPhone: string | null): Promise<Rewards> {
+async function rewardsFor(outletId: string, subtotalPaise: number, phone: string, couponCode: string | undefined, usePoints: boolean | undefined, sessionPhone: string | null, tx: RewardDb): Promise<Rewards> {
   const r: Rewards = { couponId: null, couponCode: null, couponPaise: 0, points: 0, pointsPaise: 0 };
   if (couponCode?.trim()) {
-    const c = await evaluateCoupon(outletId, couponCode, phone, subtotalPaise);
+    const c = await evaluateCoupon(outletId, couponCode, phone, subtotalPaise, tx, true);
     if ("error" in c) throw new OrderError(c.error ?? "That coupon can’t be used.", 400);
     r.couponId = c.coupon.id;
     r.couponCode = c.coupon.code;
     r.couponPaise = c.discountPaise;
   }
   if (usePoints && sessionPhone && sessionPhone === phone) {
-    const mine = await pointsForPhone(phone);
+    const mine = await pointsForPhone(phone, tx);
     if (mine) {
-      const spend = redeemable(mine.balance, subtotalPaise - r.couponPaise, await loyaltySettings(outletId));
+      const spend = redeemable(mine.balance, subtotalPaise - r.couponPaise, await loyaltySettings(outletId, tx));
       r.points = spend.points;
       r.pointsPaise = spend.valuePaise;
     }
@@ -184,7 +186,7 @@ export async function previewRewards(args: { lines: CheckoutData["lines"]; phone
 }
 
 const variantLabel = (v: { label: string | null; portionAmount: number | null; portionUnit: string | null }) =>
-  [v.label, v.portionAmount ? `{v.portionAmount}{v.portionUnit}` : null].filter(Boolean).join(" ") || null;
+  [v.label, v.portionAmount && v.portionUnit ? `${v.portionAmount}${v.portionUnit}` : null].filter(Boolean).join(" ") || null;
 
 // ── Checkout ───────────────────────────────────────────────────────
 
@@ -221,13 +223,10 @@ export async function createCheckout(input: CheckoutData, opts: { sessionPhone?:
   const db = await getDb();
   const lines = await resolveLines(db, input.lines, store.outletId);
 
-  let quote = quoteFor(lines, store.pricing, input.fulfilment);
-  if (quote.belowMinimum) {
+  const baseQuote = quoteFor(lines, store.pricing, input.fulfilment);
+  if (baseQuote.belowMinimum) {
     throw new OrderError(`Minimum order is \u20b9${store.pricing.minOrderPaise / 100}.`);
   }
-  const rewards = await rewardsFor(store.outletId, quote.subtotalPaise, input.customer.phone, input.couponCode, input.usePoints, opts.sessionPhone ?? null);
-  if (rewards.couponPaise + rewards.pointsPaise > 0) quote = quoteFor(lines, store.pricing, input.fulfilment, rewards.couponPaise + rewards.pointsPaise);
-
   const settings = await db.query.storeSettings.findFirst({ where: (s, { eq }) => eq(s.outletId, store.outletId) });
   const expiresAt = new Date(Date.now() + (settings?.paymentExpiryMinutes ?? 30) * 60_000);
   const email = input.customer.email || null;
@@ -236,8 +235,12 @@ export async function createCheckout(input: CheckoutData, opts: { sessionPhone?:
     const [customer] = await tx
       .insert(customers)
       .values({ phone: input.customer.phone, name: input.customer.name, email })
-      .onConflictDoUpdate({ target: customers.phone, set: { name: input.customer.name, ...(email ? { email } : {}) } })
+      .onConflictDoUpdate({ target: customers.phone, set: opts.sessionPhone === input.customer.phone ? { name: input.customer.name, ...(email ? { email } : {}) } : { phone: input.customer.phone } })
       .returning();
+    // The upsert locks this customer until commit; coupon allocation is locked in rewardsFor.
+    const rewards = await rewardsFor(store.outletId, baseQuote.subtotalPaise, input.customer.phone, input.couponCode, input.usePoints, opts.sessionPhone ?? null, tx);
+    const quote = quoteFor(lines, store.pricing, input.fulfilment, rewards.couponPaise + rewards.pointsPaise);
+    if (quote.totalPaise <= 0) throw new OrderError("Please leave a positive amount payable after discounts.");
     // Ticking a box opts in; leaving it unticked never removes an earlier opt-in.
     const optIns = [
       input.marketing?.whatsapp && !customer.marketingWhatsapp ? ("whatsapp" as const) : null,
@@ -270,13 +273,18 @@ export async function createCheckout(input: CheckoutData, opts: { sessionPhone?:
         discountPaise: quote.discountPaise,
         couponCode: rewards.couponCode,
         loyaltyPointsUsed: rewards.points,
+        loyaltyPointsEarned: pointsEarned(quote.subtotalPaise - quote.discountPaise, await loyaltySettings(store.outletId, tx)),
         deliveryFeePaise: quote.deliveryFeePaise,
         taxPaise: quote.taxPaise,
         totalPaise: quote.totalPaise,
         taxSnapshot: { ...store.pricing.tax, gstin: settings?.gstin ?? null },
+        issuerSnapshot: { name: store.name, addressLines: store.addressLines, phone: store.phone, instagram: store.instagram },
         expiresAt,
       })
       .returning();
+    if (rewards.points > 0) {
+      await tx.insert(loyaltyLedger).values({ customerId: customer.id, orderId: o.id, points: -rewards.points, reason: "redeem" });
+    }
     if (rewards.couponId) {
       await tx.insert(couponRedemptions).values({ couponId: rewards.couponId, orderId: o.id, customerPhone: input.customer.phone, discountPaise: rewards.couponPaise });
     }
@@ -307,42 +315,57 @@ export async function createCheckout(input: CheckoutData, opts: { sessionPhone?:
     return o;
   });
 
-  const payment = await openPayment(order);
+  let payment: PaymentParams;
+  try { payment = await openPayment(order); }
+  catch (err) {
+    // A gateway timeout may have created an order remotely; no payment can be opened without its ID.
+    await db.transaction(async (tx) => {
+      const [o] = await tx.select().from(orders).where(eq(orders.id, order.id)).for("update");
+      await releaseRewardsIn(tx, o);
+      await tx.update(orders).set({ status: "expired", expiresAt: new Date() }).where(eq(orders.id, o.id));
+    });
+    throw err;
+  }
   return { token: order.publicToken, orderNumber: order.orderNumber, totalPaise: order.totalPaise, payment };
 }
 
 /** Creates (or reuses) the gateway order for an unpaid order. */
 async function openPayment(order: typeof orders.$inferSelect): Promise<PaymentParams> {
   const db = await getDb();
-  let [p] = await db
-    .select()
-    .from(payments)
-    .where(and(eq(payments.orderId, order.id), inArray(payments.status, ["created", "failed"])))
-    .limit(1);
-  if (!p) {
-    let gw;
-    try {
-      gw = await gateway().createOrder({
-        amountPaise: order.totalPaise,
-        receipt: order.orderNumber,
-        notes: { order_id: order.id, order_number: order.orderNumber },
-      });
-    } catch (err) {
-      console.error("[checkout] gateway order failed", err);
-      throw new OrderError("We could not start the payment. Please try again in a minute.", 502);
+  return db.transaction(async (tx) => {
+    const [current] = await tx.select().from(orders).where(eq(orders.id, order.id)).for("update");
+    if (!current || !["pending_payment", "payment_failed"].includes(current.status)) throw new OrderError("This order is not awaiting payment.", 409);
+    if (current.rewardsReleasedAt || (current.expiresAt && current.expiresAt < new Date())) throw new OrderError("This order has expired. Please place a new order.", 410);
+    let [p] = await tx
+      .select()
+      .from(payments)
+      .where(and(eq(payments.orderId, current.id), inArray(payments.status, ["created", "failed"])))
+      .limit(1);
+    if (!p) {
+      let gw;
+      try {
+        gw = await gateway().createOrder({
+          amountPaise: current.totalPaise,
+          receipt: current.orderNumber,
+          notes: { order_id: current.id, order_number: current.orderNumber },
+        });
+      } catch (err) {
+        console.error("[checkout] gateway order failed", err);
+        throw new OrderError("We could not start the payment. Please try again in a minute.", 502);
+      }
+      [p] = await tx
+        .insert(payments)
+        .values({ orderId: current.id, razorpayOrderId: gw.id, amountPaise: current.totalPaise })
+        .returning();
     }
-    [p] = await db
-      .insert(payments)
-      .values({ orderId: order.id, razorpayOrderId: gw.id, amountPaise: order.totalPaise })
-      .returning();
-  }
-  return {
-    mode: env.paymentsMode as "razorpay" | "simulator",
-    keyId: env.razorpay.keyId ?? null,
-    razorpayOrderId: p.razorpayOrderId!,
-    amountPaise: p.amountPaise,
-    prefill: { name: order.customerName, contact: `+91${order.customerPhone}`, email: order.customerEmail ?? undefined },
-  };
+    return {
+      mode: env.paymentsMode as "razorpay" | "simulator",
+      keyId: env.razorpay.keyId ?? null,
+      razorpayOrderId: p.razorpayOrderId!,
+      amountPaise: p.amountPaise,
+      prefill: { name: current.customerName, contact: `+91${current.customerPhone}`, email: current.customerEmail ?? undefined },
+    };
+  });
 }
 
 /** For the "Pay now" button on an unpaid order. */
@@ -404,7 +427,14 @@ export async function markPaymentCaptured(args: {
       })
       .where(eq(payments.id, p.id));
 
+    const releasedDiscount = !!o.rewardsReleasedAt && o.discountPaise > 0;
+    if (releasedDiscount) {
+      const [u] = await tx.update(orders).set({ status: "rejected", paymentState: "paid", placedAt: new Date(), statusReason: "Payment arrived after the discount reservation expired. Refund required.", invoiceNumber: o.invoiceNumber ?? await nextInvoiceNumber(tx, new Date()) }).where(eq(orders.id, o.id)).returning();
+      await tx.insert(orderEvents).values({ orderId: o.id, fromStatus: o.status, toStatus: "rejected", actorType: "system", note: u.statusReason });
+      return { order: u, changed: true };
+    }
     if (checkTransition({ from: o.status, to: "placed", actor: "system", fulfilment: o.fulfilment }).ok) {
+      await settleLoyaltyIn(tx, o);
       const [u] = await tx
         .update(orders)
         .set({ status: "placed", paymentState: "paid", placedAt: new Date(), invoiceNumber: o.invoiceNumber ?? (await nextInvoiceNumber(tx, new Date())) })
@@ -424,9 +454,10 @@ export async function markPaymentCaptured(args: {
   });
   if (result.changed) {
     await deductStockSafely(result.order.id);
-    // Points never hold up an order: a failure here is logged and can be put right by hand in Customers.
-    await settleLoyalty(result.order.id).catch((err) => console.error("[loyalty] could not settle", result.order.id, err));
-    await notify(result.order, "placed");
+    if (result.order.status === "rejected") {
+      await refundOrder({ orderId: result.order.id, staffId: null, outletId: result.order.outletId, reason: result.order.statusReason! }).catch((err) => console.error("[refund] late payment refund needs reconciliation", result.order.id, err));
+      await notify(result.order, "cancelled");
+    } else await notify(result.order, "placed");
   }
   return result.order;
 }
@@ -499,20 +530,20 @@ export async function reconcileOrder(order: typeof orders.$inferSelect) {
     }
   }
   if (order.status !== "expired" && order.expiresAt && order.expiresAt < new Date()) {
-    const [u] = await db
-      .update(orders)
-      .set({ status: "expired" })
-      .where(and(eq(orders.id, order.id), inArray(orders.status, ["pending_payment", "payment_failed"])))
-      .returning();
-    if (u) {
-      await db.insert(orderEvents).values({ orderId: order.id, fromStatus: order.status, toStatus: "expired", actorType: "system" });
+    const expired = await db.transaction(async (tx) => {
+      const [o] = await tx.select().from(orders).where(eq(orders.id, order.id)).for("update");
+      if (!o || !["pending_payment", "payment_failed"].includes(o.status)) return null;
+      await releaseRewardsIn(tx, o);
+      const [u] = await tx.update(orders).set({ status: "expired" }).where(eq(orders.id, o.id)).returning();
+      await tx.insert(orderEvents).values({ orderId: o.id, fromStatus: o.status, toStatus: "expired", actorType: "system" });
       return u;
-    }
+    });
+    if (expired) return expired;
   }
   return order;
 }
 
-export async function reconcileStale(limit = 50) {
+export async function reconcileStale(limit = 50, deadline = Infinity) {
   const db = await getDb();
   const stale = await db
     .select()
@@ -524,13 +555,18 @@ export async function reconcileStale(limit = 50) {
         and(eq(orders.status, "expired"), gt(orders.expiresAt, new Date(Date.now() - 24 * 3600_000))),
       ),
     )
+    .orderBy(sql`${orders.lastReconciledAt} asc nulls first`, asc(orders.createdAt), asc(orders.id))
     .limit(limit);
   let changed = 0;
+  let checked = 0;
   for (const o of stale) {
+    if (Date.now() >= deadline) break;
+    await db.update(orders).set({ lastReconciledAt: new Date() }).where(eq(orders.id, o.id));
     const u = await reconcileOrder(o);
+    checked++;
     if (u.status !== o.status) changed++;
   }
-  return { checked: stale.length, changed };
+  return { checked, changed };
 }
 
 // ── Staff actions ──────────────────────────────────────────────────
@@ -574,38 +610,94 @@ export async function transitionOrder(args: { orderId: string; to: OrderStatus; 
   return updated;
 }
 
-/** Full refund of the captured payment. Partial refunds come with the POS phase. */
-export async function refundOrder(args: { orderId: string; staffId: string; outletId: string; reason: string }) {
+/** Persist an intent under the payment lock BEFORE making a provider request. */
+export async function refundOrder(args: { orderId: string; staffId: string | null; outletId: string; reason: string }) {
   const db = await getDb();
-  const [row] = await db
-    .select({ o: orders, p: payments })
-    .from(orders)
-    .innerJoin(payments, eq(payments.orderId, orders.id))
-    .where(and(eq(orders.id, args.orderId), eq(orders.outletId, args.outletId), eq(payments.status, "captured")));
-  if (!row) throw new OrderError("There is no captured payment to refund.", 409);
-  if (!REFUND_ON.includes(row.o.status)) throw new OrderError("Reject or cancel the order before refunding.", 409);
-  const amount = row.p.amountPaise - row.p.refundedPaise;
-  if (amount <= 0) throw new OrderError("This payment is already refunded.", 409);
-
-  // Counter sales (cash / UPI / card at the till) are refunded by hand; only online payments go back through Razorpay.
-  const r =
-    row.p.provider === "razorpay"
-      ? await gateway().refund(row.p.razorpayPaymentId!, amount, { order_number: row.o.orderNumber, reason: args.reason.slice(0, 200) })
-      : { id: null, status: "processed" };
-  await db.transaction(async (tx) => {
-    await tx.insert(refunds).values({ paymentId: row.p.id, razorpayRefundId: r.id, amountPaise: amount, status: r.status, reason: args.reason, createdBy: args.staffId });
-    await tx.update(payments).set({ refundedPaise: row.p.refundedPaise + amount, status: "refunded" }).where(eq(payments.id, row.p.id));
-    await tx.update(orders).set({ paymentState: "refunded" }).where(eq(orders.id, row.o.id));
-    await audit(tx, { actorId: args.staffId, outletId: row.o.outletId, action: "order.refund", entity: "order", entityId: row.o.id, data: { amount, refundId: r.id } });
+  const intent = await db.transaction(async (tx) => {
+    const [p] = await tx.select().from(payments).where(and(eq(payments.orderId, args.orderId), eq(payments.status, "captured"))).for("update");
+    if (!p) throw new OrderError("There is no captured payment to refund.", 409);
+    const [o] = await tx.select().from(orders).where(and(eq(orders.id, args.orderId), eq(orders.outletId, args.outletId))).for("update");
+    if (!o) throw new OrderError("Order not found.", 404);
+    if (!REFUND_ON.includes(o.status)) throw new OrderError("Reject or cancel the order before refunding.", 409);
+    const [pending] = await tx.select().from(refunds).where(and(eq(refunds.paymentId, p.id), sql`${refunds.status} not in ('failed', 'processed')`));
+    if (pending) throw new OrderError("A refund is already pending. Its provider result will be reconciled; do not pay it twice.", 409);
+    const amount = p.amountPaise - p.refundedPaise;
+    if (amount <= 0) throw new OrderError("This payment is already refunded.", 409);
+    const [r] = await tx.insert(refunds).values({ paymentId: p.id, amountPaise: amount, status: "submitting", reason: args.reason, createdBy: args.staffId }).returning();
+    await audit(tx, { actorId: args.staffId, outletId: o.outletId, action: "order.refund_requested", entity: "order", entityId: o.id, data: { amount, intentId: r.id } });
+    return { r, p, o };
   });
-  await reverseLoyalty(row.o.id).catch((err) => console.error("[loyalty] could not reverse", row.o.id, err));
-  await notify(row.o, "refunded", { amountPaise: amount });
-  return { refundId: r.id, amountPaise: amount, status: r.status };
+  let result;
+  try {
+    result = intent.p.provider === "razorpay"
+      ? await gateway().refund(intent.p.razorpayPaymentId!, intent.r.amountPaise, { order_number: intent.o.orderNumber, reason: args.reason.slice(0, 200), refund_intent: intent.r.id })
+      : { id: `manual_${intent.r.id}`, status: "processed" };
+  } catch (err) {
+    // Only an explicit provider rejection proves that no refund request was accepted.
+    const code = Number((err as { statusCode?: unknown })?.statusCode);
+    const declined = [400, 401, 403, 404, 422].includes(code);
+    await db.update(refunds).set({ status: declined ? "failed" : "unknown" }).where(and(eq(refunds.id, intent.r.id), eq(refunds.status, "submitting")));
+    console.error("[refund] provider request failed", intent.r.id, err);
+    if (declined) throw new OrderError("The payment provider declined this refund request. Check the payment and provider settings before retrying.", 502);
+    throw new OrderError("Refund confirmation is pending. It will be checked with the payment provider; do not issue a second refund.", 502);
+  }
+  await updateRefundStatus(result.id, result.status, intent.r.id);
+  return { refundId: result.id, amountPaise: intent.r.amountPaise, status: result.status };
 }
 
-export async function updateRefundStatus(razorpayRefundId: string, status: string) {
+/** Provider responses and webhooks share the same locked, monotonic financial update. */
+export async function updateRefundStatus(razorpayRefundId: string, status: string, intentId?: string) {
+  if (!["processed", "failed", "pending", "created"].includes(status)) status = "pending";
   const db = await getDb();
-  await db.update(refunds).set({ status }).where(eq(refunds.razorpayRefundId, razorpayRefundId));
+  const result = await db.transaction(async (tx) => {
+    const [found] = await tx.select().from(refunds).where(intentId ? eq(refunds.id, intentId) : eq(refunds.razorpayRefundId, razorpayRefundId));
+    if (!found) throw new OrderError("Unknown refund; retry webhook after the refund request completes.", 409);
+    const [p] = await tx.select().from(payments).where(eq(payments.id, found.paymentId)).for("update");
+    const [o] = await tx.select().from(orders).where(eq(orders.id, p.orderId)).for("update");
+    const [r] = await tx.select().from(refunds).where(eq(refunds.id, found.id)).for("update");
+    if (r.razorpayRefundId && r.razorpayRefundId !== razorpayRefundId) throw new OrderError("Refund provider ID mismatch.", 409);
+    // Processed is terminal. A delayed pending event must not regress a failed attempt either.
+    if (r.status === "processed" || (r.status === "failed" && status !== "processed")) return null;
+    await tx.update(refunds).set({ razorpayRefundId, status }).where(eq(refunds.id, r.id));
+    if (status !== "processed") return null;
+    if (o.customerId) await tx.select({ id: customers.id }).from(customers).where(eq(customers.id, o.customerId)).for("update");
+    const [sum] = await tx.select({ amount: sql<number>`coalesce(sum(${refunds.amountPaise}), 0)::int` }).from(refunds).where(and(eq(refunds.paymentId, p.id), eq(refunds.status, "processed")));
+    const full = sum.amount >= p.amountPaise;
+    await tx.update(payments).set({ refundedPaise: sum.amount, status: full ? "refunded" : "captured" }).where(eq(payments.id, p.id));
+    await tx.update(orders).set({ paymentState: full ? "refunded" : "partially_refunded" }).where(eq(orders.id, o.id));
+    if (full) await releaseRewardsIn(tx, o);
+    await audit(tx, { actorId: r.createdBy, outletId: o.outletId, action: "order.refund_processed", entity: "order", entityId: o.id, data: { amount: r.amountPaise, refundId: razorpayRefundId } });
+    return { o, amount: r.amountPaise };
+  });
+  if (result) await notify(result.o, "refunded", { amountPaise: result.amount });
+}
+
+/** Resolve ambiguous/pending refunds by provider ID or the durable intent in provider notes. */
+export async function reconcileRefunds(limit = 25, deadline = Infinity) {
+  const db = await getDb();
+  const rows = await db.select({ r: refunds, p: payments }).from(refunds).innerJoin(payments, eq(payments.id, refunds.paymentId))
+    .where(and(eq(payments.provider, "razorpay"), sql`${refunds.status} not in ('processed', 'failed')`))
+    .orderBy(asc(refunds.updatedAt), asc(refunds.id)).limit(limit);
+  let checked = 0;
+  for (const { r, p } of rows) {
+    if (Date.now() >= deadline) break;
+    // Advance even on a provider failure so one bad intent cannot starve the queue.
+    await db.update(refunds).set({ updatedAt: new Date() }).where(eq(refunds.id, r.id));
+    try {
+      const remote = await gateway().paymentRefunds(p.razorpayPaymentId!);
+      const match = remote.find((x) => x.id === r.razorpayRefundId || x.intentId === r.id);
+      if (match && match.amountPaise === r.amountPaise) await updateRefundStatus(match.id, match.status, r.id);
+      checked++;
+    } catch (err) { console.error("[refund] reconcile failed", r.id, err); }
+  }
+  // Released-discount captures are deliberately rejected and must be refunded, including after a crash.
+  const late = await db.select().from(orders).where(and(eq(orders.status, "rejected"), eq(orders.paymentState, "paid"), sql`${orders.rewardsReleasedAt} is not null`, gt(orders.discountPaise, 0), sql`not exists (select 1 from ${refunds} r join ${payments} p on p.id = r.payment_id where p.order_id = ${orders.id})`)).orderBy(asc(orders.placedAt)).limit(limit);
+  for (const o of late) {
+    if (Date.now() >= deadline) break;
+    const attempts = await db.select({ id: refunds.id }).from(refunds).innerJoin(payments, eq(payments.id, refunds.paymentId)).where(eq(payments.orderId, o.id));
+    if (!attempts.length) await refundOrder({ orderId: o.id, staffId: null, outletId: o.outletId, reason: o.statusReason ?? "Late payment after discount expiry" }).catch((err) => console.error("[refund] late payment", o.id, err));
+  }
+  return checked;
 }
 // ── Counter (POS) ──────────────────────────────────────────────────
 
@@ -629,7 +721,7 @@ export const COUNTER_PROVIDER = { cash: "cash", upi: "counter_upi", card: "count
  */
 export async function createPosOrder(raw: unknown, staff: { id: string; outletId: string }) {
   const input = posOrderSchema.parse(raw);
-  const store = await getStore();
+  const store = await getStore(staff.outletId);
   const db = await getDb();
   const lines = await resolveLines(db, input.lines, staff.outletId);
   const quote = quoteFor(lines, store.pricing, "pickup");
@@ -671,6 +763,7 @@ export async function createPosOrder(raw: unknown, staff: { id: string; outletId
         taxPaise: quote.taxPaise,
         totalPaise: quote.totalPaise,
         taxSnapshot: { ...store.pricing.tax, gstin: settings?.gstin ?? null },
+        issuerSnapshot: { name: store.name, addressLines: store.addressLines, phone: store.phone, instagram: store.instagram },
         placedAt: now,
         invoiceNumber: await nextInvoiceNumber(tx, now),
       })
@@ -698,6 +791,7 @@ export async function createPosOrder(raw: unknown, staff: { id: string; outletId
     await tx.insert(payments).values({ orderId: o.id, provider: COUNTER_PROVIDER[input.payment], amountPaise: o.totalPaise, status: "captured", method: input.payment });
     await tx.insert(orderEvents).values({ orderId: o.id, fromStatus: null, toStatus: "placed", actorType: "staff", actorId: staff.id, note: `Counter sale (${input.payment})` });
     await audit(tx, { actorId: staff.id, outletId: staff.outletId, action: "pos.sale", entity: "order", entityId: o.id, data: { total: o.totalPaise, payment: input.payment } });
+    await settleLoyaltyIn(tx, o);
     return o;
   });
 

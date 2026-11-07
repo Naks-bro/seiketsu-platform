@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { can, requirePage } from "@/lib/server/auth";
-import { allOutlets } from "@/lib/server/outlets";
+import { allOutlets, staffOutlets } from "@/lib/server/outlets";
 import { env } from "@/lib/server/env";
 import { PageHeader } from "@/components/admin/ui";
 import { OutletForm } from "./outlet-form";
@@ -9,7 +9,8 @@ export const metadata: Metadata = { title: "Outlets" };
 
 export default async function OutletsPage() {
   const staff = await requirePage(can.manageStaff);
-  const list = await allOutlets();
+  const own = new Set((await staffOutlets(staff.id)).filter((o) => o.role === "owner").map((o) => o.id));
+  const list = (await allOutlets()).filter((o) => own.has(o.id));
 
   return (
     <div className="space-y-8">

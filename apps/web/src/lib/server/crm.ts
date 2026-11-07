@@ -4,6 +4,12 @@ import { customers, getDb, loyaltyLedger, orders, subscriptions } from "@seikets
 
 const PAID = sql`${orders.paymentState} in ('paid', 'partially_refunded')`;
 
+/** Customers are shared identities, but staff may only see customers linked to their outlet. */
+export function customerInOutlet(outletId: string) {
+  return sql`(exists (select 1 from ${orders} where ${orders.customerId} = ${customers.id} and ${orders.outletId} = ${outletId})
+    or exists (select 1 from ${subscriptions} where ${subscriptions.phone} = ${customers.phone} and ${subscriptions.outletId} = ${outletId}))`;
+}
+
 /** Customers with what they have ordered: count, spend, last order and points. */
 export async function listCustomers(outletId: string, q: string, limit = 300) {
   const db = await getDb();
@@ -25,14 +31,14 @@ export async function listCustomers(outletId: string, q: string, limit = 300) {
       points: sql<number>`(select coalesce(sum(${loyaltyLedger.points}), 0)::int from ${loyaltyLedger} where ${loyaltyLedger.customerId} = ${customers.id})`,
     })
     .from(customers)
-    .where(search)
+    .where(and(search, customerInOutlet(outletId)))
     .orderBy(desc(sql`(select max(${orders.createdAt}) from ${orders} where ${orders.customerId} = ${customers.id})`), desc(customers.createdAt))
     .limit(limit);
 }
 
 export async function customerDetail(outletId: string, id: string) {
   const db = await getDb();
-  const [c] = await db.select().from(customers).where(eq(customers.id, id));
+  const [c] = await db.select().from(customers).where(and(eq(customers.id, id), customerInOutlet(outletId)));
   if (!c) return null;
   const [history, subs] = await Promise.all([
     db.select().from(orders).where(and(eq(orders.customerId, id), eq(orders.outletId, outletId))).orderBy(desc(orders.createdAt)).limit(50),

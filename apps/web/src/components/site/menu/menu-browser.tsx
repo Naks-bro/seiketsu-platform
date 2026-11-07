@@ -62,6 +62,7 @@ export function MenuBrowser({ menu, canOrder, whatsapp }: { menu: CategoryDTO[];
       <div className="sticky top-16 z-20 -mx-4 space-y-3 border-b border-line bg-cream/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
         <FilterBar query={query} onQuery={setQuery} filter={filter} onFilter={setFilter} />
         <CategoryChips cats={filtered} active={active} />
+        <JumpMenu cats={filtered} active={active} />
       </div>
 
       {filter.vegOnly && (
@@ -123,7 +124,6 @@ export function MenuBrowser({ menu, canOrder, whatsapp }: { menu: CategoryDTO[];
         </div>
       </div>
 
-      <JumpMenu cats={filtered} active={active} />
       {open && <ItemSheet key={`${open.id}-${editing?.key ?? ""}`} item={open} canOrder={canOrder} onClose={close} filter={filter} editing={editItem ? editing : null} />}
     </>
   );

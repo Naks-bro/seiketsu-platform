@@ -18,7 +18,7 @@ type PaymentEntity = {
 };
 type WebhookBody = {
   event: string;
-  payload: { payment?: { entity: PaymentEntity }; refund?: { entity: { id: string; status: string } } };
+  payload: { payment?: { entity: PaymentEntity }; refund?: { entity: { id: string; status: string; notes?: { refund_intent?: string } } } };
 };
 
 export type WebhookOutcome = { status: number; body: string };
@@ -66,7 +66,7 @@ export async function handleRazorpayWebhook(rawBody: string, signature: string |
         break;
       case "refund.processed":
       case "refund.failed":
-        if (body.payload.refund) await updateRefundStatus(body.payload.refund.entity.id, body.payload.refund.entity.status);
+        if (body.payload.refund) await updateRefundStatus(body.payload.refund.entity.id, body.payload.refund.entity.status, body.payload.refund.entity.notes?.refund_intent);
         break;
       default:
         break; // acknowledged, nothing to do

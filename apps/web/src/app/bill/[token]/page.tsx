@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { loadOrder } from "@/lib/server/order-view";
+import { orderIssuer } from "@/lib/server/order-view";
 import { getStore } from "@/lib/server/catalog";
 import { businessLabel } from "@/lib/legal";
 import { formatDateTime, formatINR } from "@/lib/format";
@@ -20,7 +21,7 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
   const view = await loadOrder({ token });
   if (!view || !view.order.invoiceNumber) notFound();
   const { order, items, payments } = view;
-  const store = await getStore();
+  const store = orderIssuer(order, await getStore(order.outletId));
   const tax = order.taxSnapshot;
   const isTaxInvoice = tax.enabled && !!tax.gstin;
   const paid = payments.find((p) => p.status === "captured" || p.status === "refunded");

@@ -8,11 +8,8 @@ import { headers } from "next/headers";
  */
 export async function clientIp(): Promise<string> {
   const h = await headers();
-  return (
-    h.get("x-nf-client-connection-ip") ||
-    h.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
-    h.get("x-real-ip") ||
-    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "local"
-  );
+  if (process.env.VERCEL === "1") return h.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (process.env.NETLIFY === "true") return h.get("x-nf-client-connection-ip") || "unknown";
+  if (process.env.NODE_ENV === "production") return "unknown";
+  return h.get("x-real-ip") || h.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
 }

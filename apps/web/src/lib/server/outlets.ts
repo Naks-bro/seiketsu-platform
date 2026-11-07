@@ -79,7 +79,8 @@ export async function createOutlet(fromOutletId: string, f: OutletFields, ownerI
     if (clash) throw new OutletError("Another outlet already uses that short name.");
     const [o] = await tx.insert(outlets).values(f).returning();
     const [src] = await tx.select().from(storeSettings).where(eq(storeSettings.outletId, fromOutletId));
-    const { outletId: _ignored, ...copy } = src ?? ({ outletId: "" } as typeof storeSettings.$inferSelect);
+    const copy = src ? { ...src } : {};
+    if ("outletId" in copy) delete (copy as Partial<typeof storeSettings.$inferSelect>).outletId;
     await tx.insert(storeSettings).values({
       ...(src ? copy : {}),
       outletId: o.id,

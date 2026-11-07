@@ -15,7 +15,7 @@ export async function runMigrations(conn: Awaited<ReturnType<typeof openDb>>) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const conn = await openDb(process.env.DATABASE_URL ?? "pglite:./.data/pglite");
+  const conn = await openDb(process.env.DATABASE_MIGRATION_URL?.trim() || process.env.DATABASE_URL?.trim() || "pglite:./.data/pglite");
   await runMigrations(conn);
   console.log(`Migrations applied (${conn.kind}).`);
   await conn.close();

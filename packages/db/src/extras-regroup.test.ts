@@ -84,7 +84,7 @@ describe("fresh seed", () => {
     const unmarked = await conn.db.execute(sql.raw(
       "select m.name from menu_items m where m.diet is null and exists (select 1 from menu_item_variants v where v.menu_item_id = m.id and v.is_active and v.diet is null)",
     ));
-    expect(unmarked.rows).toEqual([]);
+    expect(Array.isArray(unmarked) ? unmarked : (unmarked as unknown as { rows: unknown[] }).rows).toEqual([]);
     expect(extras.filter((a) => !a.diet).map((a) => a.name)).toEqual([]);
     const [outlet] = await conn.db.select().from(s.outlets);
     expect(outlet.phone).toBe("+91 95847 58479");

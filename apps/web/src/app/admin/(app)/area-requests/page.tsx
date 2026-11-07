@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Area requests" };
 
 export default async function AreaRequestsPage() {
   const staff = await requirePage(can.manageSettings);
-  const [demand, rows, store] = await Promise.all([areaDemand(staff.outletId), listAreaRequests(staff.outletId), getStore()]);
+  const [demand, rows, store] = await Promise.all([areaDemand(staff.outletId), listAreaRequests(staff.outletId), getStore(staff.outletId)]);
   const served = new Set(store.deliveryPincodes);
 
   return (
