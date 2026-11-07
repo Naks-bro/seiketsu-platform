@@ -1,8 +1,24 @@
+/**
+ * The SQL connection URL: DATABASE_URL, or POSTGRES_URL as provided by the Supabase-Vercel integration. Query
+ * parameters some providers add for other drivers (e.g. supa=base-pooler.x) are removed.
+ */
+export function databaseUrlFrom(source: Record<string, string | undefined>) {
+  const raw = source.DATABASE_URL?.trim() || source.POSTGRES_URL?.trim() || "";
+  if (!/^postgres(?:ql)?:\/\//.test(raw)) return raw;
+  try {
+    const u = new URL(raw);
+    for (const k of ["supa", "pgbouncer"]) u.searchParams.delete(k);
+    return u.toString();
+  } catch {
+    return raw;
+  }
+}
+
 /** Names only in errors: never echo configuration values or credentials. */
 export function productionConfigErrors(source: Record<string, string | undefined>) {
   const errors: string[] = [];
   const value = (name: string) => source[name]?.trim() ?? "";
-  if (!/^postgres(?:ql)?:\/\//.test(value("DATABASE_URL"))) errors.push("DATABASE_URL must be a PostgreSQL connection URL in production.");
+  if (!/^postgres(?:ql)?:\/\//.test(databaseUrlFrom(source))) errors.push("DATABASE_URL (or the Supabase integration's POSTGRES_URL) must be a PostgreSQL connection URL in production.");
   if (value("SESSION_SECRET").length < 32 || value("SESSION_SECRET").startsWith("dev-only-")) errors.push("SESSION_SECRET must contain at least 32 random characters.");
   if (value("CRON_SECRET").length < 32) errors.push("CRON_SECRET must contain at least 32 random characters.");
   try {

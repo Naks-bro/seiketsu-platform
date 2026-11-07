@@ -8,7 +8,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { drizzle as drizzlePg, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema.ts";
-import { assertProductionConfig } from "@seiketsu/core/runtime-config";
+import { assertProductionConfig, databaseUrlFrom } from "@seiketsu/core/runtime-config";
 
 export type Db = PostgresJsDatabase<typeof schema>;
 
@@ -26,6 +26,10 @@ export function repoRoot(start = process.cwd()): string {
 
 type Conn = { db: Db; close: () => Promise<void>; kind: "postgres" | "pglite" };
 
+
+/** PEM text. Pasted multi-line works as-is; a single line with literal "\n" sequences is turned back into lines. */
+const sslCa = () => process.env.DATABASE_SSL_CA?.trim().replaceAll("\\n", "\n") || undefined;
+
 async function connect(url: string): Promise<Conn> {
   if (url.startsWith("postgres://") || url.startsWith("postgresql://")) {
     const { default: postgres } = await import("postgres");
@@ -35,7 +39,9 @@ async function connect(url: string): Promise<Conn> {
       max: Number(process.env.DB_POOL_MAX ?? 3),
       idle_timeout: 20,
       connect_timeout: 10,
-      ssl: process.env.NODE_ENV === "production" ? "verify-full" : undefined,
+      // Certificates are always verified in production. Supabase signs them with its own CA: put that PEM (Project
+      // Settings > Database > SSL certificate) in DATABASE_SSL_CA so verification can succeed.
+      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: true, ...(sslCa() ? { ca: sslCa() } : {}) } : undefined,
     });
     return { db: drizzlePg(sql, { schema }), close: () => sql.end(), kind: "postgres" };
   }
@@ -59,7 +65,7 @@ const g = globalThis as unknown as { __seiketsuDb?: Promise<Conn> };
 /** Shared connection for the app (kept across hot reloads). */
 export function getConn(): Promise<Conn> {
   if (process.env.NODE_ENV === "production") assertProductionConfig(process.env);
-  g.__seiketsuDb ??= connect(process.env.DATABASE_URL ?? "pglite:./.data/pglite");
+  g.__seiketsuDb ??= connect(databaseUrlFrom(process.env) || "pglite:./.data/pglite");
   return g.__seiketsuDb;
 }
 
