@@ -15,7 +15,8 @@
     "db:seed": "npm run seed -w @seiketsu/db",
     "lint": "npm run lint -w web",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
-    "deploy:check": "tsx --env-file-if-exists=.env scripts/deployment-check.ts"
+    "deploy:check": "tsx --env-file-if-exists=.env scripts/deployment-check.ts",
+    "db:move": "tsx --env-file-if-exists=.env scripts/move-database.ts"
   },
   "devDependencies": {
     "@types/node": "^24",
