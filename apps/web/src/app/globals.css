@@ -14,6 +14,8 @@
   --color-ink: #2a181e;
   --color-muted: #6e5b60;
   --color-line: #eadfcd;
+  /* Form field edges: dark enough to read at 3:1 on cream and white. */
+  --color-field: #8f7d77;
   --color-veg: #2f7d32;
   --color-nonveg: #b3261e;
   --color-egg: #c98a0b;
@@ -72,9 +74,11 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: 8rem;
+  overflow-x: clip;
 }
 
 body {
+  overflow-x: clip;
   background: var(--color-cream);
   color: var(--color-ink);
   font-family: var(--font-sans);
@@ -94,6 +98,18 @@ h1, h2, h3 {
 :focus-visible {
   outline: 2px solid var(--color-berry);
   outline-offset: 2px;
+}
+/* On berry, olive and ink surfaces a berry ring disappears; use butter there. */
+:where(header, footer, .bg-berry, .bg-berry-deep, .bg-ink, .bg-olive-ink) :focus-visible {
+  outline-color: var(--color-butter);
+}
+:where(.bg-olive) :focus-visible {
+  outline-color: var(--color-ink);
+}
+
+/* Field edges at readable contrast; the focused field keeps its own colour. */
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="hidden"]), textarea, select):not(:focus) {
+  border-color: var(--color-field);
 }
 
 @media (prefers-reduced-motion: reduce) {

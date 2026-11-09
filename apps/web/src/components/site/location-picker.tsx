@@ -27,11 +27,12 @@ export function LocationPill({ pickupFrom }: { pickupFrom: string }) {
     <button
       type="button"
       onClick={openLocationSheet}
-      className="flex min-h-10 max-w-44 items-center gap-1.5 truncate rounded-full border border-cream/25 px-3 text-xs font-medium hover:bg-berry-deep sm:text-sm"
+      className="flex min-h-10 min-w-10 max-w-44 items-center justify-center gap-1.5 truncate rounded-full border border-cream/25 px-3 text-xs font-medium hover:bg-berry-deep sm:text-sm"
       aria-label={`${label}. Change`}
     >
       <PinIcon />
-      <span className="truncate">{label}</span>
+      {/* Very narrow phones show the pin alone; the label stays for screen readers. */}
+      <span className="truncate max-[359px]:sr-only">{label}</span>
     </button>
   );
 }

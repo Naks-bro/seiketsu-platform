@@ -82,15 +82,15 @@ export function JumpMenu({ cats, active }: { cats: CategoryDTO[]; active: string
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
-        className="fixed bottom-24 right-4 z-30 flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 text-sm font-semibold text-cream shadow-lg"
+        className="fixed bottom-24 left-4 z-30 flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 text-sm font-semibold text-cream shadow-lg"
       >
         <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden><path d="M4 7h16M4 12h16M4 17h10" /></svg>
         Menu
       </button>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-end p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-start p-4">
           <div aria-hidden className="animate-fade-in absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} />
-          <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Jump to a section" className="animate-sheet-up relative mb-36 w-64 rounded-2xl bg-ink p-2 text-cream shadow-2xl outline-none">
+          <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Jump to a section" className="animate-sheet-up relative mb-36 mr-auto w-64 rounded-2xl bg-ink p-2 text-cream shadow-2xl outline-none">
             <ul>
               {cats.map((c) => (
                 <li key={c.id}>
