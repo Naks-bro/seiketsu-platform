@@ -8,7 +8,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { drizzle as drizzlePg, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema.ts";
-import { assertProductionConfig, databaseUrlFrom } from "@seiketsu/core/runtime-config";
+import { assertProductionConfig, databaseUrlFrom, servingDatabaseUrl } from "@seiketsu/core/runtime-config";
 
 export type Db = PostgresJsDatabase<typeof schema>;
 
@@ -66,7 +66,7 @@ const g = globalThis as unknown as { __seiketsuDb?: Promise<Conn> };
 /** Shared connection for the app (kept across hot reloads). */
 export function getConn(): Promise<Conn> {
   if (process.env.NODE_ENV === "production") assertProductionConfig(process.env);
-  g.__seiketsuDb ??= connect(databaseUrlFrom(process.env) || "pglite:./.data/pglite");
+  g.__seiketsuDb ??= connect(servingDatabaseUrl(databaseUrlFrom(process.env)) || "pglite:./.data/pglite");
   return g.__seiketsuDb;
 }
 

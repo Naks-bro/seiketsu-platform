@@ -21,3 +21,13 @@ describe("production configuration", () => {
     expect(productionConfigErrors({ ...valid, NEXT_PUBLIC_SITE_URL: "https://example.com/subpath" })).toHaveLength(1);
   });
 });
+
+describe("servingDatabaseUrl", () => {
+  it("moves the Supabase session pooler to the transaction pooler", async () => {
+    const { servingDatabaseUrl } = await import("./runtime-config.ts");
+    expect(servingDatabaseUrl("postgresql://u.ref:pw@aws-0-ap-south-1.pooler.supabase.com:5432/postgres")).toBe("postgresql://u.ref:pw@aws-0-ap-south-1.pooler.supabase.com:6543/postgres");
+    expect(servingDatabaseUrl("postgresql://u.ref:pw@aws-0-ap-south-1.pooler.supabase.com:6543/postgres")).toContain(":6543/");
+    expect(servingDatabaseUrl("postgresql://u:pw@db.example.com:5432/app")).toBe("postgresql://u:pw@db.example.com:5432/app");
+    expect(servingDatabaseUrl("pglite:memory")).toBe("pglite:memory");
+  });
+});

@@ -14,6 +14,22 @@ export function databaseUrlFrom(source: Record<string, string | undefined>) {
   }
 }
 
+/**
+ * Supabase's session pooler (port 5432) allows only a handful of clients, which
+ * serverless instances use up within seconds. The same address on port 6543 is
+ * the transaction pooler, built for this; the app always connects through it.
+ */
+export function servingDatabaseUrl(url: string) {
+  if (!/^postgres(?:ql)?:\/\//.test(url)) return url;
+  try {
+    const u = new URL(url);
+    if (u.hostname.endsWith(".pooler.supabase.com") && (u.port === "5432" || u.port === "")) u.port = "6543";
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 /** Names only in errors: never echo configuration values or credentials. */
 export function productionConfigErrors(source: Record<string, string | undefined>) {
   const errors: string[] = [];
