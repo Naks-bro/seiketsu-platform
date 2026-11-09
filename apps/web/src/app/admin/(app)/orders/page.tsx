@@ -149,7 +149,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           </form>
           <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
             <table className="w-full min-w-[720px] text-sm">
-              <thead className="border-b border-line text-left text-xs uppercase tracking-wider text-muted">
+              <thead className="border-b border-line text-left text-xs text-muted">
                 <tr>
                   <th className="px-3 py-2">Order</th>
                   <th className="px-3 py-2">Placed</th>
@@ -168,7 +168,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                     <td className="tabular px-3 py-2 text-muted">{formatDateTime(o.createdAt)}</td>
                     <td className="px-3 py-2">{o.customerName}<span className="block text-xs text-muted">{o.customerPhone}</span></td>
                     <td className="px-3 py-2 capitalize">{o.fulfilment}</td>
-                    <td className="px-3 py-2 uppercase text-xs text-muted">{o.source}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{o.source}</td>
                     <td className="tabular px-3 py-2 text-right">{formatINR(o.totalPaise)}</td>
                     <td className="px-3 py-2 capitalize text-muted">{o.paymentState.replace("_", " ")}</td>
                     <td className="px-3 py-2"><StatusPill status={o.status} /></td>

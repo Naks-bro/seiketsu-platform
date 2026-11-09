@@ -59,7 +59,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
       ) : (
         <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
           <table className="w-full min-w-[820px] text-left text-sm">
-            <thead className="bg-paper text-xs uppercase tracking-wider text-muted">
+            <thead className="bg-paper text-xs text-muted">
               <tr>
                 <th scope="col" className="px-3 py-2">Number</th>
                 <th scope="col" className="px-3 py-2">Date</th>

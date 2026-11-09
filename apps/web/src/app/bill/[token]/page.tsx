@@ -42,7 +42,7 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
             {store.phone && <p className="text-muted">Phone {store.phone}</p>}
             {isTaxInvoice && <p className="mt-1 font-medium">GSTIN {tax.gstin}</p>}
           </div>
-          <div className="text-right">
+          <div className="sm:text-right">
             <p className="text-lg font-semibold">{isTaxInvoice ? "Tax invoice" : "Bill"}</p>
             <p>No. <span className="tabular font-medium">{order.invoiceNumber}</span></p>
             <p className="text-muted">{formatDateTime(order.placedAt ?? order.createdAt)}</p>
@@ -60,7 +60,7 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
 
         <table className="mt-4 w-full">
           <thead>
-            <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
+            <tr className="border-b border-line text-left text-xs text-muted">
               <th className="py-2 font-medium">Item</th>
               <th className="py-2 text-right font-medium">Qty</th>
               <th className="py-2 text-right font-medium">Rate</th>

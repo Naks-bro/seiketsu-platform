@@ -102,7 +102,7 @@ export function PosScreen({ menu, pricing, staffName }: { menu: CategoryDTO[]; p
     return (
       <div className="mx-auto grid min-h-dvh max-w-md place-items-center p-6 text-center">
         <div className="w-full space-y-4 rounded-2xl border border-line bg-white p-8" role="status">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-veg">Paid and sent to the kitchen</p>
+          <p className="text-sm font-semibold text-veg">Paid and sent to the kitchen</p>
           <p className="font-display text-5xl text-berry">{result.orderNumber}</p>
           <p className="tabular-nums text-lg">Total {formatINR(result.totalPaise)}</p>
           {result.changePaise !== null && (

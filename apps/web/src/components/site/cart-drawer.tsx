@@ -147,7 +147,7 @@ function Progress({ subtotal, pricing, delivery }: { subtotal: number; pricing: 
         )}
       </p>
       <div className="h-1.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Progress to free delivery">
-        <div className="h-full rounded-full bg-veg transition-[width] duration-500" style={{ width: `${pct}%` }} />
+        <div className="h-full w-full origin-left rounded-full bg-veg transition-transform duration-500 motion-reduce:transition-none" style={{ transform: `scaleX(${pct / 100})` }} />
       </div>
     </div>
   );
@@ -235,7 +235,7 @@ export function CartDrawer({ pricing, pickupFrom }: { pricing: CartPricing; pick
                 className="flex items-center justify-between rounded-full bg-berry px-6 py-3.5 font-semibold text-cream shadow-[var(--shadow-float)] hover:bg-berry-deep"
               >
                 <span>Checkout</span>
-                <span className="tabular">{formatINR(subtotalPaise)} →</span>
+                <span className="tabular">{formatINR(subtotalPaise)}</span>
               </Link>
             </div>
           </>

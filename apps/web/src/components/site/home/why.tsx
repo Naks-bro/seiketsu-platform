@@ -16,13 +16,13 @@ const REASONS = [
 function Intro() {
   return (
     <>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Why Seiketsu</p>
+      <p className="text-sm font-semibold text-olive-ink">Why Seiketsu</p>
       <h2 id="why-h" className="mt-3 font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
         Why Good Food Starts at the <em className="italic text-berry">Source.</em>
       </h2>
       <p className="mt-4 max-w-sm text-ink/70">We believe better food begins with better ingredients. That’s why our approach goes beyond the plate.</p>
       <Link href="/#how" className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream transition hover:bg-berry">
-        Explore the Seiketsu experience →
+        Explore the Seiketsu experience
       </Link>
     </>
   );

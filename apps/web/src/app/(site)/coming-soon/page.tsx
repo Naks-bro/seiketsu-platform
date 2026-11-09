@@ -18,7 +18,7 @@ export default async function ComingSoonPage({ searchParams }: { searchParams: P
       <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 size-[28rem] rounded-full bg-butter/70 blur-3xl" />
       <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-12 sm:px-6 md:grid-cols-[1fr_1.1fr] md:py-20">
         <div className="space-y-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Not in your area yet</p>
+          <p className="text-sm font-semibold text-olive-ink">Not in your area yet</p>
           <h1 className="font-display text-5xl leading-[1.02] text-berry sm:text-6xl">
             We’re sorry, we don’t deliver {pin ? <>to <span className="tabular whitespace-nowrap">{pin}</span></> : "there"} <em className="font-normal">yet.</em>
           </h1>
@@ -33,7 +33,7 @@ export default async function ComingSoonPage({ searchParams }: { searchParams: P
               Order for pickup from {store.addressLines[0]}. We’ll message you when it’s ready.
             </p>
             <Link href="/menu" className="mt-3 inline-block text-sm font-semibold text-berry hover:underline">
-              Order for pickup →
+              Order for pickup
             </Link>
           </div>
         </div>

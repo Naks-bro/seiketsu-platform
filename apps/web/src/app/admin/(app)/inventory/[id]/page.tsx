@@ -56,16 +56,16 @@ export default async function IngredientPage({ params }: { params: Promise<{ id:
 
       <section className="grid gap-3 sm:grid-cols-3" aria-label="Summary">
         <div className={panel}>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">On hand</p>
+          <p className="text-xs font-semibold text-muted">On hand</p>
           <p className="mt-1 flex items-center gap-2 text-2xl font-semibold tabular-nums">{formatQty(ing.stockMilli, ing.unit)} <LevelPill level={stockLevel(ing.stockMilli, ing.reorderMilli)} /></p>
         </div>
         <div className={panel}>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Average cost</p>
+          <p className="text-xs font-semibold text-muted">Average cost</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{ing.costMilliPaise !== null ? unitCostLabel(ing.costMilliPaise, ing.unit, formatINR) : "Not known yet"}</p>
           {ing.costMilliPaise === null && <p className="text-xs text-muted">Record a delivery with its bill total.</p>}
         </div>
         <div className={panel}>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Used in</p>
+          <p className="text-xs font-semibold text-muted">Used in</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{recipes.n} {recipes.n === 1 ? "recipe" : "recipes"}</p>
         </div>
       </section>

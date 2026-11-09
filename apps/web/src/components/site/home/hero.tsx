@@ -58,7 +58,7 @@ export function Hero({ store }: { store: StoreDTO }) {
           </figcaption>
         </figure>
       </div>
-      <a href="#lifestyle" className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-cream/60 hover:text-cream md:flex">
+      <a href="#lifestyle" className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[11px] text-cream/60 hover:text-cream md:flex">
         Scroll
         <span aria-hidden className="relative h-10 w-px overflow-hidden bg-cream/25">
           <span className="absolute inset-x-0 top-0 h-1/2 animate-[scroll-cue_1.8s_ease-in-out_infinite] bg-cream" />

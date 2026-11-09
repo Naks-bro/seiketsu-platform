@@ -49,10 +49,10 @@ export function DishRow({ item, onCustomise, onlyDiet = null }: { item: MenuItem
             <DietMark key={d} diet={d} size={15} />
           ))}
           {item.isBestseller && (
-            <span className="ml-1 rounded-md bg-orange/15 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#a3520f]">★ Bestseller</span>
+            <span className="ml-1 rounded-md bg-orange/15 px-1.5 py-0.5 text-[11px] font-semibold text-[#a3520f]">★ Bestseller</span>
           )}
           {!item.isBestseller && item.isFeatured && (
-            <span className="ml-1 rounded-md bg-butter px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-berry">Chef&apos;s pick</span>
+            <span className="ml-1 rounded-md bg-butter px-1.5 py-0.5 text-[11px] font-semibold text-berry">Chef&apos;s pick</span>
           )}
         </div>
         <h3 id={`d-${item.id}`} className="mt-1.5 font-display text-xl leading-snug text-ink sm:text-2xl">
@@ -83,7 +83,7 @@ export function DishRow({ item, onCustomise, onlyDiet = null }: { item: MenuItem
       <div className="relative flex w-32 shrink-0 flex-col items-center sm:w-40">
         <button type="button" onClick={onCustomise} className="relative block aspect-square w-full overflow-hidden rounded-2xl bg-paper" aria-label={`View ${item.name}`}>
           {item.imageUrl ? (
-            <Image src={item.imageUrl} alt="" fill sizes="160px" className="object-cover transition duration-500 hover:scale-105" unoptimized />
+            <Image src={item.imageUrl} alt="" fill sizes="160px" className="object-cover" unoptimized />
           ) : (
             <DishArt category={item.categorySlug} seed={item.name} />
           )}

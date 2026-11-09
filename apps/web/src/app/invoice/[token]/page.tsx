@@ -36,7 +36,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ token:
             {inv.issuer.phone && <p className="text-muted">Phone {inv.issuer.phone}</p>}
             {gst && <p className="mt-1 font-medium">GSTIN {tax.gstin}</p>}
           </div>
-          <div className="text-right">
+          <div className="sm:text-right">
             <p className="text-lg font-semibold">{title}</p>
             <p>No. <span className="tabular font-medium">{inv.number}</span></p>
             <p className="text-muted">{formatDateTime(inv.issuedAt)}</p>
@@ -51,7 +51,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ token:
 
         <table className="mt-4 w-full">
           <thead>
-            <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
+            <tr className="border-b border-line text-left text-xs text-muted">
               <th className="py-2 font-medium">Description</th>
               <th className="py-2 pl-3 text-right font-medium">Qty</th>
               <th className="py-2 pl-4 text-right font-medium">Amount</th>

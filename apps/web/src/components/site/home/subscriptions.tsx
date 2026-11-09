@@ -12,7 +12,7 @@ export function Subscriptions({ plans }: { plans: PlanCard[] }) {
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-butter">Seiketsu subscriptions</p>
+            <p className="text-sm font-semibold text-butter">Seiketsu subscriptions</p>
             <h2 id="subs-h" data-reveal className="mt-3 font-display text-5xl leading-[1.02] sm:text-6xl">
               Make Eating Well a <em className="italic text-butter">Daily Habit.</em>
             </h2>
@@ -28,7 +28,7 @@ export function Subscriptions({ plans }: { plans: PlanCard[] }) {
             </p>
             {plans.length === 0 && (
               <PlanLink interest="subscriptions" className="mt-2 inline-flex items-center gap-2 rounded-full bg-cream px-7 py-4 text-base font-semibold text-berry transition hover:-translate-y-0.5 hover:bg-butter">
-                Explore subscription plans →
+                Explore subscription plans
               </PlanLink>
             )}
           </div>

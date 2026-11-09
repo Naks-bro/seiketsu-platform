@@ -65,7 +65,7 @@ export default async function TicketsPage({ searchParams }: { searchParams: Prom
                 <span className="tabular w-16 text-sm text-muted">{t.number}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2 font-medium">
-                    {t.priority === "high" && <span className="rounded bg-nonveg px-1.5 py-0.5 text-[11px] font-bold uppercase text-white">Urgent</span>}
+                    {t.priority === "high" && <span className="rounded bg-nonveg px-1.5 py-0.5 text-[11px] font-bold text-white">Urgent</span>}
                     {t.subject}
                   </span>
                   <span className="block text-sm text-muted">

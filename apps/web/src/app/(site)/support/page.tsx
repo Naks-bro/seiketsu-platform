@@ -32,7 +32,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   return (
     <div className="mx-auto grid max-w-5xl gap-10 px-4 pb-16 pt-10 sm:px-6 sm:pt-14 lg:grid-cols-[1fr_1.2fr]">
       <div className="space-y-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Help & support</p>
+        <p className="text-sm font-semibold text-olive-ink">Help & support</p>
         <h1 className="font-display text-4xl text-berry sm:text-5xl">How can we help?</h1>
         <p className="text-ink/75">
           Tell us what happened and our team will reply on your request page. You get a link to come back to, and you can keep the conversation going there.

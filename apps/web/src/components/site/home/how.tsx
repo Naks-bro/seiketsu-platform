@@ -20,7 +20,7 @@ export function HowWeMakeIt() {
     <section ref={ref} id="how" className="relative scroll-mt-20 bg-olive-ink text-cream" style={story ? { height: "280svh" } : undefined} aria-labelledby="how-h">
       <div className={story ? "sticky top-16 flex h-[calc(100svh-4rem)] flex-col justify-center overflow-hidden" : ""}>
         <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:py-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-butter">How we make it better</p>
+          <p className="text-sm font-semibold text-butter">How we make it better</p>
           <h2 id="how-h" className="mt-3 max-w-3xl font-display text-4xl leading-[1.04] sm:text-5xl">
             From Thoughtful Ingredients to <em className="italic text-butter">Feel-Good Meals.</em>
           </h2>

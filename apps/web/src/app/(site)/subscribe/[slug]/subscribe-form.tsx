@@ -33,7 +33,7 @@ export function SubscribeForm({ slug, minDate, maxDate, defaults }: { slug: stri
       noValidate
       className="relative space-y-4 self-start rounded-3xl border border-line bg-white p-6 shadow-[var(--shadow-card)] sm:p-8"
     >
-      <h2 className="font-display text-2xl">Your details</h2>
+      <h2 className="font-display text-3xl sm:text-4xl">Your details</h2>
       <input type="hidden" name="slug" value={slug} />
       <div className="absolute -left-[9999px] size-px overflow-hidden" aria-hidden>
         <label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label>

@@ -86,7 +86,7 @@ export function PincodeImport({ current }: { current: string[] }) {
           <p>
             {found.source !== "typed" && <span className="font-medium">{found.source}: </span>}
             Found <strong>{found.valid.length}</strong> pincode{found.valid.length === 1 ? "" : "s"}
-            {found.valid.length > 0 && <> · <strong>{fresh.length}</strong> new · {found.valid.length - fresh.length} already on your list</>}.
+            {found.valid.length > 0 && <>: <strong>{fresh.length}</strong> new, {found.valid.length - fresh.length} already on your list</>}.
           </p>
           {found.invalid.length > 0 && (
             <p className="mt-1 text-nonveg">

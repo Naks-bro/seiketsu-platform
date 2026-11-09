@@ -24,7 +24,7 @@ export default async function SubscribePage({ params }: { params: Promise<{ slug
     <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-10 sm:px-6 md:grid-cols-[0.9fr_1.1fr] md:pt-14">
       <div className="space-y-5">
         <Link href="/#subscriptions" className="text-sm font-medium text-berry hover:underline">← All plans</Link>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Seiketsu subscriptions</p>
+        <p className="text-sm font-semibold text-olive-ink">Seiketsu subscriptions</p>
         <h1 className="font-display text-4xl leading-[1.04] text-berry sm:text-5xl">{plan.name}</h1>
         {plan.tagline && <p className="text-lg text-ink/80">{plan.tagline}</p>}
         <dl className="grid grid-cols-3 gap-3 rounded-2xl bg-paper p-4 text-center">

@@ -66,7 +66,7 @@ export function Lifestyle() {
         <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:py-8">
           <div className="grid gap-4 md:grid-cols-[1fr_1fr] md:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Built for your lifestyle</p>
+              <p className="text-sm font-semibold text-olive-ink">Built for your lifestyle</p>
               <h2 id="life-h" className="mt-2 font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
                 Good Food for Every <em className="italic text-berry">Kind of You.</em>
               </h2>
@@ -114,9 +114,9 @@ export function Lifestyle() {
                 })}
               </div>
               <Link href="/#favourites" className="mt-6 hidden items-center gap-2 font-semibold text-berry hover:underline md:inline-flex">
-                Find your favourite →
+                Find your favourite
               </Link>
-              {story && <p className="mt-6 hidden text-xs uppercase tracking-[0.2em] text-ink/40 md:block">Keep scrolling</p>}
+              {story && <p className="mt-6 hidden text-xs text-ink/40 md:block">Keep scrolling</p>}
             </div>
 
             <div id="life-panel" role="tabpanel" aria-labelledby={`life-tab-${active}`} className={`relative grid min-h-[22rem] overflow-hidden rounded-[2rem] p-6 transition-colors duration-700 sm:grid-cols-[1.2fr_0.8fr] sm:p-8 ${p.tone}`}>
@@ -155,7 +155,7 @@ export function Lifestyle() {
             </div>
           </div>
           <Link href="/#favourites" className="mt-6 inline-flex items-center gap-2 font-semibold text-berry hover:underline md:hidden">
-            Find your favourite →
+            Find your favourite
           </Link>
         </div>
       </div>

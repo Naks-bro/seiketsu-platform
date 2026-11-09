@@ -37,7 +37,7 @@ export default async function OrderPage({ params }: { params: Promise<{ token: s
   return (
     <div className="mx-auto max-w-3xl px-4 pt-10 sm:px-6">
       <LiveRefresh token={token} status={order.status} />
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-olive-ink">
+      <p className="text-sm font-semibold text-olive-ink">
         Order {order.orderNumber} · {formatDateTime(order.createdAt)}
       </p>
       <h1 className="mt-2 font-display text-4xl text-berry sm:text-5xl">
@@ -129,7 +129,7 @@ export default async function OrderPage({ params }: { params: Promise<{ token: s
 
       <section className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-line p-5 text-sm">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-olive-ink">
+          <h2 className="mb-2 text-sm font-semibold text-olive-ink">
             {order.fulfilment === "pickup" ? "Pickup from" : "Delivering to"}
           </h2>
           {order.fulfilment === "pickup" ? (
@@ -145,7 +145,7 @@ export default async function OrderPage({ params }: { params: Promise<{ token: s
           )}
         </div>
         <div className="rounded-2xl border border-line p-5 text-sm">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-olive-ink">Questions?</h2>
+          <h2 className="mb-2 text-sm font-semibold text-olive-ink">Questions?</h2>
           <p className="mb-3">Something not right? Tell us and we’ll sort it out.</p>
           <div className="flex flex-wrap gap-2">
             <Link href={`/support?order=${order.publicToken}`} className="inline-block rounded-full bg-berry px-4 py-2 font-semibold text-cream hover:bg-berry-deep">

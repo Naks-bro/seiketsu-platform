@@ -43,7 +43,7 @@ export function Plans() {
     <section id="plans" className="scroll-mt-20 bg-paper" aria-labelledby="plans-h">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-[0.85fr_1.15fr] md:gap-14">
         <div className="space-y-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">The Seiketsu plans</p>
+          <p className="text-sm font-semibold text-olive-ink">The Seiketsu plans</p>
           <h2 id="plans-h" data-reveal className="font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
             Let’s Find Your <em className="italic text-berry">Perfect Plan.</em>
           </h2>

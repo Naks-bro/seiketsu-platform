@@ -25,7 +25,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
         </p>
       )}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Help request {t.number}</p>
+        <p className="text-sm font-semibold text-olive-ink">Help request {t.number}</p>
         <h1 className="mt-2 font-display text-3xl text-berry sm:text-4xl">{t.subject}</h1>
         <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
           <span className="rounded-full bg-paper px-3 py-1 font-medium">{CUSTOMER_STATUS_LABEL[status]}</span>

@@ -86,7 +86,7 @@ export function FollowTheFresh({ instagram }: { instagram: string | null }) {
         <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
           {tiles.map((t, i) => (
             <li key={t.src} data-reveal style={{ "--d": `${i * 80}ms` } as React.CSSProperties} className={`relative aspect-square overflow-hidden rounded-2xl bg-white ${i % 2 ? "md:translate-y-6" : ""}`}>
-              <Image src={t.src} alt={t.alt} fill sizes="(min-width: 768px) 270px, 45vw" className="object-cover transition duration-700 hover:scale-105" />
+              <Image src={t.src} alt={t.alt} fill sizes="(min-width: 768px) 270px, 45vw" className="object-cover" />
             </li>
           ))}
           <li className="grid aspect-square place-items-center rounded-2xl border-2 border-dashed border-berry/30 p-6 md:translate-y-6">

@@ -27,7 +27,7 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
   const ring = tone === "over" ? "border-nonveg" : tone === "warn" ? "border-orange" : "border-line";
   return (
     <div className={`rounded-2xl border bg-white p-4 ${ring}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{label}</p>
+      <p className="text-xs font-semibold text-muted">{label}</p>
       <p className="tabular mt-1 text-2xl font-semibold">{value}</p>
       {sub && <p className="mt-0.5 text-xs text-muted">{sub}</p>}
     </div>
@@ -121,7 +121,7 @@ export default async function MessagesPage() {
         <p className="mb-3 text-sm text-muted">Each message needs an approved template in MSG91. Set the names/IDs as environment variables.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase tracking-wide text-muted">
+            <thead className="text-left text-xs text-muted">
               <tr><th className="py-1.5">Message</th><th>Type</th><th>WhatsApp (MSG91_WA_TPL_…)</th><th>SMS (MSG91_SMS_TPL_…)</th></tr>
             </thead>
             <tbody>
@@ -147,7 +147,7 @@ export default async function MessagesPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase tracking-wide text-muted">
+              <thead className="text-left text-xs text-muted">
                 <tr><th className="py-1.5">Time</th><th>Message</th><th>Channel</th><th>To</th><th>Status</th><th className="text-right">Est. cost</th></tr>
               </thead>
               <tbody className="tabular">

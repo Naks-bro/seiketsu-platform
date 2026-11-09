@@ -29,7 +29,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
       {rows.length > 0 && (
         <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-paper text-xs uppercase tracking-wider text-muted">
+            <thead className="bg-paper text-xs text-muted">
               <tr>
                 <th scope="col" className="px-3 py-2">Customer</th>
                 <th scope="col" className="px-3 py-2">Paid orders</th>

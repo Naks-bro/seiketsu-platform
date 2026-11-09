@@ -18,7 +18,7 @@ export function SeiketsuPromise() {
         <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:py-8">
           <div className="grid gap-10 md:grid-cols-2 md:gap-14">
             <div className="space-y-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">The Seiketsu promise</p>
+              <p className="text-sm font-semibold text-olive-ink">The Seiketsu promise</p>
               <h2 id="promise-h" className="font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
                 Not Another Healthy Food Place.
                 <br />

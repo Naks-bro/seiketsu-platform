@@ -46,7 +46,7 @@ export default async function SubscriptionPage({ params, searchParams }: { param
         </p>
       )}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Your subscription</p>
+        <p className="text-sm font-semibold text-olive-ink">Your subscription</p>
         <h1 className="mt-2 font-display text-4xl text-berry sm:text-5xl">{sub.planName}</h1>
         <p className="mt-3 inline-flex rounded-full bg-paper px-3 py-1 text-sm font-medium">{SUB_STATUS_LABEL[status]}</p>
         <p className="mt-3 max-w-xl text-ink/75">{EXPLAIN[status]}</p>
@@ -64,13 +64,13 @@ export default async function SubscriptionPage({ params, searchParams }: { param
           <div><dt className="text-muted">Starts</dt><dd className="font-medium">{formatDay(sub.startDate)}</dd></div>
           <div><dt className="text-muted">Runs until</dt><dd className="font-medium">{sub.endDate ? formatDay(sub.endDate) : "—"}</dd></div>
           <div><dt className="text-muted">Delivery days</dt><dd className="font-medium">{daysLabel(sub.deliveryDays)}</dd></div>
-          <div><dt className="text-muted">Payment</dt><dd className="font-medium">{formatINR(sub.pricePaise)} · {sub.paidAt ? "paid, thank you" : online ? "not paid yet" : "we’ll confirm with you"}</dd></div>
+          <div><dt className="text-muted">Payment</dt><dd className="font-medium">{formatINR(sub.pricePaise)}</dd><dd className="text-muted">{sub.paidAt ? "Paid, thank you" : online ? "Not paid yet" : "We’ll confirm with you"}</dd></div>
         </dl>
       </section>
 
       {showPay && quote && (
         <section aria-labelledby="pay-h" className="space-y-3 rounded-2xl border border-berry/20 bg-white p-5">
-          <h2 id="pay-h" className="font-display text-2xl text-berry">{quote.kind === "first" ? "Confirm your plan" : "Keep it going"}</h2>
+          <h2 id="pay-h" className="font-display text-3xl text-berry sm:text-4xl">{quote.kind === "first" ? "Confirm your plan" : "Keep it going"}</h2>
           <p className="text-sm text-ink/75">
             {quote.kind === "first"
               ? `Pay ${formatINR(quote.amountPaise)} securely with UPI, card or net banking. Your plan is confirmed as soon as the payment goes through.`
@@ -83,7 +83,7 @@ export default async function SubscriptionPage({ params, searchParams }: { param
 
       {bills.length > 0 && (
         <section aria-labelledby="bills-h">
-          <h2 id="bills-h" className="font-display text-2xl text-berry">Invoices</h2>
+          <h2 id="bills-h" className="font-display text-3xl text-berry sm:text-4xl">Invoices</h2>
           <ul className="mt-3 divide-y divide-line rounded-xl border border-line bg-white text-sm">
             {bills.map((b) => (
               <li key={b.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
@@ -103,7 +103,7 @@ export default async function SubscriptionPage({ params, searchParams }: { param
 
       {deliveries.length > 0 && (
         <section aria-labelledby="log-h">
-          <h2 id="log-h" className="font-display text-2xl text-berry">Meal log</h2>
+          <h2 id="log-h" className="font-display text-3xl text-berry sm:text-4xl">Meal log</h2>
           <ul className="mt-3 divide-y divide-line rounded-xl border border-line bg-white text-sm">
             {deliveries.map((d) => (
               <li key={d.id} className="flex justify-between px-4 py-2.5">

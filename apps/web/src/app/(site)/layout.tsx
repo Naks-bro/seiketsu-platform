@@ -71,7 +71,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             <p className="max-w-xs text-sm text-cream/70">Good food, thoughtful ingredients, feel-good living.</p>
           </div>
           <nav aria-label="Explore" className="space-y-2 text-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-cream/50">Explore</h2>
+            <h2 className="text-xs font-semibold text-cream/50">Explore</h2>
             <Link href="/menu" className="block hover:text-butter">Menu</Link>
             <Link href="/#why" className="block hover:text-butter">Why Seiketsu</Link>
             <Link href="/#plans" className="block hover:text-butter">Plans &amp; enquiries</Link>
@@ -80,7 +80,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             <Link href="/account" className="block hover:text-butter">{accountLabel}</Link>
           </nav>
           <div className="space-y-2 text-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-cream/50">Find us</h2>
+            <h2 className="text-xs font-semibold text-cream/50">Find us</h2>
             <address className="not-italic leading-relaxed text-cream/85">
               {store.addressLines.map((l) => (
                 <span key={l} className="block">{l}</span>
@@ -95,7 +95,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             </div>
           </div>
           <div className="space-y-2 text-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-cream/50">Hours</h2>
+            <h2 className="text-xs font-semibold text-cream/50">Hours</h2>
             {store.hours ? (
               <ul className="tabular space-y-0.5">
                 {store.hours.map((h, i) => (

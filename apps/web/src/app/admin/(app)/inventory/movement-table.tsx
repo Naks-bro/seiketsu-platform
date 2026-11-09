@@ -24,7 +24,7 @@ export function MovementTable({ rows, showIngredient = true }: { rows: Row[]; sh
   return (
     <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
       <table className="w-full min-w-[640px] text-sm">
-        <thead className="bg-paper text-left text-xs uppercase tracking-wide text-muted">
+        <thead className="bg-paper text-left text-xs text-muted">
           <tr>
             <th scope="col" className="px-3 py-2">When</th>
             {showIngredient && <th scope="col" className="px-3 py-2">Ingredient</th>}

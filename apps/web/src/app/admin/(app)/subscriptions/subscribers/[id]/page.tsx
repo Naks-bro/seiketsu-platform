@@ -106,7 +106,7 @@ export default async function SubscriberPage({ params }: { params: Promise<{ id:
             )}
             {bills.length > 0 && (
               <div className="border-t border-line pt-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Invoices</p>
+                <p className="text-xs font-semibold text-muted">Invoices</p>
                 <ul className="mt-1 space-y-1 text-sm">
                   {bills.map((b) => (
                     <li key={b.id} className="flex justify-between gap-3">

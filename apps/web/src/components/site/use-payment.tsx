@@ -116,7 +116,7 @@ export function usePayment(description: string, endpoints: Endpoints = ORDER_END
   const dialog = simulator ? (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-ink/50 p-4">
       <div role="dialog" aria-modal="true" aria-labelledby="sim-title" className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-2xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange">Local test mode</p>
+        <p className="text-sm font-semibold text-orange">Local test mode</p>
         <h2 id="sim-title" className="font-display text-2xl">Payment simulator</h2>
         <p className="text-sm text-muted">
           Razorpay keys are not set, so this stands in for Razorpay Checkout. It only works on a developer machine.

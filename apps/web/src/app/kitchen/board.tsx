@@ -112,7 +112,7 @@ export function KitchenBoard({ tickets, outletId, prepMinutes, staffName }: { ti
           const list = tickets.filter((t) => col.statuses.includes(t.status));
           return (
             <section key={col.key} aria-labelledby={`col-${col.key}`} className="flex min-h-40 flex-col rounded-2xl bg-white/5 p-3">
-              <h2 id={`col-${col.key}`} className="mb-3 flex items-center justify-between px-1 text-sm font-semibold uppercase tracking-[0.14em] text-white/70">
+              <h2 id={`col-${col.key}`} className="mb-3 flex items-center justify-between px-1 text-sm font-semibold text-white/70">
                 {col.title} <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-base tabular-nums text-white">{list.length}</span>
               </h2>
               {list.length === 0 ? (

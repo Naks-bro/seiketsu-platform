@@ -68,7 +68,7 @@ export default async function StockPage({ searchParams }: { searchParams: Promis
             </div>
             <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
               <table className="w-full min-w-[720px] text-sm">
-                <thead className="bg-paper text-left text-xs uppercase tracking-wide text-muted">
+                <thead className="bg-paper text-left text-xs text-muted">
                   <tr>
                     <th scope="col" className="px-3 py-2">Ingredient</th>
                     <th scope="col" className="px-3 py-2 text-right">On hand</th>

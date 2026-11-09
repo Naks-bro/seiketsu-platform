@@ -60,7 +60,7 @@ export default async function AreaRequestsPage() {
             <h2 id="list-h" className="mb-3 font-display text-2xl">All requests</h2>
             <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
               <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="bg-paper text-xs uppercase tracking-wider text-muted">
+                <thead className="bg-paper text-xs text-muted">
                   <tr>
                     <th scope="col" className="px-3 py-2">When</th>
                     <th scope="col" className="px-3 py-2">Pincode</th>

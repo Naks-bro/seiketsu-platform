@@ -121,9 +121,9 @@ export default async function AccountPage() {
                   <Link href={`/subscription/${s.publicToken}`} className="flex items-center justify-between gap-4 p-4 hover:bg-paper">
                     <span>
                       <span className="font-semibold">{s.planName}</span>
-                      <span className="block text-sm text-muted">{SUB_STATUS_LABEL[s.status as SubStatus]} · {pr.used} of {pr.total} meals</span>
+                      <span className="flex flex-wrap gap-x-3 text-sm text-muted"><span>{SUB_STATUS_LABEL[s.status as SubStatus]}</span><span>{pr.used} of {pr.total} meals</span></span>
                     </span>
-                    <span className="text-sm font-medium text-berry">View →</span>
+                    <span className="text-sm font-medium text-berry">View</span>
                   </Link>
                 </li>
               );
@@ -146,9 +146,9 @@ export default async function AccountPage() {
                 <Link href={`/support/${t.publicToken}`} className="flex items-center justify-between gap-4 p-4 hover:bg-paper">
                   <span>
                     <span className="font-semibold">{t.subject}</span>
-                    <span className="block text-sm text-muted">{t.number} · {CUSTOMER_STATUS_LABEL[t.status as TicketStatus]} · {formatDateTime(t.lastMessageAt)}</span>
+                    <span className="flex flex-wrap gap-x-3 text-sm text-muted"><span>{t.number}</span><span>{CUSTOMER_STATUS_LABEL[t.status as TicketStatus]}</span><span>{formatDateTime(t.lastMessageAt)}</span></span>
                   </span>
-                  <span className="text-sm font-medium text-berry">Open →</span>
+                  <span className="text-sm font-medium text-berry">Open</span>
                 </Link>
               </li>
             ))}

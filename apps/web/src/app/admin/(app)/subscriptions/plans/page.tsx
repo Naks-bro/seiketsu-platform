@@ -38,7 +38,7 @@ export default async function PlansPage() {
                 <p className="mt-3 tabular text-lg font-semibold">{formatINR(p.pricePaise)}</p>
                 <p className="text-sm text-muted">{p.mealsTotal} meals · {p.durationDays} days · {daysLabel(p.deliveryDays)}</p>
                 <p className="mt-2 text-sm">{n} current subscriber{n === 1 ? "" : "s"}</p>
-                {edit && <Link href={`/admin/subscriptions/plans/${p.id}`} className="mt-auto pt-4 text-sm font-medium text-berry hover:underline">Edit plan →</Link>}
+                {edit && <Link href={`/admin/subscriptions/plans/${p.id}`} className="mt-auto pt-4 text-sm font-medium text-berry hover:underline">Edit plan</Link>}
               </li>
             );
           })}

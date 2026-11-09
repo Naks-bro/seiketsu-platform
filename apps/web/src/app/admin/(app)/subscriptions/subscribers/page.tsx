@@ -34,7 +34,7 @@ export default async function SubscribersPage({ searchParams }: { searchParams: 
       ) : (
         <div className="relative overflow-x-auto rounded-xl border border-line bg-white">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-paper text-xs uppercase tracking-wider text-muted">
+            <thead className="bg-paper text-xs text-muted">
               <tr>
                 <th scope="col" className="px-3 py-2">Subscriber</th>
                 <th scope="col" className="px-3 py-2">Plan</th>

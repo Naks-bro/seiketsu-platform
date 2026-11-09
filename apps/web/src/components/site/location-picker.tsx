@@ -112,7 +112,7 @@ function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom, outlets =
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-olive-ink">Before you order</p>
+            <p className="text-sm font-semibold text-olive-ink">Before you order</p>
             <h2 id={`${id}-t`} className="mt-1 font-display text-3xl leading-tight text-berry">How would you like it?</h2>
           </div>
           <button type="button" onClick={closeLocationSheet} className="min-h-10 rounded-full px-3 text-sm text-muted hover:bg-paper">

@@ -42,7 +42,7 @@ export function FilterBar({ query, onQuery, filter, onFilter }: { query: string;
           className={`flex shrink-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-sm font-semibold transition ${filter.vegOnly ? "border-veg bg-veg/10 text-veg" : "border-line bg-white text-ink"}`}
         >
           <span className={`relative h-6 w-10 rounded-full transition ${filter.vegOnly ? "bg-veg" : "bg-line"}`} aria-hidden>
-            <span className={`absolute top-0.5 grid size-5 place-items-center rounded-full bg-white shadow transition-all ${filter.vegOnly ? "left-[18px]" : "left-0.5"}`}>
+            <span className={`absolute left-0.5 top-0.5 grid size-5 place-items-center rounded-full bg-white shadow transition-transform motion-reduce:transition-none ${filter.vegOnly ? "translate-x-4" : ""}`}>
               <span className="size-2 rounded-full bg-veg" />
             </span>
           </span>

@@ -58,7 +58,7 @@ function Links({ items, onPick }: { items: Item[]; onPick?: () => void }) {
     <nav aria-label="Admin" className="space-y-4">
       {grouped(items).map((g) => (
         <div key={g.title}>
-          <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">{g.title}</p>
+          <p className="px-3 text-[11px] font-semibold text-muted">{g.title}</p>
           <ul className="mt-1 space-y-0.5">
             {g.items.map((i) => {
               const active = path === i.href || path.startsWith(`${i.href}/`);

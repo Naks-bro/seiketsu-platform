@@ -35,7 +35,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           <h1 className="font-display text-4xl">{order.orderNumber}</h1>
           <StatusPill status={order.status} />
           <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-semibold capitalize">{order.fulfilment}</span>
-          <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-semibold uppercase">{order.source}</span>
+          <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-semibold">{order.source}</span>
           <div className="no-print ml-auto"><PrintButton /></div>
         </div>
         <p className="text-sm text-muted">Placed {formatDateTime(order.placedAt ?? order.createdAt)}</p>
@@ -45,7 +45,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         </div>
 
         <section className="rounded-2xl border border-line bg-white p-5">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted">Items</h2>
+          <h2 className="mb-3 text-sm font-semibold text-muted">Items</h2>
           <ul className="divide-y divide-line">
             {items.map((i) => (
               <li key={i.id} className="flex gap-3 py-3">
@@ -71,7 +71,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         </section>
 
         <section className="no-print rounded-2xl border border-line bg-white p-5">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted">History</h2>
+          <h2 className="mb-3 text-sm font-semibold text-muted">History</h2>
           <ol className="space-y-2 text-sm">
             {events.map((e) => (
               <li key={e.id} className="flex gap-3">
@@ -89,7 +89,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
 
       <aside className="space-y-4">
         <section className="rounded-2xl border border-line bg-white p-5 text-sm">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted">Customer</h2>
+          <h2 className="mb-2 text-sm font-semibold text-muted">Customer</h2>
           <p className="text-base font-medium">{order.customerName}</p>
           <p className="tabular">+91 {order.customerPhone}</p>
           {order.customerEmail && <p>{order.customerEmail}</p>}
@@ -106,7 +106,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         </section>
 
         <section className="no-print rounded-2xl border border-line bg-white p-5 text-sm">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted">Payment</h2>
+          <h2 className="mb-2 text-sm font-semibold text-muted">Payment</h2>
           <p className="capitalize">{order.paymentState.replace("_", " ")}</p>
           {captured && (
             <p className="text-muted">

@@ -28,7 +28,7 @@ export function ExploreMenu({ menu }: { menu: CategoryDTO[] }) {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-olive-ink">Explore the menu</p>
+            <p className="text-sm font-semibold text-olive-ink">Explore the menu</p>
             <h2 id="explore-h" data-reveal className="mt-2 font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
               Something Fresh for Every <em className="italic text-berry">Craving.</em>
             </h2>
@@ -77,7 +77,7 @@ export function Favourites({ items }: { items: MenuItemDTO[] }) {
           <h2 id="fav-h" data-reveal className="font-display text-4xl leading-none text-ink sm:text-5xl">
             Find your <em className="italic text-berry">favourite.</em>
           </h2>
-          <Link href="/menu" className="font-semibold text-berry hover:underline">View full menu →</Link>
+          <Link href="/menu" className="font-semibold text-berry hover:underline">View full menu</Link>
         </div>
         <ul className="no-scrollbar relative -mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
           {items.map((i) => {
@@ -87,7 +87,7 @@ export function Favourites({ items }: { items: MenuItemDTO[] }) {
               <li key={i.id} className="flex w-72 shrink-0 snap-start flex-col rounded-[1.75rem] border border-line bg-white p-6 shadow-[var(--shadow-card)]">
                 <div className="flex items-center gap-1.5">
                   {[...itemDiets(i)].map((d) => <DietMark key={d} diet={d} />)}
-                  {i.isBestseller && <span className="ml-1 text-[11px] font-semibold uppercase tracking-wide text-[#a3520f]">★ Bestseller</span>}
+                  {i.isBestseller && <span className="ml-1 text-[11px] font-semibold text-[#a3520f]">★ Bestseller</span>}
                 </div>
                 <Link href={`/menu#${i.slug}`} className="mt-3 font-display text-2xl leading-tight text-ink hover:text-berry">{i.name}</Link>
                 {i.description && <p className="mt-2 line-clamp-3 text-sm text-muted">{i.description}</p>}
