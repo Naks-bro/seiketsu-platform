@@ -36,7 +36,8 @@ async function connect(url: string): Promise<Conn> {
     // prepare:false works with Supabase transaction pooler (port 6543).
     const sql = postgres(url, {
       prepare: false,
-      max: Number(process.env.DB_POOL_MAX ?? 3),
+      // One connection per serverless instance: many instances share Supabase's small pooler limit.
+      max: Number(process.env.DB_POOL_MAX ?? (process.env.VERCEL ? 1 : 3)),
       idle_timeout: 20,
       connect_timeout: 10,
       // Certificates are always verified in production. Supabase signs them with its own CA: put that PEM (Project
