@@ -33,7 +33,7 @@ export function Toaster() {
     <div
       role="status"
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 bottom-24 z-[60] flex justify-center px-4 md:inset-x-auto md:bottom-auto md:right-6 md:top-20"
+      className="pointer-events-none fixed inset-x-0 bottom-24 z-40 flex justify-center px-4 md:inset-x-auto md:bottom-auto md:right-6 md:top-20"
     >
       {t && (
         <div key={t.id} className="animate-toast-in pointer-events-auto flex max-w-sm items-center gap-3 rounded-2xl bg-ink py-2.5 pl-3 pr-2.5 text-sm text-cream shadow-2xl">
