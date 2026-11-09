@@ -32,7 +32,8 @@ function Tick({ on, round }: { on: boolean; round?: boolean }) {
   );
 }
 
-const row = "flex min-h-12 w-full cursor-pointer items-center gap-3 py-2.5 text-left";
+// `relative` keeps the visually hidden radio inside its row, so focusing it never scrolls the sheet.
+const row = "relative flex min-h-12 w-full cursor-pointer items-center gap-3 py-2.5 text-left";
 
 /** Sizes as a radio list: name and portion on the left, price and a radio on the right. */
 export function SizePicker({ variants, value, onChange }: { variants: MenuItemDTO["variants"]; value: string; onChange: (id: string) => void }) {
