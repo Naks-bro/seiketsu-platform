@@ -17,6 +17,7 @@ export type CartLine = {
   addOns: { id: string; name: string; pricePaise: number; icon?: string | null }[];
   diet: Diet | null;
   imageUrl?: string | null;
+  categorySlug?: string;
 };
 
 const STORAGE_KEY = "seiketsu.cart.v1";
@@ -161,6 +162,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           ...l,
           name: item.name,
           imageUrl: item.imageUrl,
+          categorySlug: item.categorySlug,
           unitPricePaise: variant.pricePaise,
           addOns: l.addOnIds.map((id) => {
             const a = allAddons.get(id)!;

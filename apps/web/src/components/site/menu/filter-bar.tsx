@@ -30,7 +30,7 @@ export function FilterBar({ query, onQuery, filter, onFilter }: { query: string;
           value={query}
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Search dishes, e.g. paneer, smoothie"
-          className="w-full rounded-full border border-line bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-berry"
+          className="w-full rounded-full border border-line bg-white py-2.5 pl-10 pr-4 text-base outline-none focus:border-berry sm:text-sm"
         />
       </label>
       <div className="no-scrollbar relative flex max-w-full items-center gap-2 overflow-x-auto">

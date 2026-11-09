@@ -10,13 +10,13 @@ import { showToast } from "../toast";
 import { cartLineFor, isSimple } from "../menu/cart-line";
 
 /** ADD on a favourite: simple dishes go straight in; the rest open on the menu. */
-export function QuickAdd({ item, canOrder }: { item: MenuItemDTO; canOrder: boolean }) {
+export function QuickAdd({ item }: { item: MenuItemDTO }) {
   const { add } = useCart();
   const btn = useRef<HTMLButtonElement>(null);
-  if (!isSimple(item) || !canOrder) {
+  if (!isSimple(item)) {
     return (
       <Link href={`/menu#${item.slug}`} className="rounded-full bg-berry px-4 py-2 text-sm font-semibold text-cream hover:bg-berry-deep">
-        {canOrder ? "Customise" : "View"}
+        Customise
         <span className="sr-only"> {item.name}</span>
       </Link>
     );

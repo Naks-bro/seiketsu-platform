@@ -10,6 +10,7 @@ import { unitTotal, useCart, type CartLine } from "@/lib/cart";
 import { openLocationSheet, useLocation } from "@/lib/location";
 import { DietMark } from "@/components/diet-mark";
 import { AddonIconMark } from "./addon-icons";
+import { DishArt } from "./menu/dish-art";
 
 export type CartPricing = { deliveryFeePaise: number; freeDeliveryAbovePaise: number | null; minOrderPaise: number; deliveryEnabled: boolean };
 
@@ -78,8 +79,8 @@ function Thumb({ line }: { line: CartLine }) {
     );
   }
   return (
-    <div className="grid size-16 shrink-0 place-items-center rounded-xl bg-butter/70 font-display text-2xl text-berry" aria-hidden>
-      {line.name.charAt(0)}
+    <div className="relative size-16 shrink-0 overflow-hidden rounded-xl" aria-hidden>
+      <DishArt category={line.categorySlug ?? ""} seed={line.name} />
     </div>
   );
 }

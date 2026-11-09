@@ -20,7 +20,6 @@ export default async function HomePage() {
   const flagged = all.filter((i) => i.isBestseller || i.isFeatured);
   // Until the owner flags favourites, show the first dish of each section.
   const favourites = (flagged.length >= 3 ? flagged : menu.map((c) => c.items[0]).filter(Boolean)).slice(0, 8);
-  const canOrder = store.isOpenNow && store.paymentsMode !== "disabled" && (store.pickupEnabled || store.deliveryEnabled);
 
   return (
     <>
@@ -30,7 +29,7 @@ export default async function HomePage() {
       <Lifestyle />
       <WhySeiketsu />
       <ExploreMenu menu={menu} />
-      <Favourites items={favourites} canOrder={canOrder} />
+      <Favourites items={favourites} />
       <Subscriptions plans={plans.map((p) => ({ slug: p.slug, name: p.name, tagline: p.tagline, pricePaise: p.pricePaise, mealsTotal: p.mealsTotal, durationDays: p.durationDays, deliveryDays: p.deliveryDays, includes: p.includes }))} />
       <HowWeMakeIt />
       <SeiketsuPromise />

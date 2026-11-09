@@ -68,7 +68,7 @@ export function ExploreMenu({ menu }: { menu: CategoryDTO[] }) {
   );
 }
 
-export function Favourites({ items, canOrder }: { items: MenuItemDTO[]; canOrder: boolean }) {
+export function Favourites({ items }: { items: MenuItemDTO[] }) {
   if (!items.length) return null;
   return (
     <section id="favourites" className="scroll-mt-20 overflow-hidden bg-paper" aria-labelledby="fav-h">
@@ -100,7 +100,7 @@ export function Favourites({ items, canOrder }: { items: MenuItemDTO[]; canOrder
                     {new Set(i.variants.map((v) => v.pricePaise)).size > 1 && <span className="text-xs font-normal text-muted">from </span>}
                     {formatINR(fromPrice(i.variants.map((v) => v.pricePaise)))}
                   </span>
-                  <QuickAdd item={i} canOrder={canOrder} />
+                  <QuickAdd item={i} />
                 </div>
               </li>
             );

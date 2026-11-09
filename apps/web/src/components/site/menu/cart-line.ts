@@ -15,6 +15,7 @@ export function cartLineFor(item: MenuItemDTO, variant: VariantDTO, chosen: Addo
     addOns: chosen.map((a) => ({ id: a.id, name: a.name, pricePaise: a.pricePaise, icon: a.icon })),
     diet: variant.diet ?? item.diet,
     imageUrl: item.imageUrl,
+    categorySlug: item.categorySlug,
   };
 }
 

@@ -17,7 +17,7 @@ const range = (ns: number[], unit: string) =>
   ns.length === 0 ? null : Math.min(...ns) === Math.max(...ns) ? `${ns[0]}${unit}` : `${Math.min(...ns)}–${Math.max(...ns)}${unit}`;
 
 /** Swiggy-style row: details on the left, picture and ADD on the right. */
-export function DishRow({ item, canOrder, onCustomise, onlyDiet = null }: { item: MenuItemDTO; canOrder: boolean; onCustomise: () => void; onlyDiet?: Diet | null }) {
+export function DishRow({ item, onCustomise, onlyDiet = null }: { item: MenuItemDTO; onCustomise: () => void; onlyDiet?: Diet | null }) {
   const { lines, add, setQuantity, setDrawerOpen } = useCart();
   const [more, setMore] = useState(false);
   const btn = useRef<HTMLDivElement>(null);
@@ -74,7 +74,7 @@ export function DishRow({ item, canOrder, onCustomise, onlyDiet = null }: { item
           </p>
         )}
         {item.description && item.description.length > 110 && (
-          <button type="button" onClick={() => setMore((m) => !m)} className="mt-0.5 text-xs font-semibold text-ink hover:text-berry" aria-expanded={more}>
+          <button type="button" onClick={() => setMore((m) => !m)} className="-my-2 py-2 pr-4 text-xs font-semibold text-ink hover:text-berry" aria-expanded={more}>
             {more ? "less" : "more"}
           </button>
         )}
@@ -93,14 +93,13 @@ export function DishRow({ item, canOrder, onCustomise, onlyDiet = null }: { item
             <div className="flex h-10 items-center justify-between overflow-hidden rounded-xl border border-berry/20 bg-white text-berry shadow-[var(--shadow-card)]" role="group" aria-label={`${item.name}: ${inCart} in cart`}>
               <button type="button" onClick={onMinus} className="h-full w-10 text-xl font-semibold hover:bg-paper" aria-label={`Remove one ${item.name}`}>−</button>
               <span className="tabular font-bold" aria-live="polite">{inCart}</span>
-              <button type="button" onClick={onAdd} disabled={!canOrder} className="h-full w-10 text-xl font-semibold hover:bg-paper disabled:opacity-40" aria-label={`Add another ${item.name}`}>+</button>
+              <button type="button" onClick={onAdd} className="h-full w-10 text-xl font-semibold hover:bg-paper" aria-label={`Add another ${item.name}`}>+</button>
             </div>
           ) : (
             <button
               type="button"
               onClick={onAdd}
-              disabled={!canOrder}
-              className="h-10 w-full rounded-xl border border-berry/20 bg-white text-sm font-extrabold tracking-wider text-berry shadow-[var(--shadow-card)] transition hover:bg-berry hover:text-cream active:scale-95 disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-white"
+              className="h-10 w-full rounded-xl border border-berry/20 bg-white text-sm font-extrabold tracking-wider text-berry shadow-[var(--shadow-card)] transition hover:bg-berry hover:text-cream active:scale-95"
               aria-label={`Add ${item.name}`}
             >
               ADD
