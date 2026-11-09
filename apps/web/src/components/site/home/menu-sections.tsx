@@ -5,11 +5,10 @@ import { formatINR, fromPrice } from "@/lib/format";
 import { DietMark } from "@/components/diet-mark";
 import { itemDiets } from "@seiketsu/core/diet-filter";
 import { QuickAdd } from "./client";
-import { Bowl } from "./doodles";
 
 /** The owner's five menu groups, mapped onto the menu's sections. */
 const GROUPS = [
-  { title: "Salads", body: "Fresh greens, vibrant vegetables and delicious combinations.", slugs: ["salads"], img: null, tone: "bg-olive/20" },
+  { title: "Salads", body: "Fresh greens, vibrant vegetables and delicious combinations.", slugs: ["salads"], img: "/landing/salad-bowl-cut.webp", tone: "bg-olive/20" },
   { title: "Wraps & Sandwiches", body: "Wholesome, flavour-packed options for meals on the go.", slugs: ["wraps", "sandwiches"], img: "/art/wrap_halves.webp", tone: "bg-butter" },
   { title: "Nourishing Bowls", body: "A satisfying mix of thoughtfully selected ingredients.", slugs: ["meals", "pasta"], img: "/art/mixed_pasta_bowl.webp", tone: "bg-pink/15" },
   { title: "Fresh-Pressed Juices", body: "Freshly pressed goodness in every sip.", slugs: ["juices"], img: "/landing/juice-bottle-cut.webp", tone: "bg-orange/20" },
@@ -50,14 +49,10 @@ export function ExploreMenu({ menu }: { menu: CategoryDTO[] }) {
                   {t.count} {t.count === 1 ? "choice" : "choices"}
                   {t.from != null && <> · from <span className="tabular">{formatINR(t.from)}</span></>}
                 </span>
-                <span aria-hidden className="absolute -bottom-2 right-0 h-[62%] w-[40%] transition duration-700 group-hover:scale-110 group-hover:-rotate-3">
-                  {t.img ? (
-                    <span className="drift-in absolute inset-0">
-                      <Image src={t.img} alt="" fill sizes="(min-width: 1024px) 240px, 45vw" className="object-contain object-right-bottom mix-blend-multiply" />
-                    </span>
-                  ) : (
-                    <Bowl className="drift-in absolute bottom-2 right-2 w-[85%]" />
-                  )}
+                <span aria-hidden className="absolute -bottom-2 right-0 h-[62%] w-[40%]">
+                  <span className="drift-in absolute inset-0">
+                    <Image src={t.img} alt="" fill sizes="(min-width: 1024px) 240px, 45vw" className="object-contain object-right-bottom mix-blend-multiply" />
+                  </span>
                 </span>
               </Link>
             </li>
