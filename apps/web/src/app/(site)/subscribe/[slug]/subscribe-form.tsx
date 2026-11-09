@@ -54,7 +54,7 @@ export function SubscribeForm({ slug, minDate, maxDate, defaults }: { slug: stri
         {pending ? "Sending…" : "Request this plan"}
       </button>
       <p className="text-xs text-muted">
-        Nothing is charged now. We’ll call to confirm your plan and how you’d like to pay. See our <Link href="/privacy" className="underline">privacy policy</Link>.
+        Nothing is charged yet. On the next page you can pay securely online, or we’ll call to arrange payment. See our <Link href="/privacy" className="underline">privacy policy</Link>.
       </p>
     </form>
   );

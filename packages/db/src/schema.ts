@@ -735,3 +735,83 @@ export const loyaltyLedger = pgTable(
   },
   (t) => [index("loyalty_ledger_customer").on(t.customerId), uniqueIndex("loyalty_ledger_order_reason").on(t.orderId, t.reason)],
 ).enableRLS();
+
+// ── Subscription payments & invoices ───────────────────────────────
+
+/**
+ * Money received for a subscription: the first payment, each renewal, or a
+ * payment taken offline and recorded by staff. One row per paid (or attempted) cycle.
+ */
+export const subscriptionPayments = pgTable(
+  "subscription_payments",
+  {
+    id: id(),
+    subscriptionId: uuid("subscription_id").notNull().references(() => subscriptions.id),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    /** first | renewal */
+    kind: text("kind").notNull(),
+    /** razorpay | offline */
+    provider: text("provider").notNull().default("razorpay"),
+    razorpayOrderId: text("razorpay_order_id").unique(),
+    razorpayPaymentId: text("razorpay_payment_id").unique(),
+    amountPaise: integer("amount_paise").notNull(),
+    status: paymentStatusEnum("status").notNull().default("created"),
+    method: text("method"),
+    note: text("note"),
+    errorCode: text("error_code"),
+    errorDescription: text("error_description"),
+    feePaise: integer("fee_paise"),
+    feeTaxPaise: integer("fee_tax_paise"),
+    refundedPaise: integer("refunded_paise").notNull().default(0),
+    /** what this payment buys, copied from the plan when it was started */
+    cycleMeals: integer("cycle_meals").notNull(),
+    cycleDays: integer("cycle_days").notNull(),
+    taxSnapshot: jsonb("tax_snapshot").$type<TaxSnapshot>().notNull(),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    staffId: uuid("staff_id").references(() => staffUsers.id),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("subscription_payments_sub").on(t.subscriptionId), index("subscription_payments_status").on(t.status, t.createdAt)],
+).enableRLS();
+
+export type InvoiceLine = { label: string; detail?: string | null; quantity: number; amountPaise: number };
+export type InvoiceIssuer = { name: string; addressLines: string[]; phone: string | null };
+
+/**
+ * Subscription invoices and credit notes. Order bills keep their number on the
+ * order; the Invoices register in Admin lists both together.
+ */
+export const invoices = pgTable(
+  "invoices",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    /** subscription | credit_note */
+    kind: text("kind").notNull(),
+    number: text("number").notNull().unique(),
+    /** random secret for the customer's printable copy */
+    publicToken: text("public_token").notNull().unique(),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+    customerName: text("customer_name").notNull(),
+    customerPhone: text("customer_phone"),
+    customerEmail: text("customer_email"),
+    billingAddress: text("billing_address"),
+    subscriptionId: uuid("subscription_id").references(() => subscriptions.id),
+    subscriptionPaymentId: uuid("subscription_payment_id").references(() => subscriptionPayments.id),
+    orderId: uuid("order_id").references(() => orders.id),
+    /** for a credit note: the bill or invoice number it reduces */
+    againstNumber: text("against_number"),
+    /** provider refund id, so one refund never gets two credit notes */
+    refundRef: text("refund_ref").unique(),
+    lines: jsonb("lines").$type<InvoiceLine[]>().notNull(),
+    taxablePaise: integer("taxable_paise").notNull(),
+    taxPaise: integer("tax_paise").notNull(),
+    totalPaise: integer("total_paise").notNull(),
+    taxSnapshot: jsonb("tax_snapshot").$type<TaxSnapshot>().notNull(),
+    issuer: jsonb("issuer").$type<InvoiceIssuer>().notNull(),
+    paymentMethod: text("payment_method"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("invoices_outlet_issued").on(t.outletId, t.issuedAt), index("invoices_subscription").on(t.subscriptionId)],
+).enableRLS();

@@ -32,22 +32,25 @@ function loadCheckoutScript(): Promise<void> {
   });
 }
 
-async function verify(token: string, r: RazorpayResponse): Promise<PaymentOutcome> {
-  const res = await fetch("/api/payments/verify", {
+type Endpoints = { verify: string; failed: string };
+const ORDER_ENDPOINTS: Endpoints = { verify: "/api/payments/verify", failed: "/api/payments/failed" };
+
+async function verify(url: string, token: string, r: RazorpayResponse): Promise<PaymentOutcome> {
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, ...r }),
   });
   if (!res.ok) return "error";
   const { status } = (await res.json()) as { status: string };
-  return status === "placed" || status === "accepted" ? "paid" : "pending";
+  return status === "placed" || status === "accepted" || status === "paid" ? "paid" : "pending";
 }
 
 /**
  * Opens Razorpay Checkout (or the local simulator) and resolves once the
  * customer pays or closes it. The server decides whether the order is paid.
  */
-export function usePayment(orderNumber: string) {
+export function usePayment(description: string, endpoints: Endpoints = ORDER_ENDPOINTS) {
   const [simulator, setSimulator] = useState<{ params: PaymentParams; token: string; resolve: (o: PaymentOutcome) => void } | null>(null);
 
   const start = useCallback(
@@ -63,15 +66,15 @@ export function usePayment(orderNumber: string) {
           amount: params.amountPaise,
           currency: "INR",
           name: "Seiketsu",
-          description: `Order ${orderNumber}`,
+          description,
           prefill: params.prefill,
           theme: { color: "#a51c47" },
-          handler: (r: RazorpayResponse) => verify(token, r).then(resolve, () => resolve("error")),
+          handler: (r: RazorpayResponse) => verify(endpoints.verify, token, r).then(resolve, () => resolve("error")),
           modal: { ondismiss: () => resolve("dismissed"), confirm_close: true },
         });
         rzp.on("payment.failed", (f) => {
           // Razorpay lets the customer retry inside the modal, so only record it.
-          fetch("/api/payments/failed", {
+          fetch(endpoints.failed, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -85,7 +88,7 @@ export function usePayment(orderNumber: string) {
         rzp.open();
       });
     },
-    [orderNumber],
+    [description, endpoints],
   );
 
   async function simulate(outcome: "success" | "failure" | "close") {
@@ -94,7 +97,7 @@ export function usePayment(orderNumber: string) {
     setSimulator(null);
     if (outcome === "close") return resolve("dismissed");
     if (outcome === "failure") {
-      await fetch("/api/payments/failed", {
+      await fetch(endpoints.failed, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, razorpay_order_id: params.razorpayOrderId, code: "SIMULATED", description: "Simulated failure" }),
@@ -107,7 +110,7 @@ export function usePayment(orderNumber: string) {
       body: JSON.stringify({ razorpay_order_id: params.razorpayOrderId }),
     });
     if (!r.ok) return resolve("error");
-    resolve(await verify(token, await r.json()));
+    resolve(await verify(endpoints.verify, token, await r.json()));
   }
 
   const dialog = simulator ? (

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { daysLabel, formatDay, nextStatuses, progress, SUB_STATUS_LABEL, type SubStatus } from "@seiketsu/core/subscriptions";
 import { can, requirePage } from "@/lib/server/auth";
 import { getSubscription } from "@/lib/server/subscriptions";
+import { nextPaymentQuote, paymentsForSubscription } from "@/lib/server/subscription-payments";
+import { invoicesForSubscription } from "@/lib/server/invoices";
 import { PageHeader, btnGhost, btnPrimary, field } from "@/components/admin/ui";
 import { formatDateTime, formatINR } from "@/lib/format";
 import { markPaidAction, moveSubscriptionAction, saveStaffNotesAction, undoDeliveryAction } from "../../../../subscription-actions";
@@ -22,6 +24,8 @@ export default async function SubscriberPage({ params }: { params: Promise<{ id:
   const status = sub.status as SubStatus;
   const pr = progress(sub.mealsUsed, sub.mealsTotal);
   const manage = can.manageMenu(staff);
+  const [quote, pays, bills] = await Promise.all([nextPaymentQuote(sub), paymentsForSubscription(sub.id), invoicesForSubscription(sub.id)]);
+  const paidPays = pays.filter((p) => p.status === "captured" || p.status === "refunded");
 
   return (
     <div className="space-y-6">
@@ -71,22 +75,49 @@ export default async function SubscriberPage({ params }: { params: Promise<{ id:
           )}
 
           <section className="space-y-3 rounded-2xl border border-line bg-white p-5">
-            <h2 className="font-display text-xl">Payment</h2>
-            {sub.paidAt ? (
-              <p className="text-sm">
-                <span className="font-medium text-veg">Paid</span> {formatINR(sub.pricePaise)} · {formatDateTime(sub.paidAt)}
-                {sub.paymentNote ? ` · ${sub.paymentNote}` : ""}
-              </p>
-            ) : manage ? (
-              <form action={markPaidAction} className="space-y-2">
-                <p className="text-sm">{formatINR(sub.pricePaise)} not paid yet.</p>
+            <h2 className="font-display text-xl">Payments</h2>
+            {paidPays.length === 0 ? (
+              <p className="text-sm">{formatINR(sub.pricePaise)} not paid yet. The customer can pay online from their page, or record cash/UPI here.</p>
+            ) : (
+              <ul className="divide-y divide-line text-sm">
+                {paidPays.map((p) => (
+                  <li key={p.id} className="flex flex-wrap justify-between gap-x-3 py-2">
+                    <span>
+                      <span className="font-medium">{p.kind === "first" ? "First payment" : "Renewal"}</span>{" "}
+                      <span className="text-muted">· {p.provider === "offline" ? (p.note ?? "Recorded by staff") : `Online${p.method ? `, ${p.method}` : ""}`}</span>
+                      <span className="block text-xs text-muted">{p.paidAt ? formatDateTime(p.paidAt) : ""} · {p.cycleMeals} meals / {p.cycleDays} days</span>
+                    </span>
+                    <span className="tabular">
+                      {formatINR(p.amountPaise)}
+                      {p.refundedPaise > 0 && <span className="block text-xs text-nonveg">Refunded {formatINR(p.refundedPaise)}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {manage && quote && (
+              <form action={markPaidAction} className="space-y-2 border-t border-line pt-3">
+                <p className="text-sm font-medium">{quote.kind === "first" ? "Record the first payment" : "Record a renewal"} · {formatINR(quote.amountPaise)}</p>
                 <input type="hidden" name="id" value={sub.id} />
                 <input name="note" placeholder="How it was paid, e.g. UPI ref 4821" className={field} aria-label="Payment note" />
-                <button type="submit" className={btnPrimary}>Mark as paid</button>
+                <button type="submit" className={quote.kind === "first" ? btnPrimary : btnGhost}>{quote.kind === "first" ? "Mark as paid" : "Add a paid cycle"}</button>
+                <p className="text-xs text-muted">{quote.kind === "first" ? "Issues the invoice. Activate the plan separately once confirmed." : `Adds ${quote.meals} meals and ${quote.days} days, and issues the invoice.`}</p>
               </form>
-            ) : (
-              <p className="text-sm">{formatINR(sub.pricePaise)} not paid yet.</p>
             )}
+            {bills.length > 0 && (
+              <div className="border-t border-line pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Invoices</p>
+                <ul className="mt-1 space-y-1 text-sm">
+                  {bills.map((b) => (
+                    <li key={b.id} className="flex justify-between gap-3">
+                      <Link href={`/invoice/${b.publicToken}`} target="_blank" className="text-berry hover:underline">{b.kind === "credit_note" ? "Credit note" : "Invoice"} {b.number}</Link>
+                      <span className="tabular">{b.kind === "credit_note" ? "−" : ""}{formatINR(b.totalPaise)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p className="text-xs text-muted">Refunds of online payments are made in the Razorpay dashboard; the credit note appears here automatically.</p>
           </section>
 
           <section className="space-y-3 rounded-2xl border border-line bg-white p-5">

@@ -8,7 +8,6 @@ import {
   consentEvents,
   couponRedemptions,
   getDb,
-  invoiceCounters,
   loyaltyLedger,
   menuItemAddonGroups,
   menuItems,
@@ -29,7 +28,8 @@ import { computeQuote } from "@seiketsu/core/pricing";
 import { isServiceable } from "@seiketsu/core/delivery-area";
 import { evaluateCoupon, loyaltySettings, pointsForPhone, redeemable, releaseRewardsIn, settleLoyaltyIn, type RewardDb } from "./rewards";
 import { pointsEarned } from "@seiketsu/core/loyalty";
-import { eventForStatus, financialYear, formatInvoiceNumber, type CustomerEvent } from "@seiketsu/core/messaging";
+import { eventForStatus, type CustomerEvent } from "@seiketsu/core/messaging";
+import { creditOrderRefund, nextInvoiceNumber } from "./invoices";
 import { getStore } from "./catalog";
 import { env } from "./env";
 import { gateway, type GatewayPayment } from "./gateway";
@@ -66,16 +66,6 @@ async function notify(
   if (customerEvent) runAfter(() => notifyCustomer(order.id, customerEvent, extra));
 }
 
-/** Next bill number for the financial year; the counter row lock keeps numbers gap-free. */
-async function nextInvoiceNumber(tx: Tx, at: Date) {
-  const fy = financialYear(at);
-  const [c] = await tx
-    .insert(invoiceCounters)
-    .values({ financialYear: fy, last: 1 })
-    .onConflictDoUpdate({ target: invoiceCounters.financialYear, set: { last: sql`${invoiceCounters.last} + 1` } })
-    .returning();
-  return formatInvoiceNumber("SK", fy, c.last);
-}
 
 type CartLine = CheckoutData["lines"][number];
 
@@ -666,6 +656,7 @@ export async function updateRefundStatus(razorpayRefundId: string, status: strin
     await tx.update(payments).set({ refundedPaise: sum.amount, status: full ? "refunded" : "captured" }).where(eq(payments.id, p.id));
     await tx.update(orders).set({ paymentState: full ? "refunded" : "partially_refunded" }).where(eq(orders.id, o.id));
     if (full) await releaseRewardsIn(tx, o);
+    await creditOrderRefund(tx, o, { ref: razorpayRefundId, amountPaise: r.amountPaise, at: new Date() });
     await audit(tx, { actorId: r.createdBy, outletId: o.outletId, action: "order.refund_processed", entity: "order", entityId: o.id, data: { amount: r.amountPaise, refundId: razorpayRefundId } });
     return { o, amount: r.amountPaise };
   });

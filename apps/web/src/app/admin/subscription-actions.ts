@@ -7,7 +7,8 @@ import { getDb } from "@seiketsu/db";
 import { isISODate, SUB_STATUSES, WEEKDAY_KEYS } from "@seiketsu/core/subscriptions";
 import { can, requireStaff } from "@/lib/server/auth";
 import { audit } from "@/lib/server/audit";
-import { markPaid, moveSubscription, recordDelivery, savePlan, saveStaffNotes, SubscriptionError, undoDelivery } from "@/lib/server/subscriptions";
+import { recordOfflinePayment } from "@/lib/server/subscription-payments";
+import { moveSubscription, recordDelivery, savePlan, saveStaffNotes, SubscriptionError, undoDelivery } from "@/lib/server/subscriptions";
 
 export type PlanState = { error?: string; fields?: Record<string, string> } | undefined;
 
@@ -98,13 +99,12 @@ export async function moveSubscriptionAction(form: FormData) {
   refresh(id);
 }
 
+/** Cash or UPI taken by staff: the first payment, or another cycle. Issues the invoice. */
 export async function markPaidAction(form: FormData) {
   const staff = await staffFor("manageMenu");
   const id = z.string().uuid().parse(form.get("id"));
   const note = String(form.get("note") ?? "").trim().slice(0, 200) || null;
-  if (await markPaid(staff.outletId, id, note)) {
-    await audit(await getDb(), { actorId: staff.id, outletId: staff.outletId, action: "subscription.paid", entity: "subscription", entityId: id, data: { note } });
-  }
+  await recordOfflinePayment(staff.outletId, id, { note, staffId: staff.id });
   refresh(id);
 }
 

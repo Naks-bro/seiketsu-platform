@@ -229,6 +229,11 @@ describe("kitchen flow and refunds", () => {
     expect(r.amountPaise).toBe(o.totalPaise);
     expect((await orderByToken(o.publicToken)).paymentState).toBe("refunded");
     await expect(orderSvc.refundOrder({ orderId: o.id, staffId, outletId, reason: "again" })).rejects.toThrow();
+    const { invoices } = await import("@seiketsu/db");
+    const notes = await db.select().from(invoices).where(eq(invoices.orderId, o.id));
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toMatchObject({ kind: "credit_note", againstNumber: o.invoiceNumber, totalPaise: o.totalPaise });
+    expect(notes[0].number).toMatch(/^CN\/\d{4}-\d{2}\/\d{5}$/);
   });
 
   it("does not refund an order that is still being served", async () => {
@@ -467,6 +472,8 @@ describe("financial recovery and isolation regressions", () => {
       expect(p.refundedPaise).toBe(o.totalPaise);
       expect((await orderByToken(o.publicToken)).paymentState).toBe("refunded");
       expect((await db.select().from(refunds).where(eq(refunds.paymentId, p.id))).map((r) => r.status).sort()).toEqual(["failed", "processed"]);
+      const { invoices } = await import("@seiketsu/db");
+      expect(await db.select().from(invoices).where(eq(invoices.orderId, o.id))).toHaveLength(1);
     } finally { spy.mockRestore(); }
   });
 

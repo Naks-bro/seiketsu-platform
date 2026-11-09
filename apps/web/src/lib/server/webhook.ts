@@ -5,6 +5,7 @@ import { getDb, webhookEvents } from "@seiketsu/db";
 import { verifyWebhookSignature } from "@seiketsu/core/razorpay-signature";
 import { env } from "./env";
 import { markPaymentCaptured, markPaymentFailed, updateRefundStatus } from "./orders";
+import { isSubscriptionOrder, markSubscriptionCaptured, markSubscriptionFailed, subscriptionRefundProcessed } from "./subscription-payments";
 
 type PaymentEntity = {
   id: string;
@@ -18,7 +19,7 @@ type PaymentEntity = {
 };
 type WebhookBody = {
   event: string;
-  payload: { payment?: { entity: PaymentEntity }; refund?: { entity: { id: string; status: string; notes?: { refund_intent?: string } } } };
+  payload: { payment?: { entity: PaymentEntity }; refund?: { entity: { id: string; status: string; payment_id?: string; amount?: number; notes?: { refund_intent?: string } } } };
 };
 
 export type WebhookOutcome = { status: number; body: string };
@@ -49,7 +50,9 @@ export async function handleRazorpayWebhook(rawBody: string, signature: string |
     switch (body.event) {
       case "payment.captured":
       case "order.paid":
-        if (pay) {
+        if (pay && (await isSubscriptionOrder(pay.order_id))) {
+          await markSubscriptionCaptured({ razorpayOrderId: pay.order_id, razorpayPaymentId: pay.id, amountPaise: Number(pay.amount), method: pay.method ?? null, feePaise: pay.fee ?? null, feeTaxPaise: pay.tax ?? null, via: "webhook" });
+        } else if (pay) {
           await markPaymentCaptured({
             razorpayOrderId: pay.order_id,
             razorpayPaymentId: pay.id,
@@ -62,11 +65,18 @@ export async function handleRazorpayWebhook(rawBody: string, signature: string |
         }
         break;
       case "payment.failed":
-        if (pay) await markPaymentFailed({ razorpayOrderId: pay.order_id, code: pay.error_code, description: pay.error_description });
+        if (pay && (await isSubscriptionOrder(pay.order_id))) await markSubscriptionFailed({ razorpayOrderId: pay.order_id, code: pay.error_code, description: pay.error_description });
+        else if (pay) await markPaymentFailed({ razorpayOrderId: pay.order_id, code: pay.error_code, description: pay.error_description });
         break;
       case "refund.processed":
       case "refund.failed":
-        if (body.payload.refund) await updateRefundStatus(body.payload.refund.entity.id, body.payload.refund.entity.status, body.payload.refund.entity.notes?.refund_intent);
+        if (!body.payload.refund) break;
+        {
+          const rf = body.payload.refund.entity;
+          // Refunds of subscription payments are made from the Razorpay dashboard and only need a credit note here.
+          if (rf.payment_id && (await subscriptionRefundProcessed({ razorpayPaymentId: rf.payment_id, refundId: rf.id, amountPaise: Number(rf.amount ?? 0), status: rf.status }))) break;
+        }
+        await updateRefundStatus(body.payload.refund.entity.id, body.payload.refund.entity.status, body.payload.refund.entity.notes?.refund_intent);
         break;
       default:
         break; // acknowledged, nothing to do

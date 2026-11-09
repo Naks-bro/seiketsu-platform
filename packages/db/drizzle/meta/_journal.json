@@ -85,6 +85,13 @@
       "when": 1794220084272,
       "tag": "0011_dish_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794228898683,
+      "tag": "0012_subscription_payments_invoices",
+      "breakpoints": true
     }
   ]
 }

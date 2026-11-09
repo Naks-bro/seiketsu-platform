@@ -178,16 +178,6 @@ export async function moveSubscription(outletId: string, id: string, to: SubStat
   });
 }
 
-export async function markPaid(outletId: string, id: string, note: string | null) {
-  const db = await getDb();
-  const [row] = await db
-    .update(subscriptions)
-    .set({ paidAt: new Date(), paymentNote: note })
-    .where(and(eq(subscriptions.id, id), eq(subscriptions.outletId, outletId), isNull(subscriptions.paidAt)))
-    .returning();
-  return row ?? null;
-}
-
 export async function saveStaffNotes(outletId: string, id: string, staffNotes: string | null) {
   const db = await getDb();
   await db.update(subscriptions).set({ staffNotes }).where(and(eq(subscriptions.id, id), eq(subscriptions.outletId, outletId)));

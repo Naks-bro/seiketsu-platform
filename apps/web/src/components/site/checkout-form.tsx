@@ -55,7 +55,7 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
-  const { start, dialog } = usePayment(orderNumber);
+  const { start, dialog } = usePayment(`Order ${orderNumber}`);
 
   // Start from the delivery/pickup choice made on the menu (once it has loaded from storage).
   if (location && !prefilled) {

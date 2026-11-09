@@ -24,7 +24,7 @@ export function LiveRefresh({ token, status }: { token: string; status: string }
 export function PayNow({ token, orderNumber, totalPaise }: { token: string; orderNumber: string; totalPaise: number }) {
   const router = useRouter();
   const { clear } = useCart();
-  const { start, dialog } = usePayment(orderNumber);
+  const { start, dialog } = usePayment(`Order ${orderNumber}`);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
