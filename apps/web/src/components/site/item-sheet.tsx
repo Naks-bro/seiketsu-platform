@@ -77,7 +77,7 @@ export function ItemSheet({ item, canOrder, onClose, filter = NO_FILTER, editing
       >
         <div className="overflow-y-auto">
           {item.imageUrl ? (
-            <div className="relative aspect-[16/9] bg-paper">
+            <div className="relative aspect-square max-h-[60dvh] w-full bg-paper">
               <Image src={item.imageUrl} alt={item.name} fill sizes="(min-width: 640px) 576px, 100vw" className="object-cover" unoptimized />
             </div>
           ) : (

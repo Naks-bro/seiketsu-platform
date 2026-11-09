@@ -1,0 +1,3 @@
+-- Owner's studio photos (2026-11-09), served from /menu/<slug>.webp. Keeps any photo already uploaded in Admin.
+UPDATE menu_items SET image_url = '/menu/' || slug || '.webp', updated_at = now()
+WHERE image_url IS NULL AND slug IN ('avocado-toast', 'avocado-smoothie', 'beetroot-apple-carrot', 'butter-paneer-chicken-bowl', 'celery-green-apple-carrot', 'green-machine', 'grilled-chicken-hummus-wrap', 'herbed-paneer-chicken-protein-salad-bowl', 'mexicana-salsa-wrap', 'mix-fruit-smoothie', 'paneer-chicken-quinoa-bowl', 'paneer-thecha-wrap', 'peri-peri-paneer-chicken-protein-salad-bowl', 'pomegranate-juice', 'sunrise-kick', 'tandoori-paneer-chicken-protein-salad-bowl');

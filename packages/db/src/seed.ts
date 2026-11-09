@@ -39,6 +39,8 @@ const VEG_BY_INGREDIENTS = new Set<string>(["avocado-smoothie", "beetroot-apple-
 const VEG_EXTRAS = new Set<string>(["Avocado", "Broccoli", "Cherry Tomatoes", "Chilli Tofu", "Feta Cheese", "Guacamole", "Honey Musterd Dip", "Italian Herb Dressing", "Olives", "Peri Peri Dip", "Pesto Sauce", "Russian Dressing"]);
 /** Dishes whose nutrition was estimated (USDA FoodData Central), noted for the kitchen to confirm. */
 const ESTIMATED = new Set(["healthy-quinoa-salad-bowl", "pomegranate-juice"]);
+/** Dishes with the owner's studio photo in apps/web/public/menu/<slug>.webp (2026-11-09). Migration 0011 does the same on live data. */
+const PHOTOS = new Set(["avocado-toast", "avocado-smoothie", "beetroot-apple-carrot", "butter-paneer-chicken-bowl", "celery-green-apple-carrot", "green-machine", "grilled-chicken-hummus-wrap", "herbed-paneer-chicken-protein-salad-bowl", "mexicana-salsa-wrap", "mix-fruit-smoothie", "paneer-chicken-quinoa-bowl", "paneer-thecha-wrap", "peri-peri-paneer-chicken-protein-salad-bowl", "pomegranate-juice", "sunrise-kick", "tandoori-paneer-chicken-protein-salad-bowl"]);
 
 function extraDiet(name: string): Diet | null {
   if (/chicken/i.test(name)) return "non_veg";
@@ -122,6 +124,7 @@ export async function seed(db: Db) {
           diet: d.diet ?? (VEG_BY_INGREDIENTS.has(d.slug) ? "veg" : null),
           needsReview: d.needsReview,
           reviewNotes: d.issues.join(" ") || (ESTIMATED.has(d.slug) ? "Nutrition estimated on 2026-11-03 from USDA FoodData Central values for the listed ingredients; confirm with the kitchen." : null),
+          imageUrl: PHOTOS.has(d.slug) ? `/menu/${d.slug}.webp` : null,
           sort: i,
         })
         .returning();

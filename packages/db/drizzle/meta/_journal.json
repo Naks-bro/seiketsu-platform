@@ -78,6 +78,13 @@
       "when": 1794041033766,
       "tag": "0010_financial_safety",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794220084272,
+      "tag": "0011_dish_photos",
+      "breakpoints": true
     }
   ]
 }

@@ -11,3 +11,6 @@ test-results
 demo/
 .netlify
 next-env.d.ts
+
+.vercel
+.env*
