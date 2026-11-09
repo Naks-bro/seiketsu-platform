@@ -117,7 +117,8 @@ export default async function SubscriptionPage({ params, searchParams }: { param
 
       <p className="text-sm text-muted">
         Need to pause, change something or ask a question?{" "}
-        {wa ? <a href={wa} target="_blank" rel="noreferrer" className="font-medium text-berry underline">Message us on WhatsApp</a> : <>Call us on {store.phone}</>}.{" "}
+        <Link href={`/support?subscription=${sub.publicToken}`} className="font-medium text-berry underline">Send us a request</Link>
+        {wa ? <> or <a href={wa} target="_blank" rel="noreferrer" className="font-medium text-berry underline">message us on WhatsApp</a></> : store.phone ? <> or call us on {store.phone}</> : null}.{" "}
         <Link href="/menu" className="font-medium text-berry underline">Browse the menu</Link>
       </p>
     </div>

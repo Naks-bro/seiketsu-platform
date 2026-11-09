@@ -6,6 +6,8 @@ import { getDb, orders } from "@seiketsu/db";
 import { STATUS_LABEL } from "@seiketsu/core/order-status";
 import { getCustomer } from "@/lib/server/customer-auth";
 import { subscriptionsForPhone } from "@/lib/server/subscriptions";
+import { ticketsForPhone } from "@/lib/server/tickets";
+import { CUSTOMER_STATUS_LABEL, type TicketStatus } from "@seiketsu/core/tickets";
 import { loyaltySettings, pointsForPhone } from "@/lib/server/rewards";
 import { getStore } from "@/lib/server/catalog";
 import { progress, SUB_STATUS_LABEL, type SubStatus } from "@seiketsu/core/subscriptions";
@@ -60,7 +62,7 @@ export default async function AccountPage() {
     .where(and(eq(orders.customerPhone, me.phone), ne(orders.status, "pending_payment"), ne(orders.status, "expired")))
     .orderBy(desc(orders.createdAt))
     .limit(20);
-  const subs = await subscriptionsForPhone(me.phone);
+  const [subs, requests] = await Promise.all([subscriptionsForPhone(me.phone), ticketsForPhone(me.phone)]);
   const [mine, loyalty] = await Promise.all([pointsForPhone(me.phone), getStore().then((s) => loyaltySettings(s.outletId))]);
 
   return (
@@ -129,6 +131,30 @@ export default async function AccountPage() {
           </ul>
         </section>
       )}
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="font-display text-2xl text-berry">Help requests</h2>
+          <Link href="/support" className="text-sm font-medium text-berry underline">Ask for help</Link>
+        </div>
+        {requests.length === 0 ? (
+          <p className="text-sm text-muted">No requests yet. If anything isn’t right with an order or a plan, tell us and we’ll sort it out.</p>
+        ) : (
+          <ul className="divide-y divide-line rounded-xl border border-line bg-white">
+            {requests.map((t) => (
+              <li key={t.id}>
+                <Link href={`/support/${t.publicToken}`} className="flex items-center justify-between gap-4 p-4 hover:bg-paper">
+                  <span>
+                    <span className="font-semibold">{t.subject}</span>
+                    <span className="block text-sm text-muted">{t.number} · {CUSTOMER_STATUS_LABEL[t.status as TicketStatus]} · {formatDateTime(t.lastMessageAt)}</span>
+                  </span>
+                  <span className="text-sm font-medium text-berry">Open →</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="space-y-4">
         <h2 className="font-display text-2xl text-berry">Your orders</h2>

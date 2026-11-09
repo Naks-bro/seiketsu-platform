@@ -146,12 +146,17 @@ export default async function OrderPage({ params }: { params: Promise<{ token: s
         </div>
         <div className="rounded-2xl border border-line p-5 text-sm">
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-olive-ink">Questions?</h2>
-          <p className="mb-3">Message us with your order number and we will help.</p>
-          {wa && (
-            <a href={wa} target="_blank" rel="noreferrer" className="inline-block rounded-full bg-olive px-4 py-2 font-semibold text-cream hover:bg-olive-ink">
-              WhatsApp about this order
-            </a>
-          )}
+          <p className="mb-3">Something not right? Tell us and we’ll sort it out.</p>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/support?order=${order.publicToken}`} className="inline-block rounded-full bg-berry px-4 py-2 font-semibold text-cream hover:bg-berry-deep">
+              Get help with this order
+            </Link>
+            {wa && (
+              <a href={wa} target="_blank" rel="noreferrer" className="inline-block rounded-full border border-olive px-4 py-2 font-semibold text-olive-ink hover:bg-paper">
+                WhatsApp us
+              </a>
+            )}
+          </div>
         </div>
       </section>
       {order.invoiceNumber && (

@@ -10,7 +10,7 @@ type Item = { href: string; label: string };
 const GROUPS: [string, string[]][] = [
   ["Run the day", ["/admin/orders", "/kitchen", "/pos"]],
   ["Menu & stock", ["/admin/menu", "/admin/inventory"]],
-  ["Customers", ["/admin/customers", "/admin/subscriptions", "/admin/coupons", "/admin/enquiries", "/admin/delivery-areas", "/admin/area-requests", "/admin/messages"]],
+  ["Customers", ["/admin/customers", "/admin/tickets", "/admin/subscriptions", "/admin/coupons", "/admin/enquiries", "/admin/delivery-areas", "/admin/area-requests", "/admin/messages"]],
   ["Business", ["/admin/reports", "/admin/invoices", "/admin/staff", "/admin/settings", "/admin/outlets"]],
 ];
 
@@ -22,6 +22,7 @@ const ICON: Record<string, string> = {
   "/admin/menu": "M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6",
   "/admin/inventory": "M3 8l9-5 9 5-9 5zM3 8v8l9 5 9-5V8M12 13v8",
   "/admin/subscriptions": "M4 6h16v14H4zM4 10h16M8 3v5M16 3v5M8 14h3M13 14h3M8 17h3",
+  "/admin/tickets": "M4 6h16v9H13l-4 4v-4H4zM8 10h8M8 13h5",
   "/admin/customers": "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0",
   "/admin/coupons": "M3 8V5h18v3a3 3 0 0 0 0 6v3H3v-3a3 3 0 0 0 0-6ZM10 8v8M14 8l-4 8",
   "/admin/enquiries": "M4 5h16v11H8l-4 4zM8 9h8M8 12h5",

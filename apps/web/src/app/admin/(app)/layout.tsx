@@ -21,6 +21,7 @@ function navFor(s: Staff) {
   if (can.manageStaff(s)) items.push({ href: "/admin/staff", label: "Staff" });
   if (can.reports(s)) items.push({ href: "/admin/customers", label: "Customers" });
   if (can.manageOrders(s)) items.push({ href: "/admin/subscriptions", label: "Subscriptions" });
+  if (can.manageOrders(s)) items.push({ href: "/admin/tickets", label: "Help desk" });
   if (can.manageMenu(s)) items.push({ href: "/admin/coupons", label: "Coupons" });
   if (can.manageSettings(s)) items.push({ href: "/admin/enquiries", label: "Enquiries" });
   if (can.manageSettings(s)) items.push({ href: "/admin/delivery-areas", label: "Delivery areas" });

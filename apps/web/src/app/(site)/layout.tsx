@@ -76,6 +76,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             <Link href="/#why" className="block hover:text-butter">Why Seiketsu</Link>
             <Link href="/#plans" className="block hover:text-butter">Plans &amp; enquiries</Link>
             <Link href="/delivery" className="block hover:text-butter">Delivery &amp; pickup</Link>
+            <Link href="/support" className="block hover:text-butter">Help &amp; support</Link>
             <Link href="/account" className="block hover:text-butter">{accountLabel}</Link>
           </nav>
           <div className="space-y-2 text-sm">

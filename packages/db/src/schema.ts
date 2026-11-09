@@ -815,3 +815,58 @@ export const invoices = pgTable(
   },
   (t) => [index("invoices_outlet_issued").on(t.outletId, t.issuedAt), index("invoices_subscription").on(t.subscriptionId)],
 ).enableRLS();
+
+// ── Help desk ──────────────────────────────────────────────────────
+
+export const ticketNumberSeq = pgSequence("ticket_number_seq", { startWith: 1001 });
+
+/** A customer's help request, from the contact page, an order, a subscription or their account. */
+export const tickets = pgTable(
+  "tickets",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    number: text("number")
+      .notNull()
+      .unique()
+      .default(sql`'T-' || nextval('ticket_number_seq')`),
+    /** random secret for the customer's thread link */
+    publicToken: text("public_token").notNull().unique(),
+    subject: text("subject").notNull(),
+    category: text("category").notNull(),
+    /** open | waiting | resolved | closed */
+    status: text("status").notNull().default("open"),
+    /** normal | high */
+    priority: text("priority").notNull().default("normal"),
+    source: text("source").notNull(),
+    name: text("name").notNull(),
+    phone: text("phone").notNull(),
+    email: text("email"),
+    customerId: uuid("customer_id").references(() => customers.id),
+    orderId: uuid("order_id").references(() => orders.id),
+    subscriptionId: uuid("subscription_id").references(() => subscriptions.id),
+    assigneeId: uuid("assignee_id").references(() => staffUsers.id),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }).notNull().defaultNow(),
+    firstResponseAt: timestamp("first_response_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("tickets_outlet_status").on(t.outletId, t.status, t.lastMessageAt), index("tickets_phone").on(t.phone)],
+).enableRLS();
+
+export const ticketMessages = pgTable(
+  "ticket_messages",
+  {
+    id: id(),
+    ticketId: uuid("ticket_id").notNull().references(() => tickets.id, { onDelete: "cascade" }),
+    /** customer | staff | system */
+    author: text("author").notNull(),
+    staffId: uuid("staff_id").references(() => staffUsers.id),
+    body: text("body").notNull(),
+    /** a note only staff can see */
+    internal: boolean("internal").notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [index("ticket_messages_ticket").on(t.ticketId, t.createdAt)],
+).enableRLS();

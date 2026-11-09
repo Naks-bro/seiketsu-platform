@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { connection } from "next/server";
 import { PolicyPage } from "@/components/site/policy-page";
 import { getStore } from "@/lib/server/catalog";
@@ -13,7 +14,7 @@ export default async function ContactPage() {
   const wa = whatsappLink(store.whatsapp);
   return (
     <PolicyPage title="Contact us">
-      <p>Questions about an order, a refund or our food? Reach us any of these ways.</p>
+      <p>Questions about an order, a refund or our food? The quickest way is to <Link href="/support">send us a help request</Link>; you get a page to follow our reply. Or reach us any of these ways.</p>
       <h2>Business</h2>
       <p>{businessLabel(store.name)}</p>
       <address className="not-italic">
