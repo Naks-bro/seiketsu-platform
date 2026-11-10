@@ -56,12 +56,16 @@ export function Visit({ store }: { store: StoreDTO }) {
 const REEL_URL = "https://www.instagram.com/sei_ketsu/reel/De9VjlEo1Ts/";
 
 export function FollowTheFresh({ instagram }: { instagram: string | null }) {
+  // The owner's studio shots on the brand backdrop, chosen from dishes the rest of the page doesn't show.
   const tiles = [
-    { src: "/landing/poster-bottles-salads.webp", alt: "Seiketsu poster of fresh-pressed juices and salads" },
-    { src: "/landing/cafe-standee.webp", alt: "The Seiketsu counter and menu standee" },
-    { src: "/menu/green-machine.webp", alt: "Green Machine, a Seiketsu fresh-pressed juice" },
-    { src: "/landing/cafe-menu-card.webp", alt: "The Seiketsu menu card: the art of clean eating" },
+    { src: "/menu/red-sauce-pasta-bowl.webp", alt: "Red Sauce Pasta Bowl" },
+    { src: "/menu/pomegranate-juice.webp", alt: "Pomegranate Juice" },
+    { src: "/menu/egg-akuri-on-sourdough.webp", alt: "Egg Akuri on Sourdough" },
+    { src: "/menu/cucumber-watermelon-salad-bowl.webp", alt: "Cucumber Watermelon Salad Bowl" },
+    { src: "/menu/classic-egg-sandwich.webp", alt: "Classic Egg Sandwich" },
+    { src: "/menu/paneer-chicken-quinoa-bowl.webp", alt: "Paneer / Chicken Quinoa Bowl" },
   ];
+
   return (
     <section className="-mb-24 bg-paper" aria-labelledby="follow-h">
       <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-6">
@@ -84,10 +88,10 @@ export function FollowTheFresh({ instagram }: { instagram: string | null }) {
             </a>
           </div>
         )}
-        <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <ul className="mx-auto mt-10 grid max-w-4xl grid-cols-3 gap-1.5 sm:gap-3">
           {tiles.map((t, i) => (
-            <li key={t.src} data-reveal style={{ "--d": `${i * 80}ms` } as React.CSSProperties} className="relative aspect-square overflow-hidden rounded-2xl bg-white">
-              <Image src={t.src} alt={t.alt} fill sizes="(min-width: 768px) 270px, 45vw" className="object-cover" />
+            <li key={t.src} data-reveal style={{ "--d": `${i * 80}ms` } as React.CSSProperties} className="relative aspect-square overflow-hidden rounded-lg bg-berry sm:rounded-2xl">
+              <Image src={t.src} alt={t.alt} fill sizes="(min-width: 896px) 290px, 33vw" className="object-cover" />
             </li>
           ))}
         </ul>
