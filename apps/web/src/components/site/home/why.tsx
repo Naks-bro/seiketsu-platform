@@ -7,8 +7,8 @@ import { useScene, useStoryMode } from "./scroll";
 const REASONS = [
   { title: "Hydroponically Grown Produce", body: "Vegetables grown through controlled hydroponic farming, bringing the freshness of modern agriculture closer to your plate.", img: "/landing/why-hydroponic.webp", alt: "Picking basil in the hydroponic greenhouse", tone: "bg-olive/20" },
   { title: "Thoughtful Ingredients", body: "A focus on selecting quality ingredients and bringing them together with care.", img: "/landing/why-ingredients.webp", alt: "Trays of freshly chopped peppers, tomatoes and cucumber", tone: "bg-butter" },
-  { title: "Freshly Prepared", body: "Meals prepared to order, with attention to freshness, flavour and consistency.", img: "/landing/why-prepared.webp", alt: "Fresh vegetables added to bowls by gloved hands", tone: "bg-pink/15" },
-  { title: "Nutrition Meets Flavour", body: "Wholesome food that makes eating better enjoyable, never restrictive.", img: "/menu/healthy-quinoa-salad-bowl.webp", alt: "Healthy Quinoa Salad Bowl", tone: "bg-orange/20" },
+  { title: "Freshly Prepared", body: "Meals prepared to order, with attention to freshness, flavour and consistency.", img: "/landing/why-broccoli.webp", alt: "Fresh broccoli being trimmed by gloved hands in the kitchen", tone: "bg-pink/15" },
+  { title: "Nutrition Meets Flavour", body: "Wholesome food that makes eating better enjoyable, never restrictive.", img: "/landing/why-prepared.webp", alt: "Fresh vegetables added to bowls by gloved hands", tone: "bg-orange/20" },
   { title: "Everyday Convenience", body: "Fresh food choices that fit into your routine, wherever your day takes you.", img: "/menu/tandoori-wrap-paneer-chicken.webp", alt: "Tandoori Wrap", tone: "bg-berry/10" },
   { title: "Variety for Every Craving", body: "From vibrant salads to satisfying wraps and refreshing smoothies, there’s something for every appetite.", img: "/landing/poster-bottles-salads.webp", alt: "Seiketsu wraps, pasta, toast and fresh-pressed juices", tone: "bg-olive/15" },
 ];
