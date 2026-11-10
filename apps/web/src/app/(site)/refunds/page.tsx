@@ -5,7 +5,7 @@ import { PolicyPage } from "@/components/site/policy-page";
 import { getStore } from "@/lib/server/catalog";
 import { businessLabel } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Refunds & cancellations" };
+export const metadata: Metadata = { title: "Refunds & cancellations", alternates: { canonical: "/refunds" } };
 
 export default async function RefundsPage() {
   await connection();

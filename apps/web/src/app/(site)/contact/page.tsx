@@ -6,7 +6,7 @@ import { getStore } from "@/lib/server/catalog";
 import { whatsappLink } from "@/lib/format";
 import { LEGAL, businessLabel } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Contact us" };
+export const metadata: Metadata = { title: "Contact us", alternates: { canonical: "/contact" } };
 
 export default async function ContactPage() {
   await connection();

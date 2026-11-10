@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getMenu, getStore } from "@/lib/server/catalog";
 import { listPlans } from "@/lib/server/subscriptions";
@@ -11,6 +12,8 @@ import { HowWeMakeIt } from "@/components/site/home/how";
 import { SeiketsuPromise } from "@/components/site/home/promise";
 import { Plans } from "@/components/site/home/plans";
 import { FollowTheFresh, Visit } from "@/components/site/home/visit";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage() {
   await connection();

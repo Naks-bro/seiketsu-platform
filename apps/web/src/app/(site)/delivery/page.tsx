@@ -5,7 +5,7 @@ import { PolicyPage } from "@/components/site/policy-page";
 import { getStore } from "@/lib/server/catalog";
 import { formatINR } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Delivery & pickup" };
+export const metadata: Metadata = { title: "Delivery & pickup", alternates: { canonical: "/delivery" } };
 
 export default async function DeliveryPage() {
   await connection();

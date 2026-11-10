@@ -5,7 +5,7 @@ import { PolicyPage } from "@/components/site/policy-page";
 import { getStore } from "@/lib/server/catalog";
 import { businessLabel } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Privacy policy" };
+export const metadata: Metadata = { title: "Privacy policy", alternates: { canonical: "/privacy" } };
 
 export default async function PrivacyPage() {
   await connection();

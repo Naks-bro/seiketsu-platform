@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getMenu, getStore } from "@/lib/server/catalog";
 import { MenuBrowser } from "@/components/site/menu/menu-browser";
+import { env } from "@/lib/server/env";
+import { ldJson, menuJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Menu",
   description: "Salads, wraps, meals, sandwiches, pasta, juices and smoothies with nutrition for every option.",
+  alternates: { canonical: "/menu" },
 };
 
 export default async function MenuPage() {
@@ -24,6 +27,7 @@ export default async function MenuPage() {
           Tap ADD to drop a dish in your cart. Bowls and salads open so you can pick a size and stack extras. Nutrition is listed for every option.
         </p>
       </header>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(menuJsonLd(menu, env.siteUrl)) }} />
       <MenuBrowser menu={menu} canOrder={canOrder} whatsapp={store.whatsapp} />
     </div>
   );

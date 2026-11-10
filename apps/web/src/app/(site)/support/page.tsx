@@ -8,7 +8,7 @@ import { getSubscriptionByToken } from "@/lib/server/subscriptions";
 import { whatsappLink } from "@/lib/format";
 import { SupportForm } from "./support-form";
 
-export const metadata: Metadata = { title: "Help & support" };
+export const metadata: Metadata = { title: "Help & support", alternates: { canonical: "/support" } };
 
 const safe = (v: string | undefined) => (v && /^[\w-]{10,100}$/.test(v) ? v : null);
 

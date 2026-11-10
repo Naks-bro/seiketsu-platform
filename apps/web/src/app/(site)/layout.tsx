@@ -12,6 +12,8 @@ import { LocationPill, LocationSheet } from "@/components/site/location-picker";
 import { DesktopNav, HeaderShell, MobileNav, RevealOnScroll } from "@/components/site/site-nav";
 import { Toaster } from "@/components/site/toast";
 import { POLICY_LINKS } from "@/components/site/policy-page";
+import { env } from "@/lib/server/env";
+import { ldJson, restaurantJsonLd } from "@/lib/seo";
 
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -48,6 +50,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         </div>
       </HeaderShell>
 
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(restaurantJsonLd(store, env.siteUrl)) }} />
       <main id="main" tabIndex={-1} className="overflow-x-clip outline-none">{children}</main>
       <CartDrawer
         pickupFrom={PICKUP_FROM}

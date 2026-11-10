@@ -5,7 +5,7 @@ import { PolicyPage } from "@/components/site/policy-page";
 import { getStore } from "@/lib/server/catalog";
 import { businessLabel } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Terms & conditions" };
+export const metadata: Metadata = { title: "Terms & conditions", alternates: { canonical: "/terms" } };
 
 export default async function TermsPage() {
   await connection();

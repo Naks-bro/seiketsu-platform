@@ -9,7 +9,17 @@ import { getActivePlanBySlug } from "@/lib/server/subscriptions";
 import { formatINR } from "@/lib/format";
 import { SubscribeForm } from "./subscribe-form";
 
-export const metadata: Metadata = { title: "Subscribe" };
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const store = await getStore();
+  const plan = await getActivePlanBySlug(store.outletId, slug);
+  if (!plan) return { title: "Subscribe" };
+  return {
+    title: `${plan.name} subscription`,
+    description: plan.tagline ?? plan.description ?? undefined,
+    alternates: { canonical: `/subscribe/${plan.slug}` },
+  };
+}
 
 export default async function SubscribePage({ params }: { params: Promise<{ slug: string }> }) {
   await connection();

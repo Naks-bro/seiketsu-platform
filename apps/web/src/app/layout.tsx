@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   title: { default: "Seiketsu | The art of clean eating", template: "%s | Seiketsu" },
   description:
     "Good food, thoughtful ingredients, feel-good living. Discover a fresh selection of salads, wraps, nourishing bowls, fresh-pressed juices and smoothies, crafted to bring together great taste and everyday nutrition.",
-  openGraph: { siteName: "Seiketsu", locale: "en_IN", type: "website" },
+  openGraph: { siteName: "Seiketsu", locale: "en_IN", type: "website", images: [{ url: "/landing/hero-poster.webp", alt: "Seiketsu" }] },
+  twitter: { card: "summary_large_image" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = { themeColor: "#a51c47" };
