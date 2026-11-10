@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { daysLabel } from "@seiketsu/core/subscriptions";
 import { formatINR } from "@/lib/format";
@@ -65,8 +66,14 @@ export function Subscriptions({ plans }: { plans: PlanCard[] }) {
   return (
     <section id="subscriptions" className="relative scroll-mt-20 overflow-hidden bg-berry text-cream" aria-labelledby="subs-h">
       <div aria-hidden className="pointer-events-none absolute -left-40 top-1/2 size-[36rem] -translate-y-1/2 rounded-full bg-pink/20 blur-[120px]" />
-      <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
-        <div className="lg:sticky lg:top-28 lg:self-start">
+      {plans.length === 0 && (
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 hidden w-[44%] lg:block">
+          <Image src="/cut/mediterranean-salad-bowl.webp" alt="" width={797} height={811} sizes="440px" className="absolute -right-16 top-1/2 h-auto w-[min(34vw,440px)] -translate-y-1/2 rotate-6 drop-shadow-2xl" />
+          <Image src="/landing/juice-bottle-cut.webp" alt="" width={351} height={938} sizes="120px" className="absolute bottom-[-12%] left-[24%] h-auto w-[min(9vw,120px)] -rotate-12 drop-shadow-2xl" />
+        </div>
+      )}
+      <div className={`relative mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:gap-14 ${plans.length ? "lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]" : ""}`}>
+        <div className={plans.length ? "lg:sticky lg:top-28 lg:self-start" : "max-w-2xl"}>
           <p className="text-sm font-semibold text-butter">Seiketsu subscriptions</p>
           <h2 id="subs-h" data-reveal className="mt-3 font-display text-5xl leading-[1.02] sm:text-6xl">
             Make Eating Well a <em className="italic text-butter">Daily Habit.</em>
