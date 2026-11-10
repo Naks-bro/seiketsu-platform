@@ -94,9 +94,12 @@ export function RevealOnScroll() {
       },
       { rootMargin: "0px 0px -8% 0px" },
     );
+    // Tracked per run, not on the element: a mark left on the page would make a restarted run skip it forever.
+    const seen = new WeakSet<Element>();
     const watch = () => {
-      for (const el of document.querySelectorAll<HTMLElement>("[data-reveal]:not(.is-in):not([data-watched])")) {
-        el.dataset.watched = "";
+      for (const el of document.querySelectorAll<HTMLElement>("[data-reveal]:not(.is-in)")) {
+        if (seen.has(el)) continue;
+        seen.add(el);
         if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("is-in");
         else io.observe(el);
       }

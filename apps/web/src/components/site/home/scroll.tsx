@@ -47,7 +47,7 @@ export function usePlayOnSeen<T extends HTMLElement>(steps: number, beat = 380) 
         };
         timer = window.setTimeout(tick, 150);
       },
-      { rootMargin: "0px 0px -25% 0px" },
+      { rootMargin: "0px 0px -15% 0px" },
     );
     io.observe(el);
     return () => {

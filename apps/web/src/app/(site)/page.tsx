@@ -28,7 +28,7 @@ export default async function HomePage() {
   return (
     <>
       <div aria-hidden className="scroll-progress pointer-events-none fixed inset-x-0 top-0 z-50 h-[3px] bg-butter" />
-      <Hero store={store} />
+      <Hero />
       <Marquee />
       <Lifestyle />
       <WhySeiketsu />

@@ -24,7 +24,7 @@ export function SeiketsuPromise() {
     <section ref={ref} className="relative bg-butter" style={story ? { height: "300svh" } : undefined} aria-labelledby="promise-h">
       <div className={story ? "sticky top-16 flex h-[calc(100svh-4rem)] flex-col justify-center overflow-hidden" : ""}>
         <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:py-8">
-          <div className="grid gap-10 md:grid-cols-2 md:gap-14">
+          <div ref={playRef} className="grid gap-10 md:grid-cols-2 md:gap-14">
             <div className="space-y-5">
               <p className="text-sm font-semibold text-olive-ink">The Seiketsu promise</p>
               <h2 id="promise-h" className="font-display text-4xl leading-[1.04] text-ink sm:text-5xl">
@@ -65,7 +65,7 @@ export function SeiketsuPromise() {
               )}
             </div>
 
-            <div ref={playRef} className="space-y-6">
+            <div className="space-y-6">
               <div>
                 <p className="text-sm font-semibold text-ink/60">It’s not about</p>
                 <ul className="mt-1">

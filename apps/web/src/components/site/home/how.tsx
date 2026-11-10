@@ -38,7 +38,7 @@ const STEPS: { n: string; title: string; body: string; main: Dish; side: Dish }[
 ];
 
 /** The same two boxes for every step: a large dish at the right edge and a smaller one below it. */
-const MAIN_BOX = "-right-[4%] top-[18%] size-[min(38vw,62svh,500px)] max-md:-right-[12%] max-md:top-[29%] max-md:size-[64vw]";
+const MAIN_BOX = "-right-[4%] top-[18%] size-[min(38vw,62svh,500px)] max-md:right-auto max-md:left-[19vw] max-md:top-[29%] max-md:size-[62vw]";
 const SIDE_BOX = "right-[30%] bottom-[4%] size-[min(17vw,28svh,230px)] max-md:hidden";
 
 function Art({ dish, sizes }: { dish: Dish; sizes: string }) {

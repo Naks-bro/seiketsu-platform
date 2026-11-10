@@ -1,15 +1,11 @@
 import Link from "next/link";
-import type { StoreDTO } from "@/lib/types";
-import { formatHours, istDayIndex } from "@seiketsu/core/store-hours";
 import { HeroVideo } from "./client";
 import { ScrollOut } from "./scroll";
 import { LANDING_ONLY } from "@/lib/site-mode";
 
 const REEL_URL = "https://www.instagram.com/sei_ketsu/reel/De9VjlEo1Ts/";
 
-export function Hero({ store }: { store: StoreDTO }) {
-  const today = store.hours?.[istDayIndex(new Date())] ?? null;
-  const status = store.isOpenNow ? `Open now${today ? ` · ${formatHours(today)}` : ""}` : store.hours ? "Closed right now" : "Opening soon";
+export function Hero() {
   return (
     <section className="relative overflow-hidden bg-berry text-cream">
       <ScrollOut />
@@ -17,10 +13,6 @@ export function Hero({ store }: { store: StoreDTO }) {
       <div aria-hidden className="pointer-events-none absolute -right-40 top-1/2 size-[44rem] -translate-y-1/2 rounded-full bg-pink/25 blur-[120px]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:px-6 md:min-h-[calc(100svh-4rem)] md:grid-cols-[1.05fr_0.95fr] md:gap-16 md:py-14">
         <div className="space-y-6" style={{ transform: "translate3d(0, calc(var(--h, 0) * 90px), 0)", opacity: "calc(1 - var(--h, 0) * 0.9)" }}>
-          <p className="flex items-center gap-2 text-sm text-cream/75">
-            {store.isOpenNow && <span aria-hidden className="size-2 rounded-full bg-[#7bd389]" />}
-            {status}
-          </p>
           <h1 className="max-w-[11ch] font-display text-[clamp(3.1rem,6.6vw,6.5rem)] font-medium leading-[0.95] tracking-[-0.025em]">
             The art of clean eating.
           </h1>
