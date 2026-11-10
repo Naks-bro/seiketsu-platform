@@ -1,10 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import { useScene, useStoryMode } from "./scroll";
 
 const NOT = ["Restrictive diets", "Following food trends"];
 const IS = ["Making thoughtful choices", "Enjoying what you eat", "Finding a balance that works for your lifestyle"];
 const STEPS = 7;
+/** Owner photos that arrive with the three ideas, fanned like prints on a table. */
+const PRINTS = [
+  { src: "/landing/promise-juices.webp", alt: "Seiketsu fresh-pressed juices", turn: -8, x: "0%" },
+  { src: "/landing/promise-sandwiches.webp", alt: "Sandwiches from the Seiketsu kitchen", turn: 4, x: "38%" },
+  { src: "/landing/promise-wrap.webp", alt: "A Seiketsu wrap with salsa", turn: -3, x: "76%" },
+];
 
 /** "The Seiketsu promise". On wide screens it pins: the old ideas get struck out, then the three arrive one by one. */
 export function SeiketsuPromise() {
@@ -25,6 +32,32 @@ export function SeiketsuPromise() {
                 <em className="italic text-berry">A Better Food Habit.</em>
               </h2>
               <p className="max-w-md text-lg text-ink/75">We don’t believe eating well should feel like a compromise.</p>
+              {story ? (
+                <div className="relative h-56 max-w-md lg:h-64">
+                  {PRINTS.map((x, i) => (
+                    <div
+                      key={x.src}
+                      className="absolute top-0 aspect-[4/5] h-full overflow-hidden rounded-2xl border-4 border-white shadow-[var(--shadow-card)] transition-[transform,opacity] duration-700 ease-out"
+                      style={{
+                        left: x.x,
+                        transform: at(3 + i) ? `translateX(-${i * 18}%) rotate(${x.turn}deg)` : `translateY(40%) rotate(${x.turn * 3}deg)`,
+                        opacity: at(3 + i) ? 1 : 0,
+                        zIndex: i,
+                      }}
+                    >
+                      <Image src={x.src} alt={x.alt} fill sizes="220px" className="object-cover" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ul className="grid max-w-md grid-cols-3 gap-2.5 pt-2">
+                  {PRINTS.map((x) => (
+                    <li key={x.src} className="relative aspect-[4/5] overflow-hidden rounded-xl border-[3px] border-white shadow-[var(--shadow-card)]" style={{ rotate: `${x.turn / 2}deg` }}>
+                      <Image src={x.src} alt={x.alt} fill sizes="(min-width: 640px) 150px, 30vw" className="object-cover" />
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div className="space-y-6">
