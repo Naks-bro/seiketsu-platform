@@ -54,8 +54,8 @@
 /* Scroll reveal: elements start hidden only once JS has marked the page. */
 .js [data-reveal] {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.8s var(--ease-out-quint), transform 0.8s var(--ease-out-quint);
+  transform: translateY(28px);
+  transition: opacity 1s var(--ease-out-quint), transform 1.1s var(--ease-out-quint);
   transition-delay: var(--d, 0ms);
 }
 .js .draw-path {
@@ -113,6 +113,19 @@ h1, h2, h3 {
 /* Field edges at readable contrast; the focused field keeps its own colour. */
 :where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="hidden"]), textarea, select):not(:focus) {
   border-color: var(--color-field);
+}
+
+/* Micro-interactions: pill buttons press, cards lift, the hero assembles on load, in-page links glide. */
+@keyframes rise { from { opacity: 0; transform: translateY(22px); } }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  :where(a.rounded-full, button.rounded-full) {
+    transition: transform 0.2s var(--ease-out-quint), background-color 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+  :where(a.rounded-full, button.rounded-full):active { transform: scale(0.96); }
+  .rise { animation: rise 1s var(--ease-out-quint) both; animation-delay: var(--d, 0ms); }
+  .lift, .js [data-reveal].lift.is-in { transition: opacity 1s var(--ease-out-quint), transform 0.5s var(--ease-out-quint), box-shadow 0.5s var(--ease-out-quint); }
+  .lift:hover, .js [data-reveal].lift.is-in:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
 }
 
 @media (prefers-reduced-motion: reduce) {

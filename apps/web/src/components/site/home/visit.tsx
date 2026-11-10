@@ -90,7 +90,7 @@ export function FollowTheFresh({ instagram }: { instagram: string | null }) {
         )}
         <ul className="mx-auto mt-10 grid max-w-4xl grid-cols-3 gap-1.5 sm:gap-3">
           {tiles.map((t, i) => (
-            <li key={t.src} data-reveal style={{ "--d": `${i * 80}ms` } as React.CSSProperties} className="relative aspect-square overflow-hidden rounded-lg bg-berry sm:rounded-2xl">
+            <li key={t.src} data-reveal style={{ "--d": `${i * 80}ms` } as React.CSSProperties} className="lift relative aspect-square overflow-hidden rounded-lg bg-berry sm:rounded-2xl">
               <Image src={t.src} alt={t.alt} fill sizes="(min-width: 896px) 290px, 33vw" className="object-cover" />
             </li>
           ))}

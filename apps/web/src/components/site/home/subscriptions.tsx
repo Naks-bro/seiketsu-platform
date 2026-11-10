@@ -12,7 +12,7 @@ const cta = "block rounded-full py-3.5 text-center font-semibold transition";
 function PlanItem({ p }: { p: PlanCard }) {
   const perMeal = p.mealsTotal > 0 ? Math.round(p.pricePaise / p.mealsTotal) : null;
   return (
-    <li data-reveal="zoom" className="flex flex-col rounded-[1.75rem] bg-cream p-6 text-ink shadow-[var(--shadow-card)] sm:p-7">
+    <li data-reveal="zoom" className="lift flex flex-col rounded-[1.75rem] bg-cream p-6 text-ink shadow-[var(--shadow-card)] sm:p-7">
       <h3 className="font-display text-2xl leading-tight text-berry">{p.name}</h3>
       {p.tagline && <p className="mt-1 text-sm text-ink/70">{p.tagline}</p>}
 

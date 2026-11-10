@@ -13,11 +13,11 @@ export function Hero() {
       <div aria-hidden className="pointer-events-none absolute -right-40 top-1/2 size-[44rem] -translate-y-1/2 rounded-full bg-pink/25 blur-[120px]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:px-6 md:min-h-[calc(100svh-4rem)] md:grid-cols-[1.05fr_0.95fr] md:gap-16 md:py-14">
         <div className="space-y-6" style={{ transform: "translate3d(0, calc(var(--h, 0) * 90px), 0)", opacity: "calc(1 - var(--h, 0) * 0.9)" }}>
-          <h1 className="max-w-[11ch] font-display text-[clamp(3.1rem,6.6vw,6.5rem)] font-medium leading-[0.95] tracking-[-0.025em]">
+          <h1 className="rise max-w-[11ch] font-display text-[clamp(3.1rem,6.6vw,6.5rem)] font-medium leading-[0.95] tracking-[-0.025em]">
             The art of clean eating.
           </h1>
-          <p className="font-display text-2xl italic text-butter sm:text-3xl">Eat Better. Feel Better. Live Better.</p>
-          <div className="max-w-[46ch] space-y-3 leading-relaxed text-cream/85">
+          <p className="rise font-display text-2xl italic text-butter sm:text-3xl" style={{ "--d": "120ms" } as React.CSSProperties}>Eat Better. Feel Better. Live Better.</p>
+          <div className="rise max-w-[46ch] space-y-3 leading-relaxed text-cream/85" style={{ "--d": "240ms" } as React.CSSProperties}>
             <p className="text-lg">
               Bringing together hydroponically grown greens and vegetables, fresh ingredients and thoughtfully crafted recipes, Seiketsu
               makes eating well an experience to look forward to.
@@ -26,7 +26,7 @@ export function Hero() {
               From wholesome salads and wraps to nourishing bowls, fresh-pressed juices and smoothies, discover a better way to eat every day.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3 pt-2">
+          <div className="rise flex flex-wrap gap-3 pt-2" style={{ "--d": "360ms" } as React.CSSProperties}>
             <Link href="/#explore" className="rounded-full bg-cream px-8 py-4 font-semibold text-berry shadow-[0_12px_30px_-12px_rgb(0_0_0/0.5)] transition hover:-translate-y-0.5 hover:bg-butter">
               Explore our menu
             </Link>
@@ -40,7 +40,7 @@ export function Hero() {
           className="mx-auto w-full max-w-sm md:max-w-[min(100%,calc((100svh-10rem)*0.8))]"
           style={{ transform: "translate3d(0, calc(var(--h, 0) * -60px), 0) scale(calc(1 - var(--h, 0) * 0.08)) rotate(calc(var(--h, 0) * -2deg))" }}
         >
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-berry-deep shadow-[0_40px_90px_-35px_rgb(0_0_0/0.7)] ring-1 ring-cream/15">
+          <div className="rise relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-berry-deep shadow-[0_40px_90px_-35px_rgb(0_0_0/0.7)] ring-1 ring-cream/15">
             <HeroVideo src="/landing/hero.mp4" poster="/landing/hero-poster.webp" label="Seiketsu reel: sandwiches, wraps and bowls, the art of clean eating" />
           </div>
           <figcaption className="mt-3 flex items-center justify-between text-xs text-cream/65">

@@ -19,7 +19,7 @@ export const viewport: Viewport = { themeColor: "#a51c47" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${fraunces.variable} ${figtree.variable} antialiased`}>
+    <html lang="en-IN" data-scroll-behavior="smooth" className={`${fraunces.variable} ${figtree.variable} antialiased`}>
       <body className="min-h-dvh">{children}</body>
     </html>
   );
