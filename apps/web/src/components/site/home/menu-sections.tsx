@@ -83,35 +83,35 @@ export function Favourites({ items }: { items: MenuItemDTO[] }) {
           </h2>
           {!LANDING_ONLY && <Link href="/menu" className="font-semibold text-berry hover:underline">View full menu</Link>}
         </div>
-        <ul className="no-scrollbar relative -mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0">
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {items.map((i) => {
             const kcal = i.variants.map((v) => v.nutrition?.kcal).filter((n): n is number => n != null);
             const protein = i.variants.map((v) => v.nutrition?.proteinG).filter((n): n is number => n != null);
             return (
-              <li key={i.id} className="flex w-72 shrink-0 snap-start flex-col overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-[var(--shadow-card)] lg:w-auto">
-                <div className="relative aspect-[4/3] overflow-hidden bg-berry">
+              <li key={i.id} className="flex min-w-0 flex-col overflow-hidden rounded-[1.25rem] border border-line bg-white shadow-[var(--shadow-card)] sm:rounded-[1.75rem]">
+                <div className="relative aspect-square overflow-hidden bg-berry sm:aspect-[4/3]">
                   {i.imageUrl ? (
-                    <Image src={i.imageUrl} alt={i.name} fill sizes="(min-width: 1024px) 270px, 288px" className="object-cover" />
+                    <Image src={i.imageUrl} alt={i.name} fill sizes="(min-width: 1024px) 270px, 50vw" className="object-cover" />
                   ) : (
                     <div className="grid h-full place-items-center bg-paper"><DishArt category={i.categorySlug} seed={i.name} size="lg" /></div>
                   )}
                 </div>
-                <div className="flex flex-1 flex-col p-6 pt-5">
+                <div className="flex flex-1 flex-col p-3.5 sm:p-6 sm:pt-5">
                 <div className="flex items-center gap-1.5">
                   {[...itemDiets(i)].map((d) => <DietMark key={d} diet={d} />)}
                   {i.isBestseller && <span className="ml-1 text-[11px] font-semibold text-[#a3520f]">★ Bestseller</span>}
                 </div>
                 {LANDING_ONLY ? (
-                  <h3 className="mt-3 font-display text-2xl leading-tight text-ink">{i.name}</h3>
+                  <h3 className="mt-2 font-display text-lg leading-tight text-ink sm:mt-3 sm:text-2xl">{i.name}</h3>
                 ) : (
-                  <Link href={`/menu#${i.slug}`} className="mt-3 font-display text-2xl leading-tight text-ink hover:text-berry">{i.name}</Link>
+                  <Link href={`/menu#${i.slug}`} className="mt-2 font-display text-lg leading-tight text-ink hover:text-berry sm:mt-3 sm:text-2xl">{i.name}</Link>
                 )}
-                {i.description && <p className="mt-2 line-clamp-3 text-sm text-muted">{i.description}</p>}
+                {i.description && <p className="mt-2 line-clamp-3 hidden text-sm text-muted sm:block">{i.description}</p>}
                 <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
                   {kcal.length > 0 && <span className="tabular rounded-full bg-olive/10 px-2 py-0.5 font-medium text-olive-ink">{Math.min(...kcal)}{Math.max(...kcal) !== Math.min(...kcal) ? `–${Math.max(...kcal)}` : ""} kcal</span>}
                   {protein.length > 0 && <span className="tabular rounded-full bg-pink/10 px-2 py-0.5 font-medium text-berry">{Math.max(...protein)}g protein</span>}
                 </div>
-                <div className="mt-auto flex items-center justify-between pt-6">
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-4 sm:pt-6">
                   <span className="tabular font-semibold">
                     {new Set(i.variants.map((v) => v.pricePaise)).size > 1 && <span className="text-xs font-normal text-muted">from </span>}
                     {formatINR(fromPrice(i.variants.map((v) => v.pricePaise)))}

@@ -79,7 +79,7 @@ export function Lifestyle() {
 
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-[0.75fr_1.25fr]">
             <div className="min-w-0">
-              <div role="tablist" aria-label="Choose what fits you" aria-orientation="vertical" onKeyDown={onKey} className="no-scrollbar relative -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-col md:gap-0 md:overflow-visible md:border-t md:border-ink/15 md:px-0">
+              <div role="tablist" aria-label="Choose what fits you" aria-orientation="vertical" onKeyDown={onKey} className="relative flex flex-wrap gap-2 md:mx-0 md:flex-col md:gap-0 md:overflow-visible md:border-t md:border-ink/15 md:px-0">
                 {PEOPLE.map((x, i) => {
                   const on = i === active;
                   return (

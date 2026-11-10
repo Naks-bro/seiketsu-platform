@@ -48,19 +48,15 @@ export function CategoryRail({ cats, active }: { cats: CategoryDTO[]; active: st
 }
 
 export function CategoryChips({ cats, active }: { cats: CategoryDTO[]; active: string }) {
-  const bar = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    bar.current?.querySelector<HTMLElement>(`[data-slug="${active}"]`)?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
-  }, [active]);
   return (
-    <div ref={bar} className="no-scrollbar relative -mx-4 flex gap-1.5 overflow-x-auto px-4 md:hidden">
+    <div className="flex flex-wrap gap-1.5 md:hidden">
       {cats.map((c) => (
         <a
           key={c.id}
           href={`#${c.slug}`}
           data-slug={c.slug}
           aria-current={active === c.slug ? "true" : undefined}
-          className={`flex min-h-9 shrink-0 items-center rounded-full border px-3.5 text-sm font-medium transition ${
+          className={`flex min-h-9 items-center rounded-full border px-3 text-sm font-medium transition ${
             active === c.slug ? "border-berry bg-berry text-cream" : "border-line bg-white text-muted"
           }`}
         >
