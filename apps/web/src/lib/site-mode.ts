@@ -7,4 +7,6 @@ export const LANDING_ONLY = process.env.NEXT_PUBLIC_SITE_MODE === "landing";
 /** Customer pages that are switched off in landing-only mode. Admin, kitchen, POS, APIs, bills and policies stay. */
 export const ORDERING_PATHS = ["/menu", "/checkout", "/account", "/subscribe", "/subscription", "/support", "/order", "/coming-soon"];
 
-export const isOrderingPath = (path: string) => ORDERING_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
+/** Files are never pages: the dish photos live under /menu/*.webp and must keep loading. */
+export const isOrderingPath = (path: string) =>
+  !/\.[a-z0-9]+$/i.test(path) && ORDERING_PATHS.some((p) => path === p || path.startsWith(`${p}/`));

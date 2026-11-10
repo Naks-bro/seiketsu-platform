@@ -38,6 +38,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // A second local preview can build into its own folder (NEXT_DIST_DIR=.next-full) so two dev servers can run side by side.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   reactCompiler: true,
   transpilePackages: ["@seiketsu/core", "@seiketsu/db"],
   serverExternalPackages: ["@electric-sql/pglite", "razorpay", "postgres"],

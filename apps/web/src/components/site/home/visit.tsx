@@ -60,9 +60,10 @@ export function FollowTheFresh({ instagram }: { instagram: string | null }) {
     { src: "/landing/poster-bottles-salads.webp", alt: "Seiketsu poster of fresh-pressed juices and salads" },
     { src: "/landing/cafe-standee.webp", alt: "The Seiketsu counter and menu standee" },
     { src: "/landing/poster-food-bottles.webp", alt: "Seiketsu poster of bowls, wraps and juices" },
+    { src: "/landing/cafe-menu-card.webp", alt: "The Seiketsu menu card: the art of clean eating" },
   ];
   return (
-    <section className="bg-paper" aria-labelledby="follow-h">
+    <section className="-mb-24 bg-paper" aria-labelledby="follow-h">
       <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-6">
         <h2 id="follow-h" data-reveal className="font-display text-5xl uppercase leading-none text-berry sm:text-7xl">Follow the fresh</h2>
         {instagram && (
@@ -85,17 +86,12 @@ export function FollowTheFresh({ instagram }: { instagram: string | null }) {
         )}
         <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
           {tiles.map((t, i) => (
-            <li key={t.src} data-reveal style={{ "--d": `${i * 80}ms` } as React.CSSProperties} className={`relative aspect-square overflow-hidden rounded-2xl bg-white ${i % 2 ? "md:translate-y-6" : ""}`}>
+            <li key={t.src} data-reveal style={{ "--d": `${i * 80}ms` } as React.CSSProperties} className="relative aspect-square overflow-hidden rounded-2xl bg-white">
               <Image src={t.src} alt={t.alt} fill sizes="(min-width: 768px) 270px, 45vw" className="object-cover" />
             </li>
           ))}
-          <li className="grid aspect-square place-items-center rounded-2xl border-2 border-dashed border-berry/30 p-6 md:translate-y-6">
-            <p className="font-display text-xl text-berry">
-              Your bowl here.
-              <span className="mt-1 block font-sans text-sm text-muted">Tag {instagram ? `@${instagram}` : "us"} to be featured.</span>
-            </p>
-          </li>
         </ul>
+        <p className="mt-6 text-sm text-muted">Tag {instagram ? `@${instagram}` : "us"} to be featured.</p>
       </div>
     </section>
   );

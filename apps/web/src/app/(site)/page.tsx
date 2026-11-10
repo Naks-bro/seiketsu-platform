@@ -22,7 +22,8 @@ export default async function HomePage() {
   const all = menu.flatMap((c) => c.items);
   const flagged = all.filter((i) => i.isBestseller || i.isFeatured);
   // Until the owner flags favourites, show the first dish of each section.
-  const favourites = (flagged.length >= 3 ? flagged : menu.map((c) => c.items[0]).filter(Boolean)).slice(0, 8);
+  const picks = flagged.length >= 3 ? flagged : menu.flatMap((c) => c.items.filter((i) => i.imageUrl).slice(0, 2));
+  const favourites = [...picks].sort((a, b) => Number(!!b.imageUrl) - Number(!!a.imageUrl)).slice(0, 8);
 
   return (
     <>

@@ -11,7 +11,7 @@ const PEOPLE = [
     title: "Eat Well, Even on Your Busiest Days.",
     body: "Fresh, convenient and satisfying meals that fit into your workday without compromising on what you eat.",
     wants: ["Make better everyday food choices", "Find convenient meal options", "Enjoy something fresh between meetings"],
-    img: "/art/grilled_wrap.webp",
+    img: "/menu/grilled-chicken-hummus-wrap.webp",
     tone: "bg-butter",
   },
   {
@@ -19,7 +19,7 @@ const PEOPLE = [
     title: "Fuel Your Day with Better Choices.",
     body: "Thoughtfully prepared meals and refreshing blends that complement an active lifestyle.",
     wants: ["Add more nutrients to your diet", "Explore balanced meal options", "Find satisfying post-workout meals"],
-    img: "/landing/juice-bottle-cut.webp",
+    img: "/menu/herbed-paneer-chicken-protein-salad-bowl.webp",
     tone: "bg-orange/20",
   },
   {
@@ -27,7 +27,7 @@ const PEOPLE = [
     title: "Make Everyday Nutrition Enjoyable.",
     body: "Fresh ingredients and wholesome combinations that make eating well feel less like a routine and more like a lifestyle.",
     wants: ["Eat more fresh vegetables", "Make mindful food choices", "Enjoy variety without compromising on flavour"],
-    img: "/art/green_pasta_bowl.webp",
+    img: "/menu/green-machine.webp",
     tone: "bg-olive/20",
   },
   {
@@ -35,7 +35,7 @@ const PEOPLE = [
     title: "Fresh Food. Full of Flavour.",
     body: "Discover exciting combinations, delicious ingredients and meals that make you look forward to eating well.",
     wants: ["Explore new flavours", "Enjoy fresh and wholesome meals", "Find something delicious for every craving"],
-    img: "/art/sandwich_on_plate.webp",
+    img: "/menu/tandoori-grill.webp",
     tone: "bg-pink/15",
   },
 ];
@@ -138,16 +138,16 @@ export function Lifestyle() {
                   </ul>
                 </div>
               </div>
-              <div aria-hidden className="relative mt-6 h-44 sm:mt-0 sm:h-auto">
+              <div aria-hidden className="relative mx-auto mt-6 aspect-square w-48 overflow-hidden rounded-[1.75rem] bg-berry shadow-[var(--shadow-lift)] sm:mt-0 sm:w-full sm:max-w-60 sm:self-center">
                 {PEOPLE.map((x, i) => (
                   <Image
                     key={x.img}
                     src={x.img}
                     alt=""
                     fill
-                    sizes="(min-width: 768px) 260px, 60vw"
-                    className={`object-contain mix-blend-multiply transition duration-700 ease-out ${
-                      i === active ? "translate-x-0 rotate-0 opacity-100" : i < active ? "-translate-y-10 -rotate-12 opacity-0" : "translate-y-16 rotate-12 opacity-0"
+                    sizes="(min-width: 768px) 240px, 192px"
+                    className={`object-cover transition duration-700 ease-out ${
+                      i === active ? "scale-100 opacity-100" : i < active ? "scale-105 opacity-0" : "scale-95 opacity-0"
                     }`}
                   />
                 ))}
