@@ -52,8 +52,8 @@ export function Plans() {
             Looking to eat better, order regularly or explore Seiketsu for your workplace? Tell us a little about what you’re looking for,
             and we’ll help you get started.
           </p>
-          <div className="relative hidden aspect-[4/3] max-w-sm overflow-hidden rounded-[2rem] shadow-[var(--shadow-lift)] md:block">
-            <Image src="/landing/cafe-standee.webp" alt="The Seiketsu counter with our menu standee" fill sizes="384px" className="object-cover" />
+          <div data-reveal="zoom" className="relative hidden aspect-[989/1400] max-w-xs overflow-hidden rounded-[2rem] shadow-[var(--shadow-lift)] md:block">
+            <Image src="/landing/poster-food-bottles.webp" alt="Seiketsu poster: food made for the way you want to live, with red sauce pasta, chocolate smoothie, Green Machine and a grilled chicken hummus wrap" fill sizes="320px" className="object-cover" />
           </div>
         </div>
 

@@ -23,7 +23,7 @@ const STEPS: { n: string; title: string; body: string; pieces: Piece[]; phone: P
     body: "Our meals are prepared with attention to freshness, quality and consistency.",
     pieces: [
       { src: "/art/green_topped_toast.webp", w: 2000, h: 1091, at: "-right-[8%] top-[22%] w-[min(44vw,600px)]", from: "translate(50vw, 0)", turn: -6 },
-      { src: "/landing/juice-bottle-cut.webp", w: 351, h: 938, at: "right-[30%] -bottom-[6%] w-[min(9vw,130px)]", from: "translate(0, 60vh)", turn: 10 },
+      { src: "/art/fruit_bowl.webp", w: 2000, h: 1116, at: "right-[28%] bottom-[3%] w-[min(20vw,270px)]", from: "translate(0, 60vh)", turn: 10 },
     ],
     phone: { src: "/art/green_topped_toast.webp", w: 2000, h: 1091, at: "", from: "", turn: -6 },
   },
@@ -34,7 +34,7 @@ const STEPS: { n: string; title: string; body: string; pieces: Piece[]; phone: P
     pieces: [
       { src: "/landing/salad-bowl-cut.webp", w: 609, h: 619, at: "-right-[4%] top-[24%] w-[min(32vw,440px)]", from: "translate(45vw, 10vh)", turn: 8 },
       { src: "/cut/italian-pesto-pasta-bowl.webp", w: 769, h: 833, at: "right-[18%] -top-[9%] w-[min(19vw,260px)]", from: "translate(10vw, -50vh)", turn: -10 },
-      { src: "/cut/mediterranean-salad-bowl.webp", w: 797, h: 811, at: "right-[32%] -bottom-[12%] w-[min(18vw,240px)]", from: "translate(0, 55vh)", turn: 14 },
+      { src: "/cut/mediterranean-salad-bowl.webp", w: 797, h: 811, at: "right-[30%] bottom-[2%] w-[min(17vw,230px)]", from: "translate(0, 55vh)", turn: 14 },
     ],
     phone: { src: "/landing/salad-bowl-cut.webp", w: 609, h: 619, at: "", from: "", turn: 8 },
   },
@@ -44,7 +44,7 @@ const STEPS: { n: string; title: string; body: string; pieces: Piece[]; phone: P
     body: "Freshly prepared for you according to your needs and ready to fit into your day, wherever you are.",
     pieces: [
       { src: "/cut/tandoori-grill.webp", w: 1000, h: 691, at: "-right-[9%] top-[22%] w-[min(44vw,600px)]", from: "translate(50vw, 0)", turn: -6 },
-      { src: "/art/chocolate_bottle.webp", w: 826, h: 2000, at: "right-[32%] -bottom-[4%] w-[min(8vw,110px)]", from: "translate(0, 60vh)", turn: -12 },
+      { src: "/art/green_pasta_bowl.webp", w: 2000, h: 1091, at: "right-[28%] bottom-[3%] w-[min(20vw,270px)]", from: "translate(0, 60vh)", turn: -12 },
     ],
     phone: { src: "/cut/tandoori-grill.webp", w: 1000, h: 691, at: "", from: "", turn: -6 },
   },

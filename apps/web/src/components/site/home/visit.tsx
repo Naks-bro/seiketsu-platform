@@ -59,7 +59,7 @@ export function FollowTheFresh({ instagram }: { instagram: string | null }) {
   const tiles = [
     { src: "/landing/poster-bottles-salads.webp", alt: "Seiketsu poster of fresh-pressed juices and salads" },
     { src: "/landing/cafe-standee.webp", alt: "The Seiketsu counter and menu standee" },
-    { src: "/landing/poster-food-bottles.webp", alt: "Seiketsu poster of bowls, wraps and juices" },
+    { src: "/menu/green-machine.webp", alt: "Green Machine, a Seiketsu fresh-pressed juice" },
     { src: "/landing/cafe-menu-card.webp", alt: "The Seiketsu menu card: the art of clean eating" },
   ];
   return (
