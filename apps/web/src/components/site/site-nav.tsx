@@ -83,7 +83,6 @@ export function MobileNav({ accountLabel }: { accountLabel: string | null }) {
 /** Fades sections in as they scroll into view (skipped for reduced motion via CSS). */
 export function RevealOnScroll() {
   useEffect(() => {
-    const els = [...document.querySelectorAll<HTMLElement>("[data-reveal]")];
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -95,12 +94,21 @@ export function RevealOnScroll() {
       },
       { rootMargin: "0px 0px -8% 0px" },
     );
-    for (const el of els) {
-      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("is-in");
-      else io.observe(el);
-    }
+    const watch = () => {
+      for (const el of document.querySelectorAll<HTMLElement>("[data-reveal]:not(.is-in):not([data-watched])")) {
+        el.dataset.watched = "";
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("is-in");
+        else io.observe(el);
+      }
+    };
+    watch();
+    const mo = new MutationObserver(watch);
+    mo.observe(document.body, { childList: true, subtree: true });
     document.documentElement.classList.add("js");
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      mo.disconnect();
+    };
   }, []);
   return null;
 }

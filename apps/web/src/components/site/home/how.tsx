@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useScene, useStoryMode } from "./scroll";
+import { useMotionOk, useScene } from "./scroll";
 
 /** One element of a scene: a cut-out of one of our dishes, where it rests, and the edge it slides in from. */
 type Piece = { src: string; w: number; h: number; at: string; from: string; turn: number };
@@ -59,16 +59,16 @@ function Art({ piece, sizes }: { piece: Piece; sizes: string }) {
  * stage while its ingredients drift in from the edges and leave as the next step arrives.
  */
 export function HowWeMakeIt() {
-  const story = useStoryMode();
+  const story = useMotionOk();
   const { ref, step } = useScene<HTMLElement>(STEPS.length, story);
 
   const intro = (
     <>
       <p className="text-sm font-semibold text-butter">How we make it better</p>
-      <h2 id="how-h" className="mt-3 max-w-2xl font-display text-4xl leading-[1.04] sm:text-5xl">
+      <h2 id="how-h" className="mt-3 max-w-2xl font-display text-3xl leading-[1.04] sm:text-5xl">
         From Thoughtful Ingredients to <em className="italic text-butter">Feel-Good Meals.</em>
       </h2>
-      <p className="mt-4 max-w-md text-cream/75">Every Seiketsu meal begins with an idea: eating well should be simple, enjoyable and accessible.</p>
+      <p className="mt-3 max-w-md text-sm text-cream/75 sm:mt-4 sm:text-base">Every Seiketsu meal begins with an idea: eating well should be simple, enjoyable and accessible.</p>
     </>
   );
 
@@ -97,7 +97,7 @@ export function HowWeMakeIt() {
   }
 
   return (
-    <section ref={ref} id="how" className="relative scroll-mt-20 bg-olive-ink text-cream" style={{ height: `${STEPS.length * 90 + 40}svh` }} aria-labelledby="how-h">
+    <section ref={ref} id="how" className="relative scroll-mt-20 bg-olive-ink text-cream" style={{ height: `${STEPS.length * 85 + 40}svh` }} aria-labelledby="how-h">
       <div className="sticky top-16 h-[calc(100svh-4rem)] overflow-hidden">
         {/* The ingredients: no frames; they come in from the edges and rest half off the screen. */}
         <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -108,7 +108,7 @@ export function HowWeMakeIt() {
               return (
                 <div
                   key={`${s.n}-${j}`}
-                  className={`absolute ${piece.at} transition-[transform,opacity] duration-[900ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]`}
+                  className={`absolute ${piece.at} ${j === 0 ? "max-md:-right-[16%]! max-md:top-[30%]! max-md:w-[64vw]!" : "max-md:hidden"} transition-[transform,opacity] duration-[900ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]`}
                   style={{
                     transform: on ? `translate(0, 0) rotate(${piece.turn}deg)` : past ? `translate(0, -40vh) rotate(${piece.turn - 20}deg)` : `${piece.from} rotate(${piece.turn + 25}deg)`,
                     opacity: on ? 1 : 0,
@@ -122,20 +122,20 @@ export function HowWeMakeIt() {
           )}
         </div>
 
-        <div className="relative mx-auto flex h-full max-w-6xl flex-col px-6 pb-10 pt-12">
+        <div className="relative mx-auto flex h-full max-w-6xl flex-col px-4 pb-6 pt-8 sm:px-6 md:pb-10 md:pt-12">
           <div>{intro}</div>
 
           {/* The words: one step at a time, large. */}
-          <div className="relative my-auto grid">
+          <div className="relative mt-auto mb-6 grid md:my-auto">
             {STEPS.map((s, i) => (
               <div
                 key={s.n}
                 aria-hidden={i !== step}
-                className={`col-start-1 row-start-1 max-w-md transition-[transform,opacity] duration-700 ${i === step ? "translate-y-0 opacity-100" : i < step ? "-translate-y-8 opacity-0" : "translate-y-8 opacity-0"}`}
+                className={`col-start-1 row-start-1 max-w-[17rem] transition-[transform,opacity] duration-700 sm:max-w-md ${i === step ? "translate-y-0 opacity-100" : i < step ? "-translate-y-8 opacity-0" : "translate-y-8 opacity-0"}`}
               >
-                <p className="font-display text-[7rem] leading-none text-cream/15">{s.n}</p>
-                <h3 className="-mt-10 font-display text-5xl leading-[1.05] lg:text-6xl">{s.title}</h3>
-                <p className="mt-4 text-xl leading-relaxed text-cream/80">{s.body}</p>
+                <p className="font-display text-[4.5rem] leading-none text-cream/15 md:text-[7rem]">{s.n}</p>
+                <h3 className="-mt-7 font-display text-4xl leading-[1.05] md:-mt-10 md:text-5xl lg:text-6xl">{s.title}</h3>
+                <p className="mt-3 leading-relaxed text-cream/80 md:mt-4 md:text-xl">{s.body}</p>
               </div>
             ))}
           </div>

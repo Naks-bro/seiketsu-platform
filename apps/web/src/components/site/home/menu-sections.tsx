@@ -88,7 +88,7 @@ export function Favourites({ items }: { items: MenuItemDTO[] }) {
             const kcal = i.variants.map((v) => v.nutrition?.kcal).filter((n): n is number => n != null);
             const protein = i.variants.map((v) => v.nutrition?.proteinG).filter((n): n is number => n != null);
             return (
-              <li key={i.id} className="flex min-w-0 flex-col overflow-hidden rounded-[1.25rem] border border-line bg-white shadow-[var(--shadow-card)] sm:rounded-[1.75rem]">
+              <li key={i.id} data-reveal style={{ "--d": `${(items.indexOf(i) % 4) * 70}ms` } as React.CSSProperties} className="flex min-w-0 flex-col overflow-hidden rounded-[1.25rem] border border-line bg-white shadow-[var(--shadow-card)] sm:rounded-[1.75rem]">
                 <div className="relative aspect-square overflow-hidden bg-berry sm:aspect-[4/3]">
                   {i.imageUrl ? (
                     <Image src={i.imageUrl} alt={i.name} fill sizes="(min-width: 1024px) 270px, 50vw" className="object-cover" />

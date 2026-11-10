@@ -3,18 +3,59 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const STORY = "(min-width: 768px) and (prefers-reduced-motion: no-preference)";
+const MOTION = "(prefers-reduced-motion: no-preference)";
 
-/** Scroll-told scenes run on screens wide enough for them, and never for people who prefer less motion. */
-export function useStoryMode() {
+function useMedia(query: string) {
   return useSyncExternalStore(
     (cb) => {
-      const m = window.matchMedia(STORY);
+      const m = window.matchMedia(query);
       m.addEventListener("change", cb);
       return () => m.removeEventListener("change", cb);
     },
-    () => window.matchMedia(STORY).matches,
+    () => window.matchMedia(query).matches,
     () => false,
   );
+}
+
+/** Scroll-told scenes run on screens wide enough for them, and never for people who prefer less motion. */
+export const useStoryMode = () => useMedia(STORY);
+
+/** Motion on any screen, phones included; never for people who prefer less motion. */
+export const useMotionOk = () => useMedia(MOTION);
+
+/**
+ * Plays a short sequence once the element scrolls into view: returns 0 until then, then counts up to `steps`
+ * one beat at a time. Without motion it returns `steps` straight away, so everything is simply shown.
+ */
+export function usePlayOnSeen<T extends HTMLElement>(steps: number, beat = 380) {
+  const ref = useRef<T>(null);
+  const motion = useMotionOk();
+  const [played, setPlayed] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !motion) return;
+    let timer = 0;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e?.isIntersecting) return;
+        io.disconnect();
+        let n = 0;
+        const tick = () => {
+          n += 1;
+          setPlayed(n);
+          if (n < steps) timer = window.setTimeout(tick, beat);
+        };
+        timer = window.setTimeout(tick, 150);
+      },
+      { rootMargin: "0px 0px -25% 0px" },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, [motion, steps, beat]);
+  return { ref, played: motion ? played : steps };
 }
 
 /**
@@ -63,7 +104,7 @@ export function scrollToStep(el: HTMLElement | null, i: number, steps: number) {
 
 /** Writes the hero's scroll-out progress to `--h` on its parent, for a gentle parallax. */
 export function ScrollOut() {
-  const story = useStoryMode();
+  const story = useMotionOk();
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const host = ref.current?.parentElement;

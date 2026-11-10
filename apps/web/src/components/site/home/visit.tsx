@@ -40,7 +40,7 @@ export function Visit({ store }: { store: StoreDTO }) {
             )}
           </div>
         </div>
-        <div className="relative">
+        <div data-reveal="right" className="relative">
           <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] shadow-[var(--shadow-lift)]">
             <Image src="/landing/cafe-counter.webp" alt="The Seiketsu counter, with our menu standee beside it" fill sizes="(min-width: 768px) 540px, 92vw" className="object-cover" />
           </div>

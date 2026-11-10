@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useScene, useStoryMode } from "./scroll";
+import { usePlayOnSeen, useScene, useStoryMode } from "./scroll";
 
 const NOT = ["Restrictive diets", "Following food trends"];
 const IS = ["Making thoughtful choices", "Enjoying what you eat", "Finding a balance that works for your lifestyle"];
@@ -17,7 +17,8 @@ const PRINTS = [
 export function SeiketsuPromise() {
   const story = useStoryMode();
   const { ref, step } = useScene<HTMLElement>(STEPS, story);
-  const at = (s: number) => !story || step >= s;
+  const { ref: playRef, played } = usePlayOnSeen<HTMLDivElement>(STEPS);
+  const at = (s: number) => (story ? step >= s : played >= s);
 
   return (
     <section ref={ref} className="relative bg-butter" style={story ? { height: "300svh" } : undefined} aria-labelledby="promise-h">
@@ -51,8 +52,12 @@ export function SeiketsuPromise() {
                 </div>
               ) : (
                 <ul className="grid max-w-md grid-cols-3 gap-2.5 pt-2">
-                  {PRINTS.map((x) => (
-                    <li key={x.src} className="relative aspect-[4/5] overflow-hidden rounded-xl border-[3px] border-white shadow-[var(--shadow-card)]" style={{ rotate: `${x.turn / 2}deg` }}>
+                  {PRINTS.map((x, i) => (
+                    <li
+                      key={x.src}
+                      className="relative aspect-[4/5] overflow-hidden rounded-xl border-[3px] border-white shadow-[var(--shadow-card)] transition-[transform,opacity] duration-700 ease-out"
+                      style={{ rotate: `${x.turn / 2}deg`, opacity: at(3 + i) ? 1 : 0, transform: at(3 + i) ? "none" : "translateY(30%) scale(0.9)" }}
+                    >
                       <Image src={x.src} alt={x.alt} fill sizes="(min-width: 640px) 150px, 30vw" className="object-cover" />
                     </li>
                   ))}
@@ -60,7 +65,7 @@ export function SeiketsuPromise() {
               )}
             </div>
 
-            <div className="space-y-6">
+            <div ref={playRef} className="space-y-6">
               <div>
                 <p className="text-sm font-semibold text-ink/60">It’s not about</p>
                 <ul className="mt-1">

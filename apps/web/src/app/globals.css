@@ -66,6 +66,9 @@
 .js .is-in .draw-path {
   stroke-dashoffset: 0;
 }
+.js [data-reveal="right"] { transform: translateX(48px) rotate(3deg); }
+.js [data-reveal="left"] { transform: translateX(-48px) rotate(-3deg); }
+.js [data-reveal="zoom"] { transform: scale(0.92); }
 .js [data-reveal].is-in {
   opacity: 1;
   transform: none;
