@@ -80,6 +80,13 @@ export const env = {
   },
   cronSecret: optional("CRON_SECRET"),
   messaging,
+  /** WhatsApp Cloud API (Meta). The verify token is any random string you also type into Meta's webhook form. */
+  whatsapp: {
+    verifyToken: optional("WHATSAPP_VERIFY_TOKEN"),
+    appSecret: optional("WHATSAPP_APP_SECRET"),
+    accessToken: optional("WHATSAPP_ACCESS_TOKEN"),
+    phoneNumberId: optional("WHATSAPP_PHONE_NUMBER_ID"),
+  },
   supabase: {
     url: optional("NEXT_PUBLIC_SUPABASE_URL"),
     serviceRoleKey: optional("SUPABASE_SERVICE_ROLE_KEY"),
