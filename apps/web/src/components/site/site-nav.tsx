@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useModal } from "./use-modal";
+import { LANDING_ONLY } from "@/lib/site-mode";
 
 const LINKS = [
-  { href: "/menu", label: "Menu" },
+  ...(LANDING_ONLY ? [] : [{ href: "/menu", label: "Menu" }]),
   { href: "/#why", label: "Why Seiketsu" },
   { href: "/#plans", label: "Plans" },
   { href: "/#visit", label: "Visit us" },
@@ -46,7 +47,7 @@ export function DesktopNav() {
   );
 }
 
-export function MobileNav({ accountLabel }: { accountLabel: string }) {
+export function MobileNav({ accountLabel }: { accountLabel: string | null }) {
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   useModal(panel, open, () => setOpen(false));
@@ -65,7 +66,7 @@ export function MobileNav({ accountLabel }: { accountLabel: string }) {
               Close
             </button>
             <nav aria-label="Main" className="mt-6 flex flex-col gap-1">
-              {[...LINKS, { href: "/account", label: accountLabel }].map((l) => (
+              {[...LINKS, ...(accountLabel ? [{ href: "/account", label: accountLabel }] : [])].map((l) => (
                 <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-xl px-3 py-3 font-display text-3xl hover:bg-berry-deep">
                   {l.label}
                 </Link>

@@ -5,6 +5,12 @@ import { formatINR, fromPrice } from "@/lib/format";
 import { DietMark } from "@/components/diet-mark";
 import { itemDiets } from "@seiketsu/core/diet-filter";
 import { QuickAdd } from "./client";
+import { LANDING_ONLY } from "@/lib/site-mode";
+
+/** A menu tile: a link into the menu, or a plain card when ordering is switched off. */
+function TileLink({ href, className, children }: { href: string; className: string; children: React.ReactNode }) {
+  return LANDING_ONLY ? <div className={className}>{children}</div> : <Link href={href} className={className}>{children}</Link>;
+}
 
 /** The owner's five menu groups, mapped onto the menu's sections. */
 const GROUPS = [
@@ -35,14 +41,16 @@ export function ExploreMenu({ menu }: { menu: CategoryDTO[] }) {
               From light bites to satisfying meals and refreshing drinks, there’s always something good waiting for you.
             </p>
           </div>
-          <Link href="/menu" className="rounded-full bg-berry px-6 py-3 text-sm font-semibold text-cream transition hover:bg-berry-deep">
-            View full menu
-          </Link>
+          {!LANDING_ONLY && (
+            <Link href="/menu" className="rounded-full bg-berry px-6 py-3 text-sm font-semibold text-cream transition hover:bg-berry-deep">
+              View full menu
+            </Link>
+          )}
         </div>
         <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
           {tiles.map((t, i) => (
             <li key={t.title} data-reveal style={{ "--d": `${i * 60}ms` } as React.CSSProperties} className={i < 2 ? "lg:col-span-3" : "lg:col-span-2"}>
-              <Link href={t.href} className={`group relative flex h-56 flex-col lg:h-60 overflow-hidden rounded-[1.75rem] p-5 transition duration-500 hover:-translate-y-1 sm:p-6 ${t.tone}`}>
+              <TileLink href={t.href} className={`group relative flex h-56 flex-col lg:h-60 overflow-hidden rounded-[1.75rem] p-5 transition duration-500 hover:-translate-y-1 sm:p-6 ${t.tone}`}>
                 <span className="relative z-10 max-w-[75%] font-display text-2xl leading-tight text-ink sm:text-[1.75rem]">{t.title}</span>
                 <span className="relative z-10 mt-2 max-w-[60%] text-sm text-ink/70">{t.body}</span>
                 <span className="relative z-10 mt-auto text-xs text-ink/70 sm:text-sm">
@@ -54,7 +62,7 @@ export function ExploreMenu({ menu }: { menu: CategoryDTO[] }) {
                     <Image src={t.img} alt="" fill sizes="(min-width: 1024px) 240px, 45vw" className="object-contain object-right-bottom mix-blend-multiply" />
                   </span>
                 </span>
-              </Link>
+              </TileLink>
             </li>
           ))}
         </ul>
@@ -72,7 +80,7 @@ export function Favourites({ items }: { items: MenuItemDTO[] }) {
           <h2 id="fav-h" data-reveal className="font-display text-4xl leading-none text-ink sm:text-5xl">
             Find your <em className="italic text-berry">favourite.</em>
           </h2>
-          <Link href="/menu" className="font-semibold text-berry hover:underline">View full menu</Link>
+          {!LANDING_ONLY && <Link href="/menu" className="font-semibold text-berry hover:underline">View full menu</Link>}
         </div>
         <ul className="no-scrollbar relative -mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
           {items.map((i) => {
@@ -84,7 +92,11 @@ export function Favourites({ items }: { items: MenuItemDTO[] }) {
                   {[...itemDiets(i)].map((d) => <DietMark key={d} diet={d} />)}
                   {i.isBestseller && <span className="ml-1 text-[11px] font-semibold text-[#a3520f]">★ Bestseller</span>}
                 </div>
-                <Link href={`/menu#${i.slug}`} className="mt-3 font-display text-2xl leading-tight text-ink hover:text-berry">{i.name}</Link>
+                {LANDING_ONLY ? (
+                  <h3 className="mt-3 font-display text-2xl leading-tight text-ink">{i.name}</h3>
+                ) : (
+                  <Link href={`/menu#${i.slug}`} className="mt-3 font-display text-2xl leading-tight text-ink hover:text-berry">{i.name}</Link>
+                )}
                 {i.description && <p className="mt-2 line-clamp-3 text-sm text-muted">{i.description}</p>}
                 <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
                   {kcal.length > 0 && <span className="tabular rounded-full bg-olive/10 px-2 py-0.5 font-medium text-olive-ink">{Math.min(...kcal)}{Math.max(...kcal) !== Math.min(...kcal) ? `–${Math.max(...kcal)}` : ""} kcal</span>}
@@ -95,7 +107,7 @@ export function Favourites({ items }: { items: MenuItemDTO[] }) {
                     {new Set(i.variants.map((v) => v.pricePaise)).size > 1 && <span className="text-xs font-normal text-muted">from </span>}
                     {formatINR(fromPrice(i.variants.map((v) => v.pricePaise)))}
                   </span>
-                  <QuickAdd item={i} />
+                  {!LANDING_ONLY && <QuickAdd item={i} />}
                 </div>
               </li>
             );

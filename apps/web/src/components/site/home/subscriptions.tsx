@@ -2,6 +2,7 @@ import Link from "next/link";
 import { daysLabel } from "@seiketsu/core/subscriptions";
 import { formatINR } from "@/lib/format";
 import { PlanLink } from "./plans";
+import { LANDING_ONLY } from "@/lib/site-mode";
 
 export type PlanCard = { slug: string; name: string; tagline: string | null; pricePaise: number; mealsTotal: number; durationDays: number; deliveryDays: string[]; includes: string[] };
 
@@ -52,11 +53,19 @@ export function Subscriptions({ plans }: { plans: PlanCard[] }) {
                     ))}
                   </ul>
                 )}
-                <Link href={`/subscribe/${p.slug}`} className="mt-auto pt-6">
-                  <span className="block rounded-full bg-berry py-3 text-center font-semibold text-cream transition hover:bg-berry-deep">
-                    Subscribe<span className="sr-only"> to {p.name}</span>
-                  </span>
-                </Link>
+                {LANDING_ONLY ? (
+                  <PlanLink interest="subscriptions" className="mt-auto block pt-6">
+                    <span className="block rounded-full bg-berry py-3 text-center font-semibold text-cream transition hover:bg-berry-deep">
+                      Enquire<span className="sr-only"> about {p.name}</span>
+                    </span>
+                  </PlanLink>
+                ) : (
+                  <Link href={`/subscribe/${p.slug}`} className="mt-auto pt-6">
+                    <span className="block rounded-full bg-berry py-3 text-center font-semibold text-cream transition hover:bg-berry-deep">
+                      Subscribe<span className="sr-only"> to {p.name}</span>
+                    </span>
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

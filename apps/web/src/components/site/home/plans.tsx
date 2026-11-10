@@ -5,6 +5,7 @@ import Link from "next/link";
 import { startTransition, useActionState, useEffect, useState } from "react";
 import { ENQUIRY_INTERESTS } from "@seiketsu/core/enquiry";
 import { sendEnquiryAction } from "@/app/(site)/plans-actions";
+import { LANDING_ONLY } from "@/lib/site-mode";
 
 const PICK = "seiketsu:interest";
 const box = "w-full rounded-xl border border-line bg-white px-3.5 py-3 outline-none focus:border-berry aria-[invalid=true]:border-nonveg";
@@ -61,9 +62,11 @@ export function Plans() {
             <p className="mx-auto grid size-14 place-items-center rounded-full bg-veg/10 text-2xl text-veg" aria-hidden>✓</p>
             <h3 className="mt-4 font-display text-3xl text-berry">Thank you, we’ve got your enquiry.</h3>
             <p className="mx-auto mt-2 max-w-sm text-muted">We’ll get in touch with you soon.</p>
-            <Link href="/menu" className="mt-6 inline-block rounded-full bg-berry px-6 py-3 font-semibold text-cream hover:bg-berry-deep">
-              Explore our menu
-            </Link>
+            {!LANDING_ONLY && (
+              <Link href="/menu" className="mt-6 inline-block rounded-full bg-berry px-6 py-3 font-semibold text-cream hover:bg-berry-deep">
+                Explore our menu
+              </Link>
+            )}
           </div>
         ) : (
           <form

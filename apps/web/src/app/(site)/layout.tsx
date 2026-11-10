@@ -14,6 +14,7 @@ import { Toaster } from "@/components/site/toast";
 import { POLICY_LINKS } from "@/components/site/policy-page";
 import { env } from "@/lib/server/env";
 import { ldJson, restaurantJsonLd } from "@/lib/seo";
+import { LANDING_ONLY } from "@/lib/site-mode";
 
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -40,19 +41,19 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </Link>
           <DesktopNav />
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-            <LocationPill pickupFrom={PICKUP_FROM} />
-            <Link href="/account" className="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-berry-deep lg:block">
+            {!LANDING_ONLY && <LocationPill pickupFrom={PICKUP_FROM} />}
+            {!LANDING_ONLY && <Link href="/account" className="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-berry-deep lg:block">
               {accountLabel}
-            </Link>
-            <CartButton />
-            <MobileNav accountLabel={accountLabel} />
+            </Link>}
+            {!LANDING_ONLY && <CartButton />}
+            <MobileNav accountLabel={LANDING_ONLY ? null : accountLabel} />
           </div>
         </div>
       </HeaderShell>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(restaurantJsonLd(store, env.siteUrl)) }} />
       <main id="main" tabIndex={-1} className="overflow-x-clip outline-none">{children}</main>
-      <CartDrawer
+      {!LANDING_ONLY && <CartDrawer
         pickupFrom={PICKUP_FROM}
         pricing={{
           deliveryFeePaise: store.pricing.deliveryFeePaise,
@@ -60,10 +61,10 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           minOrderPaise: store.pricing.minOrderPaise,
           deliveryEnabled: store.deliveryEnabled,
         }}
-      />
-      <LocationSheet pincodes={store.deliveryPincodes} deliveryEnabled={store.deliveryEnabled} pickupEnabled={store.pickupEnabled} pickupFrom={PICKUP_FROM} outlets={outletList.map((o) => ({ slug: o.slug, area: o.area, address: o.addressLines.join(", "), pickupEnabled: o.pickupEnabled, deliveryEnabled: o.deliveryEnabled, pincodes: o.pincodes }))} current={here} />
+      />}
+      {!LANDING_ONLY && <LocationSheet pincodes={store.deliveryPincodes} deliveryEnabled={store.deliveryEnabled} pickupEnabled={store.pickupEnabled} pickupFrom={PICKUP_FROM} outlets={outletList.map((o) => ({ slug: o.slug, area: o.area, address: o.addressLines.join(", "), pickupEnabled: o.pickupEnabled, deliveryEnabled: o.deliveryEnabled, pincodes: o.pincodes }))} current={here} />}
       <Toaster />
-      <MobileCartBar />
+      {!LANDING_ONLY && <MobileCartBar />}
       <RevealOnScroll />
 
       <footer className="mt-24 bg-ink text-cream">
@@ -75,12 +76,12 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </div>
           <nav aria-label="Explore" className="space-y-2 text-sm">
             <h2 className="text-xs font-semibold text-cream/50">Explore</h2>
-            <Link href="/menu" className="block hover:text-butter">Menu</Link>
+            {!LANDING_ONLY && <Link href="/menu" className="block hover:text-butter">Menu</Link>}
             <Link href="/#why" className="block hover:text-butter">Why Seiketsu</Link>
             <Link href="/#plans" className="block hover:text-butter">Plans &amp; enquiries</Link>
             <Link href="/delivery" className="block hover:text-butter">Delivery &amp; pickup</Link>
-            <Link href="/support" className="block hover:text-butter">Help &amp; support</Link>
-            <Link href="/account" className="block hover:text-butter">{accountLabel}</Link>
+            {!LANDING_ONLY && <Link href="/support" className="block hover:text-butter">Help &amp; support</Link>}
+            {!LANDING_ONLY && <Link href="/account" className="block hover:text-butter">{accountLabel}</Link>}
           </nav>
           <div className="space-y-2 text-sm">
             <h2 className="text-xs font-semibold text-cream/50">Find us</h2>

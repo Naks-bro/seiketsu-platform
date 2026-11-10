@@ -3,6 +3,7 @@ import type { StoreDTO } from "@/lib/types";
 import { formatHours, istDayIndex } from "@seiketsu/core/store-hours";
 import { HeroVideo } from "./client";
 import { ScrollOut } from "./scroll";
+import { LANDING_ONLY } from "@/lib/site-mode";
 
 const REEL_URL = "https://www.instagram.com/sei_ketsu/reel/De9VjlEo1Ts/";
 
@@ -37,9 +38,9 @@ export function Hero({ store }: { store: StoreDTO }) {
             <Link href="/#explore" className="rounded-full bg-cream px-8 py-4 font-semibold text-berry shadow-[0_12px_30px_-12px_rgb(0_0_0/0.5)] transition hover:-translate-y-0.5 hover:bg-butter">
               Explore our menu
             </Link>
-            <Link href="/menu" className="rounded-full border border-cream/40 px-8 py-4 font-semibold text-cream transition hover:border-cream hover:bg-cream/10">
+            {!LANDING_ONLY && <Link href="/menu" className="rounded-full border border-cream/40 px-8 py-4 font-semibold text-cream transition hover:border-cream hover:bg-cream/10">
               Order now
-            </Link>
+            </Link>}
           </div>
         </div>
 
