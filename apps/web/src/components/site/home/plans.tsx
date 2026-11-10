@@ -11,9 +11,9 @@ const PICK = "seiketsu:interest";
 const box = "w-full rounded-xl border border-line bg-white px-3.5 py-3 outline-none focus:border-berry aria-[invalid=true]:border-nonveg";
 
 /** A link to the plans form that also ticks the matching interest. */
-export function PlanLink({ interest, className, children }: { interest: string; className: string; children: React.ReactNode }) {
+export function PlanLink({ interest, className, children, label }: { interest: string; className: string; children: React.ReactNode; label?: string }) {
   return (
-    <a href="#plans" className={className} onClick={() => window.dispatchEvent(new CustomEvent(PICK, { detail: interest }))}>
+    <a href="#plans" aria-label={label} className={className} onClick={() => window.dispatchEvent(new CustomEvent(PICK, { detail: interest }))}>
       {children}
     </a>
   );

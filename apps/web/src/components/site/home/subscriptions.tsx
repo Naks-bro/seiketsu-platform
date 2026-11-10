@@ -48,9 +48,8 @@ function PlanItem({ p }: { p: PlanCard }) {
 
       <div className="mt-auto pt-6">
         {LANDING_ONLY ? (
-          <PlanLink interest="subscriptions" className={`${cta} bg-berry text-cream hover:bg-berry-deep`}>
-            <span aria-hidden>Enquire</span>
-            <span className="sr-only">Enquire about {p.name}</span>
+          <PlanLink interest="subscriptions" label={`Enquire about ${p.name}`} className={`${cta} bg-berry text-cream hover:bg-berry-deep`}>
+            Enquire
           </PlanLink>
         ) : (
           <Link href={`/subscribe/${p.slug}`} aria-label={`Subscribe to ${p.name}`} className={`${cta} bg-berry text-cream hover:bg-berry-deep`}>
