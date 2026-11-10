@@ -3,60 +3,51 @@
 import Image from "next/image";
 import { useMotionOk, useScene } from "./scroll";
 
-/** One element of a scene: a cut-out of one of our dishes, where it rests, and the edge it slides in from. */
-type Piece = { src: string; w: number; h: number; at: string; from: string; turn: number };
+/** A cut-out of one of our dishes and the angle it rests at. Files are trimmed to the dish, so equal boxes look equal. */
+type Dish = { src: string; turn: number };
 
-const STEPS: { n: string; title: string; body: string; pieces: Piece[]; phone: Piece }[] = [
+const STEPS: { n: string; title: string; body: string; main: Dish; side: Dish }[] = [
   {
     n: "01",
     title: "Thoughtful Sourcing",
     body: "We focus on selecting quality ingredients that form the foundation of good food.",
-    pieces: [
-      { src: "/cut/broccoli-corn-salad-bowl.webp", w: 732, h: 757, at: "-right-[6%] top-[20%] w-[min(34vw,460px)]", from: "translate(45vw, 0)", turn: 8 },
-      { src: "/cut/cucumber-and-avocado-salad-bowl.webp", w: 831, h: 813, at: "right-[24%] -top-[10%] w-[min(20vw,270px)]", from: "translate(10vw, -50vh)", turn: -12 },
-    ],
-    phone: { src: "/cut/broccoli-corn-salad-bowl.webp", w: 732, h: 757, at: "", from: "", turn: 8 },
+    main: { src: "/cut/broccoli-corn-salad-bowl.webp", turn: 8 },
+    side: { src: "/cut/cucumber-and-avocado-salad-bowl.webp", turn: -10 },
   },
   {
     n: "02",
     title: "Fresh Preparation",
     body: "Our meals are prepared with attention to freshness, quality and consistency.",
-    pieces: [
-      { src: "/art/green_topped_toast.webp", w: 2000, h: 1091, at: "-right-[8%] top-[22%] w-[min(44vw,600px)]", from: "translate(50vw, 0)", turn: -6 },
-      { src: "/art/fruit_bowl.webp", w: 2000, h: 1116, at: "right-[28%] bottom-[3%] w-[min(20vw,270px)]", from: "translate(0, 60vh)", turn: 10 },
-    ],
-    phone: { src: "/art/green_topped_toast.webp", w: 2000, h: 1091, at: "", from: "", turn: -6 },
+    main: { src: "/cut/avocado-toast.webp", turn: -6 },
+    side: { src: "/cut/fruit-bowl.webp", turn: 10 },
   },
   {
     n: "03",
     title: "Balanced Combinations",
     body: "We bring ingredients together to create meals that balance flavour, variety and nutrition.",
-    pieces: [
-      { src: "/landing/salad-bowl-cut.webp", w: 609, h: 619, at: "-right-[4%] top-[24%] w-[min(32vw,440px)]", from: "translate(45vw, 10vh)", turn: 8 },
-      { src: "/cut/italian-pesto-pasta-bowl.webp", w: 769, h: 833, at: "right-[18%] -top-[9%] w-[min(19vw,260px)]", from: "translate(10vw, -50vh)", turn: -10 },
-      { src: "/cut/mediterranean-salad-bowl.webp", w: 797, h: 811, at: "right-[30%] bottom-[2%] w-[min(17vw,230px)]", from: "translate(0, 55vh)", turn: 14 },
-    ],
-    phone: { src: "/landing/salad-bowl-cut.webp", w: 609, h: 619, at: "", from: "", turn: 8 },
+    main: { src: "/cut/salad-bowl.webp", turn: 6 },
+    side: { src: "/cut/italian-pesto-pasta-bowl.webp", turn: -10 },
   },
   {
     n: "04",
     title: "Made for You",
     body: "Freshly prepared for you according to your needs and ready to fit into your day, wherever you are.",
-    pieces: [
-      { src: "/cut/tandoori-grill.webp", w: 1000, h: 691, at: "-right-[9%] top-[22%] w-[min(44vw,600px)]", from: "translate(50vw, 0)", turn: -6 },
-      { src: "/art/green_pasta_bowl.webp", w: 2000, h: 1091, at: "right-[28%] bottom-[3%] w-[min(20vw,270px)]", from: "translate(0, 60vh)", turn: -12 },
-    ],
-    phone: { src: "/cut/tandoori-grill.webp", w: 1000, h: 691, at: "", from: "", turn: -6 },
+    main: { src: "/cut/tandoori-grill.webp", turn: -6 },
+    side: { src: "/cut/green-pasta-bowl.webp", turn: 12 },
   },
 ];
 
-function Art({ piece, sizes }: { piece: Piece; sizes: string }) {
-  return <Image src={piece.src} alt="" width={piece.w} height={piece.h} sizes={sizes} className="h-auto w-full drop-shadow-2xl" />;
+/** The same two boxes for every step: a large dish at the right edge and a smaller one below it. */
+const MAIN_BOX = "-right-[4%] top-[18%] size-[min(38vw,62svh,500px)] max-md:-right-[12%] max-md:top-[29%] max-md:size-[64vw]";
+const SIDE_BOX = "right-[30%] bottom-[4%] size-[min(17vw,28svh,230px)] max-md:hidden";
+
+function Art({ dish, sizes }: { dish: Dish; sizes: string }) {
+  return <Image src={dish.src} alt="" fill sizes={sizes} className="object-contain drop-shadow-2xl" />;
 }
 
 /**
- * "How we make it better" as a scroll-told story. On wide screens the scene pins; each step's words take the
- * stage while its ingredients drift in from the edges and leave as the next step arrives.
+ * "How we make it better" as a scroll-told story. The scene pins; each step's words take the stage while its
+ * dishes drift in from the edges and leave as the next step arrives.
  */
 export function HowWeMakeIt() {
   const story = useMotionOk();
@@ -79,9 +70,9 @@ export function HowWeMakeIt() {
           {intro}
           <ol className="mt-12 space-y-14">
             {STEPS.map((s) => (
-              <li key={s.n} className="relative min-h-40">
-                <div aria-hidden className={`pointer-events-none absolute top-1/2 ${s.phone.w > s.phone.h * 1.3 ? "-right-24 w-64 sm:-right-10 sm:w-80" : "-right-14 w-44 sm:-right-6 sm:w-60"}`} style={{ transform: `translateY(-50%) rotate(${s.phone.turn}deg)` }}>
-                  <Art piece={s.phone} sizes="240px" />
+              <li key={s.n} className="relative min-h-44">
+                <div aria-hidden className="pointer-events-none absolute -right-12 top-1/2 size-44 -translate-y-1/2 sm:-right-4 sm:size-60" style={{ rotate: `${s.main.turn}deg` }}>
+                  <Art dish={s.main} sizes="240px" />
                 </div>
                 <div className="relative max-w-[62%] sm:max-w-md">
                   <p aria-hidden className="font-display text-6xl leading-none text-cream/20">{s.n}</p>
@@ -99,23 +90,26 @@ export function HowWeMakeIt() {
   return (
     <section ref={ref} id="how" className="relative scroll-mt-20 bg-olive-ink text-cream" style={{ height: `${STEPS.length * 85 + 40}svh` }} aria-labelledby="how-h">
       <div className="sticky top-16 h-[calc(100svh-4rem)] overflow-hidden">
-        {/* The ingredients: no frames; they come in from the edges and rest half off the screen. */}
+        {/* The dishes: no frames; they come in from the edges and rest half off the screen. */}
         <div aria-hidden className="pointer-events-none absolute inset-0">
           {STEPS.map((s, i) =>
-            s.pieces.map((piece, j) => {
+            ([
+              [s.main, MAIN_BOX, "translate(50vw, 0)", "(min-width: 768px) 500px, 68vw"],
+              [s.side, SIDE_BOX, "translate(0, 60vh)", "230px"],
+            ] as const).map(([dish, box, from, sizes], j) => {
               const on = i === step;
               const past = i < step;
               return (
                 <div
                   key={`${s.n}-${j}`}
-                  className={`absolute ${piece.at} ${j === 0 ? "max-md:-right-[16%]! max-md:top-[30%]! max-md:w-[64vw]!" : "max-md:hidden"} transition-[transform,opacity] duration-[900ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]`}
+                  className={`absolute ${box} transition-[transform,opacity] duration-[900ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]`}
                   style={{
-                    transform: on ? `translate(0, 0) rotate(${piece.turn}deg)` : past ? `translate(0, -40vh) rotate(${piece.turn - 20}deg)` : `${piece.from} rotate(${piece.turn + 25}deg)`,
+                    transform: on ? `translate(0, 0) rotate(${dish.turn}deg)` : past ? `translate(0, -40vh) rotate(${dish.turn - 20}deg)` : `${from} rotate(${dish.turn + 25}deg)`,
                     opacity: on ? 1 : 0,
                     transitionDelay: on ? `${j * 90}ms` : "0ms",
                   }}
                 >
-                  <Art piece={piece} sizes="(min-width: 1024px) 640px, 46vw" />
+                  <Art dish={dish} sizes={sizes} />
                 </div>
               );
             }),
