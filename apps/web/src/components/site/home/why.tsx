@@ -1,16 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { Avocado, Bowl, Broccoli, Farm, Leaf, Scooter } from "./doodles";
 import { useScene, useStoryMode } from "./scroll";
 
 const REASONS = [
-  { title: "Hydroponically Grown Produce", body: "Vegetables grown through controlled hydroponic farming, bringing the freshness of modern agriculture closer to your plate.", Art: Farm, tone: "bg-olive/20" },
-  { title: "Thoughtful Ingredients", body: "A focus on selecting quality ingredients and bringing them together with care.", Art: Leaf, tone: "bg-butter" },
-  { title: "Freshly Prepared", body: "Meals prepared to order, with attention to freshness, flavour and consistency.", Art: Broccoli, tone: "bg-pink/15" },
-  { title: "Nutrition Meets Flavour", body: "Wholesome food that makes eating better enjoyable, never restrictive.", Art: Avocado, tone: "bg-orange/20" },
-  { title: "Everyday Convenience", body: "Fresh food choices that fit into your routine, wherever your day takes you.", Art: Scooter, tone: "bg-berry/10" },
-  { title: "Variety for Every Craving", body: "From vibrant salads to satisfying wraps and refreshing smoothies, there’s something for every appetite.", Art: Bowl, tone: "bg-olive/15" },
+  { title: "Hydroponically Grown Produce", body: "Vegetables grown through controlled hydroponic farming, bringing the freshness of modern agriculture closer to your plate.", img: "/landing/why-hydroponic.webp", alt: "Picking basil in the hydroponic greenhouse", tone: "bg-olive/20" },
+  { title: "Thoughtful Ingredients", body: "A focus on selecting quality ingredients and bringing them together with care.", img: "/landing/why-ingredients.webp", alt: "Trays of freshly chopped peppers, tomatoes and cucumber", tone: "bg-butter" },
+  { title: "Freshly Prepared", body: "Meals prepared to order, with attention to freshness, flavour and consistency.", img: "/landing/why-prepared.webp", alt: "Fresh vegetables added to bowls by gloved hands", tone: "bg-pink/15" },
+  { title: "Nutrition Meets Flavour", body: "Wholesome food that makes eating better enjoyable, never restrictive.", img: "/menu/healthy-quinoa-salad-bowl.webp", alt: "Healthy Quinoa Salad Bowl", tone: "bg-orange/20" },
+  { title: "Everyday Convenience", body: "Fresh food choices that fit into your routine, wherever your day takes you.", img: "/menu/tandoori-wrap-paneer-chicken.webp", alt: "Tandoori Wrap", tone: "bg-berry/10" },
+  { title: "Variety for Every Craving", body: "From vibrant salads to satisfying wraps and refreshing smoothies, there’s something for every appetite.", img: "/landing/poster-bottles-salads.webp", alt: "Seiketsu wraps, pasta, toast and fresh-pressed juices", tone: "bg-olive/15" },
 ];
 
 function Intro() {
@@ -45,14 +45,16 @@ export function WhySeiketsu() {
             <div className="flex w-[25rem] shrink-0 flex-col justify-center pr-6">
               <Intro />
             </div>
-            {REASONS.map(({ title, body, Art, tone }, i) => (
-              <article key={title} className={`relative flex h-[26rem] w-[21rem] shrink-0 flex-col overflow-hidden rounded-[2rem] p-7 ${tone}`}>
-                <span aria-hidden className="font-display text-6xl leading-none text-transparent [-webkit-text-stroke:1px_rgb(42_24_30/0.25)]">0{i + 1}</span>
-                <span aria-hidden className="mt-4 grid size-28 place-items-center self-center rounded-full bg-cream/80">
-                  <Art className="w-20" />
-                </span>
+            {REASONS.map(({ title, body, img, alt, tone }, i) => (
+              <article key={title} className={`relative flex h-[28rem] w-[21rem] shrink-0 flex-col overflow-hidden rounded-[2rem] p-3 ${tone}`}>
+                <div className="relative h-64 shrink-0 overflow-hidden rounded-[1.5rem]">
+                  <Image src={img} alt={alt} fill sizes="320px" className="object-cover" />
+                  <span aria-hidden className="absolute left-3 top-3 rounded-full bg-cream/90 px-2.5 py-1 text-xs font-semibold tabular text-ink">0{i + 1}</span>
+                </div>
+                <div className="flex flex-1 flex-col px-4 pb-4">
                 <h3 className="mt-auto font-display text-2xl leading-tight text-ink">{title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink/70">{body}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -66,10 +68,10 @@ export function WhySeiketsu() {
             <Intro />
           </div>
           <ul className="grid gap-x-8 sm:grid-cols-2">
-            {REASONS.map(({ title, body, Art }) => (
+            {REASONS.map(({ title, body, img, alt }) => (
               <li key={title} data-reveal className="flex gap-4 border-t border-ink/15 py-5">
-                <span aria-hidden className="grid size-14 shrink-0 place-items-center rounded-full bg-cream">
-                  <Art className="w-9" />
+                <span className="relative size-20 shrink-0 overflow-hidden rounded-2xl">
+                  <Image src={img} alt={alt} fill sizes="80px" className="object-cover" />
                 </span>
                 <div>
                   <h3 className="font-display text-xl leading-tight text-ink">{title}</h3>
