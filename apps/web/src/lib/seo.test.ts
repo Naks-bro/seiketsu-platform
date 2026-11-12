@@ -28,6 +28,7 @@ describe("seo", () => {
   it("splits city and PIN off the last address line", () => {
     expect(splitAddress(store.addressLines)).toEqual({ streetAddress: "Bungalow 95, JP Road, Versova, Andheri West", addressLocality: "Mumbai", postalCode: "400061" });
     expect(splitAddress(["Somewhere"])).toEqual({ streetAddress: "Somewhere" });
+    expect(splitAddress(["Bungalow 95, JP Rd", "Mumbai, Maharashtra 400061"])).toEqual({ streetAddress: "Bungalow 95, JP Rd", addressLocality: "Mumbai", addressRegion: "Maharashtra", postalCode: "400061" });
   });
 
   it("groups days with the same hours and skips closed days", () => {

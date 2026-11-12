@@ -16,14 +16,14 @@ export const VERSOVA = {
   slug: "versova",
   name: "Seiketsu Versova",
   addressLines: [
-    "Bungalow 95, JP Road, Aram Nagar Part 2",
+    "Bungalow 95, JP Rd, Aram Nagar Part 2",
     "Machlimar, Versova, Andheri West",
-    "Mumbai 400061",
+    "Mumbai, Maharashtra 400061",
   ],
   phone: "+91 95847 58479",
   whatsapp: "919584758479",
   instagram: "sei_ketsu",
-  mapUrl: "https://maps.app.goo.gl/N5s3rBrDC4ZVUQDT9",
+  mapUrl: "https://maps.app.goo.gl/mz2jetF1nMTwRaz78",
 };
 
 const CATEGORY_ORDER = ["Salads", "Wraps", "Meals", "Sandwiches", "Pasta", "Juices", "Smoothies"];

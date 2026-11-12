@@ -15,7 +15,9 @@ export function splitAddress(lines: string[]) {
   const last = lines.at(-1) ?? "";
   const m = /^(.*?)[,\s]*(\d{6})$/.exec(last.trim());
   if (!m) return { streetAddress: lines.join(", ") };
-  return { streetAddress: lines.slice(0, -1).join(", "), addressLocality: m[1] || undefined, postalCode: m[2] };
+  // "Mumbai, Maharashtra 400061" carries the state too.
+  const [city, region] = m[1].split(/\s*,\s*/);
+  return { streetAddress: lines.slice(0, -1).join(", "), addressLocality: city || undefined, addressRegion: region || undefined, postalCode: m[2] };
 }
 
 /** Days with the same hours are grouped, the way schema.org expects. */
