@@ -25,11 +25,117 @@ const widgetError = (e: unknown) => {
 /** MSG91 retry channel codes */
 const RETRY: Record<Channel, string> = { sms: "11", whatsapp: "12" };
 
+type WaStart = { text: string; number: string; link: string };
+
 /**
- * Phone login. With the MSG91 widget configured, MSG91 sends and checks the
- * code and our server confirms the result; otherwise our own OTP API is used.
+ * "Verify on WhatsApp": the customer sends a pre-filled code to our number from their own WhatsApp; this page
+ * waits for it to arrive and signs them in. Free for both sides, and nothing to type.
  */
-export function PhoneLogin({ widget }: { widget: WidgetConfig | null }) {
+function WhatsAppLogin() {
+  const router = useRouter();
+  const [wa, setWa] = useState<WaStart | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!wa) return;
+    let stop = false;
+    const started = Date.now();
+    const tick = async () => {
+      if (stop) return;
+      if (Date.now() - started > 10 * 60_000) {
+        setWa(null);
+        setError("That took too long. Please start again.");
+        return;
+      }
+      try {
+        const res = await fetch("/api/auth/wa/check", { method: "POST" });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.status === "signed-in") {
+          router.refresh();
+          return;
+        }
+        if (!res.ok) {
+          setWa(null);
+          setError(data.error ?? "Something went wrong. Please start again.");
+          return;
+        }
+      } catch {
+        /* offline for a moment: keep waiting */
+      }
+      setTimeout(tick, 2500);
+    };
+    const t = setTimeout(tick, 2500);
+    return () => {
+      stop = true;
+      clearTimeout(t);
+    };
+  }, [wa, router]);
+
+  async function start() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/wa/start", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
+      setWa(data as WaStart);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {!wa ? (
+        <button type="button" onClick={start} disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-full bg-veg py-3 font-semibold text-white hover:opacity-90 disabled:opacity-60">
+          {busy ? "One moment…" : "Verify on WhatsApp"}
+        </button>
+      ) : (
+        <div role="status" className="space-y-3 rounded-2xl border border-line bg-white p-4 text-sm">
+          <p>Tap below to open WhatsApp, then press <strong>send</strong>. The message is already written for you.</p>
+          <a href={wa.link} target="_blank" rel="noreferrer" className="flex w-full items-center justify-center rounded-full bg-veg py-3 font-semibold text-white hover:opacity-90">
+            Open WhatsApp and send
+          </a>
+          <p className="text-muted">
+            Or send <strong className="text-ink">{wa.text}</strong> to <strong className="text-ink">+{wa.number}</strong> on WhatsApp. Waiting for your message…
+          </p>
+          <button type="button" className="text-berry underline" onClick={() => setWa(null)}>Cancel</button>
+        </div>
+      )}
+      {error && <p role="alert" className="rounded-lg bg-nonveg/10 p-3 text-sm text-nonveg">{error}</p>}
+    </div>
+  );
+}
+
+/**
+ * Phone login. "Verify on WhatsApp" when set up; codes by WhatsApp or SMS when a sender is set up. With the
+ * MSG91 widget configured, MSG91 sends and checks the code and our server confirms the result.
+ */
+export function PhoneLogin({ widget, whatsapp = false, codes = true }: { widget: WidgetConfig | null; whatsapp?: boolean; codes?: boolean }) {
+  if (whatsapp && !codes) {
+    return (
+      <div className="max-w-sm">
+        <WhatsAppLogin />
+      </div>
+    );
+  }
+  return (
+    <div className="max-w-sm space-y-5">
+      {whatsapp && (
+        <>
+          <WhatsAppLogin />
+          <p className="text-center text-sm text-muted">or get a code</p>
+        </>
+      )}
+      <CodeLogin widget={widget} />
+    </div>
+  );
+}
+
+function CodeLogin({ widget }: { widget: WidgetConfig | null }) {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");

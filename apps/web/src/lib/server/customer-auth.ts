@@ -89,7 +89,7 @@ export async function verifyOtp(args: { challengeId: string; code: string; ip: s
 }
 
 /** Creates the customer if new and starts a session. Only call after the phone is proven. */
-async function signInVerifiedPhone(phone: string) {
+export async function signInVerifiedPhone(phone: string) {
   const db = await getDb();
   const [customer] = await db
     .insert(customers)

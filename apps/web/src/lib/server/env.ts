@@ -100,6 +100,8 @@ export const env = {
     appSecret: optional("WHATSAPP_APP_SECRET"),
     accessToken: optional("WHATSAPP_ACCESS_TOKEN"),
     phoneNumberId: optional("WHATSAPP_PHONE_NUMBER_ID"),
+    /** Our WhatsApp number customers message to sign in (with country code, e.g. 919584758479). */
+    loginNumber: optional("WHATSAPP_LOGIN_NUMBER")?.replace(/\D/g, "") || undefined,
   },
   supabase: {
     url: optional("NEXT_PUBLIC_SUPABASE_URL"),
