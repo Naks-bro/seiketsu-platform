@@ -122,7 +122,15 @@ export async function invoiceRegister(outletId: string, opts: { from?: Date; to?
     const os = await db
       .select()
       .from(orders)
-      .where(and(eq(orders.outletId, outletId), isNotNull(orders.invoiceNumber), opts.from ? gte(at, opts.from) : undefined, opts.to ? lt(at, opts.to) : undefined))
+      .where(
+        and(
+          eq(orders.outletId, outletId),
+          isNotNull(orders.invoiceNumber),
+          // A raw expression has no column type, so the dates go in as ISO text and Postgres reads them as timestamps.
+          opts.from ? sql`${at} >= ${opts.from.toISOString()}::timestamptz` : undefined,
+          opts.to ? sql`${at} < ${opts.to.toISOString()}::timestamptz` : undefined,
+        ),
+      )
       .orderBy(desc(at))
       .limit(limit);
     for (const o of os) {
