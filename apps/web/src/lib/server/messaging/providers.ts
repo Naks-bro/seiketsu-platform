@@ -19,13 +19,14 @@ export function channelReady(channel: Channel, kind: TemplateKind): boolean {
   if (m.mode === "disabled") return false;
   if (m.mode === "log") return true;
   if (channel === "email") return !!m.resendApiKey && !!m.emailFrom;
-  if (channel === "whatsapp") return !!m.msg91.whatsappNumber && !!m.template("WA", kind);
-  return !!m.template("SMS", kind);
+  if (channel === "whatsapp") return !!m.meta || (!!m.msg91.authKey && !!m.msg91.whatsappNumber && !!m.template("WA", kind));
+  return !!m.msg91.authKey && !!m.template("SMS", kind);
 }
 
 export function providerName(channel: Channel) {
   if (env.messaging.mode === "log") return "log";
-  return channel === "email" ? "resend" : "msg91";
+  if (channel === "email") return "resend";
+  return channel === "whatsapp" && env.messaging.meta ? "meta" : "msg91";
 }
 
 async function postJson(url: string, body: unknown, headers: Record<string, string>) {
@@ -78,6 +79,30 @@ async function msg91WhatsApp(to: string, kind: TemplateKind, vars: Record<string
   return { providerMessageId: String(json.request_id ?? json.requestId ?? json.data ?? "") || null };
 }
 
+/** WhatsApp Cloud API (Meta): one approved template message. Returns Meta's message id (wamid). */
+async function metaWhatsApp(to: string, kind: TemplateKind, vars: Record<string, string>): Promise<SendResult> {
+  const meta = env.messaging.meta;
+  if (!meta) throw new NotConfigured("WhatsApp Cloud API not configured");
+  const t = TEMPLATES[kind];
+  const components: Record<string, unknown>[] = [
+    { type: "body", parameters: t.vars.map((k) => ({ type: "text", text: vars[k] ?? "" })) },
+  ];
+  // Authentication templates repeat the code on their copy-code button.
+  if (t.category === "authentication") components.push({ type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: vars.code }] });
+  const json = await postJson(
+    `https://graph.facebook.com/v23.0/${meta.phoneNumberId}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: intl(to),
+      type: "template",
+      template: { name: meta.template(kind), language: { code: meta.language }, components },
+    },
+    { Authorization: `Bearer ${meta.accessToken}` },
+  );
+  const messages = json.messages as { id?: string }[] | undefined;
+  return { providerMessageId: messages?.[0]?.id ?? null };
+}
+
 async function msg91Sms(to: string, kind: TemplateKind, vars: Record<string, string>): Promise<SendResult> {
   const templateId = env.messaging.template("SMS", kind);
   if (!templateId) throw new NotConfigured(`SMS template for ${kind} not configured`);
@@ -117,7 +142,7 @@ export async function deliver(args: {
     console.info(`[message:${channel}] ${kind} → ${who}: ${TEMPLATES[kind].text(vars)}`);
     return { providerMessageId: `log_${randomBytes(6).toString("hex")}` };
   }
-  if (channel === "whatsapp") return msg91WhatsApp(to, kind, vars);
+  if (channel === "whatsapp") return env.messaging.meta ? metaWhatsApp(to, kind, vars) : msg91WhatsApp(to, kind, vars);
   if (channel === "sms") return msg91Sms(to, kind, vars);
   return resendEmail(to, args.email?.subject ?? "Seiketsu", TEMPLATES[kind].text(vars), args.email?.html);
 }

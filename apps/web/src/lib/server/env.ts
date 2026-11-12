@@ -25,17 +25,31 @@ const paymentsMode: PaymentsMode =
       : "disabled";
 
 /**
- * msg91    - real WhatsApp/SMS through MSG91 (MSG91_AUTH_KEY set)
+ * live     - real messages: WhatsApp through Meta's Cloud API (WHATSAPP_ACCESS_TOKEN + WHATSAPP_PHONE_NUMBER_ID)
+ *            and/or WhatsApp and SMS through MSG91 (MSG91_AUTH_KEY)
  * log      - development: messages are printed to the server console and logged
- * disabled - nothing is sent (production without a key, or MESSAGING_MODE=disabled)
+ * disabled - nothing is sent (production without a provider, or MESSAGING_MODE=disabled)
  */
-export type MessagingMode = "msg91" | "log" | "disabled";
+export type MessagingMode = "live" | "log" | "disabled";
 const msg91AuthKey = optional("MSG91_AUTH_KEY");
+const metaWhatsApp =
+  optional("WHATSAPP_ACCESS_TOKEN") && optional("WHATSAPP_PHONE_NUMBER_ID")
+    ? {
+        accessToken: optional("WHATSAPP_ACCESS_TOKEN")!,
+        phoneNumberId: optional("WHATSAPP_PHONE_NUMBER_ID")!,
+        /** Language the templates were approved in, e.g. "en" or "en_US". */
+        language: optional("WHATSAPP_TEMPLATE_LANG") ?? "en",
+        /** Template name for a kind: WHATSAPP_TPL_<KIND>, or "seiketsu_<kind>" by default. */
+        template: (kind: string) => optional(`WHATSAPP_TPL_${kind.toUpperCase()}`) ?? `seiketsu_${kind}`,
+      }
+    : null;
 const messagingMode: MessagingMode =
-  process.env.MESSAGING_MODE === "disabled" ? "disabled" : msg91AuthKey ? "msg91" : isProd ? "disabled" : "log";
+  process.env.MESSAGING_MODE === "disabled" ? "disabled" : msg91AuthKey || metaWhatsApp ? "live" : isProd ? "disabled" : "log";
 
 const messaging = {
   mode: messagingMode,
+  /** Meta WhatsApp Cloud API, when set up. Takes over WhatsApp from MSG91. */
+  meta: metaWhatsApp,
   msg91: {
     authKey: msg91AuthKey,
     /** WhatsApp number connected in MSG91, with country code, e.g. 917977697408 */

@@ -89,7 +89,11 @@ export default async function MessagesPage() {
   const ch = (c: string) => byChannel.find((b) => b.channel === c);
 
   const kinds = Object.keys(TEMPLATES) as TemplateKind[];
-  const modeLabel = { msg91: "MSG91 (live)", log: "Dev log only — nothing is really sent", disabled: "Off — no MSG91 key" }[env.messaging.mode];
+  const modeLabel = {
+    live: env.messaging.meta ? "Live: WhatsApp via Meta" : "Live: MSG91",
+    log: "Dev log only — nothing is really sent",
+    disabled: "Off — no WhatsApp or MSG91 set up",
+  }[env.messaging.mode];
 
   return (
     <div className="space-y-8">
@@ -98,7 +102,7 @@ export default async function MessagesPage() {
           <h1 className="font-display text-3xl text-berry">Messages & costs</h1>
           <p className="text-sm text-muted">Costs are estimates from the rates below. Check your MSG91 and Razorpay dashboards for exact bills.</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${env.messaging.mode === "msg91" ? "bg-veg/15 text-veg" : "bg-butter"}`}>{modeLabel}</span>
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${env.messaging.mode === "live" ? "bg-veg/15 text-veg" : "bg-butter"}`}>{modeLabel}</span>
       </div>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
