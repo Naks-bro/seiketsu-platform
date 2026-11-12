@@ -85,9 +85,9 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
               <tr className="border-b-2 border-ink text-left text-xs text-muted">
                 <th className="w-8 py-2 font-medium">#</th>
                 <th className="py-2 font-medium">Item</th>
-                <th className="py-2 text-right font-medium">Qty</th>
-                <th className="py-2 text-right font-medium">Rate</th>
-                <th className="py-2 text-right font-medium">Amount</th>
+                <th className="w-12 py-2 pl-3 text-right font-medium">Qty</th>
+                <th className="w-24 py-2 pl-3 text-right font-medium">Rate</th>
+                <th className="w-24 py-2 pl-3 text-right font-medium">Amount</th>
               </tr>
             </thead>
             <tbody className="tabular">
@@ -101,9 +101,9 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
                       <span key={a.id} className="block text-xs text-muted">+ {a.name} ({formatINR(a.pricePaise)})</span>
                     ))}
                   </td>
-                  <td className="py-2.5 text-right">{i.quantity}</td>
-                  <td className="py-2.5 text-right">{formatINR(i.unitPricePaise + i.addons.reduce((s, a) => s + a.pricePaise, 0))}</td>
-                  <td className="py-2.5 text-right font-medium">{formatINR(i.lineTotalPaise)}</td>
+                  <td className="py-2.5 pl-3 text-right">{i.quantity}</td>
+                  <td className="py-2.5 pl-3 text-right">{formatINR(i.unitPricePaise + i.addons.reduce((s, a) => s + a.pricePaise, 0))}</td>
+                  <td className="py-2.5 pl-3 text-right font-medium">{formatINR(i.lineTotalPaise)}</td>
                 </tr>
               ))}
             </tbody>
