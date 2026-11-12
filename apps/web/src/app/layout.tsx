@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   openGraph: { siteName: "Seiketsu", locale: "en_IN", type: "website", images: [{ url: "/landing/hero-poster.webp", alt: "Seiketsu" }] },
   twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
+  applicationName: "Seiketsu",
+  appleWebApp: { title: "Seiketsu", capable: true, statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = { themeColor: "#a51c47" };
