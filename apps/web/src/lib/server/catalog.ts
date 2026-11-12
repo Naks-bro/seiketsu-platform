@@ -17,13 +17,42 @@ import { isOpenAt } from "@seiketsu/core/store-hours";
 import type { CategoryDTO, MenuItemDTO, StoreDTO } from "../types";
 import { env } from "./env";
 
+/**
+ * Page views read the store details on nearly every request, but they change rarely, so each server instance keeps
+ * them briefly: this spares the database most of its traffic and rides out a short stall. Lookups by outlet id
+ * (orders, payments, subscriptions, admin) always read fresh. Off outside production, so tests see changes at once.
+ */
+const STORE_TTL_MS = process.env.NODE_ENV === "production" ? 30_000 : 0;
+type StoreRow = { outlets: typeof outlets.$inferSelect; store_settings: typeof storeSettings.$inferSelect };
+const storeRows = new Map<string, { row: StoreRow; at: number }>();
+
+/** One retry for a momentary database stall (timeout or dropped connection). */
+async function withRetry<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (err) {
+    const msg = String((err as { cause?: { code?: string } })?.cause?.code ?? "") + String((err as Error)?.message ?? "");
+    if (!/57014|statement timeout|ECONNRESET|CONNECTION_|terminat/i.test(msg)) throw err;
+    await new Promise((r) => setTimeout(r, 250));
+    return run();
+  }
+}
+
 export async function getStore(outletId?: string): Promise<StoreDTO> {
-  const db = await getDb();
-  const [row] = await db
-    .select()
-    .from(outlets)
-    .innerJoin(storeSettings, eq(storeSettings.outletId, outlets.id))
-    .where(outletId ? eq(outlets.id, outletId) : eq(outlets.slug, await chosenOutletSlug()));
+  const slug = outletId ? null : await chosenOutletSlug();
+  const hit = slug ? storeRows.get(slug) : undefined;
+  let row: StoreRow | undefined = hit && Date.now() - hit.at < STORE_TTL_MS ? hit.row : undefined;
+  if (!row) {
+    const db = await getDb();
+    [row] = await withRetry(() =>
+      db
+        .select()
+        .from(outlets)
+        .innerJoin(storeSettings, eq(storeSettings.outletId, outlets.id))
+        .where(outletId ? eq(outlets.id, outletId) : eq(outlets.slug, slug!)),
+    );
+    if (row && slug && STORE_TTL_MS) storeRows.set(slug, { row, at: Date.now() });
+  }
   if (!row) throw new Error(`Outlet "${outletId ?? env.outletSlug}" not found. Run npm run db:seed.`);
   const o = row.outlets;
   const s = row.store_settings;
