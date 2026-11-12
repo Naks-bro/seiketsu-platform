@@ -4,6 +4,7 @@ import { getMenu, getStore } from "@/lib/server/catalog";
 import { MenuBrowser } from "@/components/site/menu/menu-browser";
 import { env } from "@/lib/server/env";
 import { ldJson, menuJsonLd } from "@/lib/seo";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Menu",
@@ -25,6 +26,7 @@ export default async function MenuPage() {
         </div>
         <p className="max-w-sm text-sm text-muted">
           Tap ADD to drop a dish in your cart. Bowls and salads open so you can pick a size and stack extras. Nutrition is listed for every option.
+          <span className="mt-1 block text-xs">{LEGAL.fssaiLabel} {LEGAL.fssai}</span>
         </p>
       </header>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(menuJsonLd(menu, env.siteUrl)) }} />

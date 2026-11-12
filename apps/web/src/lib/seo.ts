@@ -1,5 +1,6 @@
 import { DAY_NAMES, formatHours } from "@seiketsu/core/store-hours";
 import type { CategoryDTO, StoreDTO, VariantDTO } from "./types";
+import { LEGAL } from "./legal";
 
 /** Structured data and plain-text summaries for search engines and AI assistants, built only from what the database holds. */
 
@@ -59,6 +60,7 @@ export function restaurantJsonLd(store: StoreDTO, siteUrl: string) {
     hasMap: store.mapUrl,
     openingHoursSpecification: openingHours(store.hours),
     hasMenu: `${siteUrl}/menu`,
+    identifier: { "@type": "PropertyValue", propertyID: "FSSAI", value: LEGAL.fssai },
     sameAs: store.instagram ? [`https://www.instagram.com/${store.instagram}/`] : undefined,
     potentialAction: { "@type": "OrderAction", target: `${siteUrl}/menu` },
   };
@@ -115,6 +117,7 @@ export function llmsText(store: StoreDTO, menu: CategoryDTO[], siteUrl: string, 
   if (store.phone) out.push(`- Phone: ${store.phone}`);
   if (store.instagram) out.push(`- Instagram: https://www.instagram.com/${store.instagram}/`);
   out.push(`- Map: ${store.mapUrl}`);
+  out.push(`- ${LEGAL.fssaiLabel} ${LEGAL.fssai}`);
   const ways = [store.pickupEnabled && "pickup", store.deliveryEnabled && "delivery"].filter(Boolean);
   if (ways.length) out.push(`- Order online for ${ways.join(" or ")}: ${siteUrl}/menu`);
   if (store.hours) {

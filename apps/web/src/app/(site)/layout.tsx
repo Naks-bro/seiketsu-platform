@@ -15,6 +15,7 @@ import { POLICY_LINKS } from "@/components/site/policy-page";
 import { env } from "@/lib/server/env";
 import { ldJson, restaurantJsonLd } from "@/lib/seo";
 import { LANDING_ONLY } from "@/lib/site-mode";
+import { LEGAL } from "@/lib/legal";
 
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -90,6 +91,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
                 <span key={l} className="block">{l}</span>
               ))}
             </address>
+            <p className="text-xs text-cream/60">{LEGAL.fssaiLabel} {LEGAL.fssai}</p>
             <a href={store.mapUrl} target="_blank" rel="noreferrer" className="inline-block font-medium text-butter underline-offset-4 hover:underline">
               Open in Google Maps
             </a>

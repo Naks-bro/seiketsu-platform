@@ -8,6 +8,12 @@ export const LEGAL = {
   businessName: process.env.LEGAL_BUSINESS_NAME?.trim() || null,
   /** Public support email for orders, refunds and privacy requests. */
   supportEmail: process.env.SUPPORT_EMAIL?.trim() || null,
+  /**
+   * FSSAI registration (not a licence), shown on the site and on every bill as the FSS Act requires.
+   * Registration 21526006002945, Greater Mumbai, fee paid up to 15-09-2027: renew on foscos.fssai.gov.in before then.
+   */
+  fssai: process.env.FSSAI_NUMBER?.trim() || "21526006002945",
+  fssaiLabel: "FSSAI Reg. No.",
   /** Date the policy text was last reviewed by the owner (YYYY-MM-DD). */
   lastUpdated: "2026-11-02",
 };

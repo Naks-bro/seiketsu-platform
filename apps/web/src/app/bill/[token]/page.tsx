@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { loadOrder } from "@/lib/server/order-view";
 import { orderIssuer } from "@/lib/server/order-view";
 import { getStore } from "@/lib/server/catalog";
-import { businessLabel } from "@/lib/legal";
+import { businessLabel, LEGAL } from "@/lib/legal";
 import { formatDateTime, formatINR } from "@/lib/format";
 import { PrintButton } from "./print-button";
 
@@ -41,6 +41,7 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
             {store.addressLines.map((l) => <p key={l} className="text-muted">{l}</p>)}
             {store.phone && <p className="text-muted">Phone {store.phone}</p>}
             {isTaxInvoice && <p className="mt-1 font-medium">GSTIN {tax.gstin}</p>}
+            <p className="text-muted">{LEGAL.fssaiLabel} {LEGAL.fssai}</p>
           </div>
           <div className="sm:text-right">
             <p className="text-lg font-semibold">{isTaxInvoice ? "Tax invoice" : "Bill"}</p>

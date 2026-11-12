@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { invoiceByToken } from "@/lib/server/invoices";
-import { businessLabel } from "@/lib/legal";
+import { businessLabel, LEGAL } from "@/lib/legal";
 import { formatDateTime, formatINR } from "@/lib/format";
 import { PrintButton } from "../../bill/[token]/print-button";
 
@@ -35,6 +35,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ token:
             {inv.issuer.addressLines.map((l) => <p key={l} className="text-muted">{l}</p>)}
             {inv.issuer.phone && <p className="text-muted">Phone {inv.issuer.phone}</p>}
             {gst && <p className="mt-1 font-medium">GSTIN {tax.gstin}</p>}
+            <p className="text-muted">{LEGAL.fssaiLabel} {LEGAL.fssai}</p>
           </div>
           <div className="sm:text-right">
             <p className="text-lg font-semibold">{title}</p>
