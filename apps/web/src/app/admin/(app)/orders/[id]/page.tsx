@@ -36,7 +36,16 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           <StatusPill status={order.status} />
           <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-semibold capitalize">{order.fulfilment}</span>
           <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-semibold">{order.source}</span>
-          <div className="no-print ml-auto"><PrintButton /></div>
+          <div className="no-print ml-auto flex flex-wrap items-center gap-2">
+            {order.invoiceNumber && (
+              <>
+                <a href={`/pos/receipt/${order.id}?print=1`} target="_blank" rel="noreferrer" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-cream hover:bg-berry">Print receipt (80 mm)</a>
+                <a href={`/pos/receipt/${order.id}?print=1&w=58`} target="_blank" rel="noreferrer" className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-paper">58 mm</a>
+                <a href={`/bill/${order.publicToken}`} target="_blank" rel="noreferrer" className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-paper">A4 bill</a>
+              </>
+            )}
+            <PrintButton />
+          </div>
         </div>
         <p className="text-sm text-muted">Placed {formatDateTime(order.placedAt ?? order.createdAt)}</p>
 

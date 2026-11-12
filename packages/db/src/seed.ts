@@ -23,6 +23,7 @@ export const VERSOVA = {
   phone: "+91 95847 58479",
   whatsapp: "919584758479",
   instagram: "sei_ketsu",
+  mapUrl: "https://maps.app.goo.gl/N5s3rBrDC4ZVUQDT9",
 };
 
 const CATEGORY_ORDER = ["Salads", "Wraps", "Meals", "Sandwiches", "Pasta", "Juices", "Smoothies"];

@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { loadOrder } from "@/lib/server/order-view";
 import { orderIssuer } from "@/lib/server/order-view";
 import { getStore } from "@/lib/server/catalog";
+import { env } from "@/lib/server/env";
 import { businessLabel, LEGAL } from "@/lib/legal";
+import { rupeesInWords } from "@/lib/amount-words";
 import { formatDateTime, formatINR } from "@/lib/format";
 import { PrintButton } from "./print-button";
 
@@ -26,88 +29,117 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
   const isTaxInvoice = tax.enabled && !!tax.gstin;
   const paid = payments.find((p) => p.status === "captured" || p.status === "refunded");
   const halfRate = tax.rateBps / 200;
+  const site = env.siteUrl.replace(/^https?:\/\//, "");
+  const paidLabel = order.paymentState === "refunded" ? "Refunded" : order.paymentState === "partially_refunded" ? "Partly refunded" : paid ? "Paid" : null;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 text-sm sm:px-6">
+    <div className="mx-auto max-w-3xl px-4 py-8 text-sm sm:px-6 print:max-w-none print:p-0">
       <div className="no-print mb-6 flex items-center justify-between">
-        <Link href={`/order/${order.publicToken}`} className="text-berry hover:underline">← Back to order</Link>
+        <Link href={`/order/${order.publicToken}`} className="text-berry hover:underline">Back to order</Link>
         <PrintButton />
       </div>
 
-      <article className="rounded-2xl border border-line bg-white p-6 sm:p-8 print:border-0 print:p-0">
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
-          <div>
-            <p className="font-display text-2xl text-berry">{businessLabel(store.name)}</p>
-            {store.addressLines.map((l) => <p key={l} className="text-muted">{l}</p>)}
-            {store.phone && <p className="text-muted">Phone {store.phone}</p>}
-            {isTaxInvoice && <p className="mt-1 font-medium">GSTIN {tax.gstin}</p>}
-            <p className="text-muted">{LEGAL.fssaiLabel} {LEGAL.fssai}</p>
-          </div>
-          <div className="sm:text-right">
-            <p className="text-lg font-semibold">{isTaxInvoice ? "Tax invoice" : "Bill"}</p>
-            <p>No. <span className="tabular font-medium">{order.invoiceNumber}</span></p>
-            <p className="text-muted">{formatDateTime(order.placedAt ?? order.createdAt)}</p>
-            <p className="text-muted">Order {order.orderNumber}</p>
+      <article className="overflow-hidden rounded-2xl border border-line bg-white shadow-[var(--shadow-card)] print:rounded-none print:border-0 print:shadow-none" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
+        <header className="flex flex-wrap items-center justify-between gap-4 bg-berry px-6 py-5 text-cream sm:px-8">
+          <Image src="/brand/wordmark-cream.png" alt="Seiketsu" width={126} height={20} className="h-7 w-auto" priority />
+          <div className="text-right">
+            <p className="text-lg font-semibold tracking-wide">{isTaxInvoice ? "Tax invoice" : "Bill of sale"}</p>
+            <p className="tabular text-cream/90">{order.invoiceNumber}</p>
           </div>
         </header>
 
-        <section className="grid gap-1 border-b border-line py-4">
-          <p><span className="text-muted">Billed to</span> {order.customerName} · +91 {order.customerPhone}</p>
-          <p className="capitalize"><span className="text-muted">Order type</span> {order.fulfilment}</p>
-          {order.fulfilment === "delivery" && order.address && (
-            <p><span className="text-muted">Deliver to</span> {order.address.line1}, {order.address.pincode}</p>
-          )}
-        </section>
+        <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 sm:px-8">
+          <section>
+            <p className="text-xs font-semibold text-muted">From</p>
+            <p className="mt-1 font-semibold text-ink">{businessLabel(store.name)}</p>
+            {store.addressLines.map((l) => <p key={l} className="text-ink/80">{l}</p>)}
+            {store.phone && <p className="text-ink/80">Phone {store.phone}</p>}
+            {isTaxInvoice && <p className="mt-1 font-medium">GSTIN {tax.gstin}</p>}
+            <p className="text-ink/80">{LEGAL.fssaiLabel} {LEGAL.fssai}</p>
+          </section>
+          <section className="sm:text-right">
+            <p className="text-xs font-semibold text-muted">Billed to</p>
+            <p className="mt-1 font-semibold text-ink">{order.customerName}</p>
+            <p className="text-ink/80">+91 {order.customerPhone}</p>
+            {order.fulfilment === "delivery" && order.address && <p className="text-ink/80">{order.address.line1}, {order.address.pincode}</p>}
+          </section>
+        </div>
 
-        <table className="mt-4 w-full">
-          <thead>
-            <tr className="border-b border-line text-left text-xs text-muted">
-              <th className="py-2 font-medium">Item</th>
-              <th className="py-2 text-right font-medium">Qty</th>
-              <th className="py-2 text-right font-medium">Rate</th>
-              <th className="py-2 text-right font-medium">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="tabular">
-            {items.map((i) => (
-              <tr key={i.id} className="border-b border-line/60 align-top">
-                <td className="py-2 pr-2">
-                  {i.itemName}
-                  {i.variantLabel && <span className="text-muted"> · {i.variantLabel}</span>}
-                  {i.addons.map((a) => (
-                    <span key={a.id} className="block text-xs text-muted">+ {a.name} ({formatINR(a.pricePaise)})</span>
-                  ))}
-                </td>
-                <td className="py-2 text-right">{i.quantity}</td>
-                <td className="py-2 text-right">{formatINR(i.unitPricePaise + i.addons.reduce((s, a) => s + a.pricePaise, 0))}</td>
-                <td className="py-2 text-right">{formatINR(i.lineTotalPaise)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <dl className="tabular ml-auto mt-4 w-full max-w-xs space-y-1">
-          <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatINR(order.subtotalPaise)}</dd></div>
-          {order.discountPaise > 0 && <div className="flex justify-between"><dt>Discount</dt><dd>−{formatINR(order.discountPaise)}</dd></div>}
-          {order.deliveryFeePaise > 0 && <div className="flex justify-between"><dt>Delivery</dt><dd>{formatINR(order.deliveryFeePaise)}</dd></div>}
-          {tax.enabled && order.taxPaise > 0 && (
-            <>
-              <div className="flex justify-between text-muted"><dt>CGST {halfRate}%{tax.inclusive ? " (incl.)" : ""}</dt><dd>{formatINR(Math.floor(order.taxPaise / 2))}</dd></div>
-              <div className="flex justify-between text-muted"><dt>SGST {halfRate}%{tax.inclusive ? " (incl.)" : ""}</dt><dd>{formatINR(Math.ceil(order.taxPaise / 2))}</dd></div>
-            </>
-          )}
-          <div className="flex justify-between border-t border-line pt-2 text-base font-semibold"><dt>Total</dt><dd>{formatINR(order.totalPaise)}</dd></div>
+        <dl className="mx-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:mx-8 sm:grid-cols-4">
+          {[
+            ["Date", formatDateTime(order.placedAt ?? order.createdAt)],
+            ["Order", order.orderNumber],
+            ["Type", order.fulfilment === "delivery" ? "Delivery" : order.fulfilment === "pickup" ? "Pickup" : "Dine in"],
+            ["Payment", paidLabel ?? "Pending"],
+          ].map(([k, v]) => (
+            <div key={k} className="bg-paper px-3 py-2.5">
+              <dt className="text-xs text-muted">{k}</dt>
+              <dd className="tabular font-medium text-ink">{v}</dd>
+            </div>
+          ))}
         </dl>
 
-        <footer className="mt-6 border-t border-line pt-4 text-xs text-muted">
+        <div className="px-6 pt-6 sm:px-8">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-ink text-left text-xs text-muted">
+                <th className="w-8 py-2 font-medium">#</th>
+                <th className="py-2 font-medium">Item</th>
+                <th className="py-2 text-right font-medium">Qty</th>
+                <th className="py-2 text-right font-medium">Rate</th>
+                <th className="py-2 text-right font-medium">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="tabular">
+              {items.map((i, n) => (
+                <tr key={i.id} className="border-b border-line align-top">
+                  <td className="py-2.5 text-muted">{n + 1}</td>
+                  <td className="py-2.5 pr-2">
+                    <span className="font-medium text-ink">{i.itemName}</span>
+                    {i.variantLabel && <span className="text-muted">, {i.variantLabel}</span>}
+                    {i.addons.map((a) => (
+                      <span key={a.id} className="block text-xs text-muted">+ {a.name} ({formatINR(a.pricePaise)})</span>
+                    ))}
+                  </td>
+                  <td className="py-2.5 text-right">{i.quantity}</td>
+                  <td className="py-2.5 text-right">{formatINR(i.unitPricePaise + i.addons.reduce((s, a) => s + a.pricePaise, 0))}</td>
+                  <td className="py-2.5 text-right font-medium">{formatINR(i.lineTotalPaise)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="grid gap-6 px-6 py-6 sm:grid-cols-[1fr_minmax(0,18rem)] sm:px-8">
+          <div className="self-end">
+            <p className="text-xs text-muted">Amount in words</p>
+            <p className="font-medium text-ink">{rupeesInWords(order.totalPaise)}</p>
+          </div>
+          <dl className="tabular space-y-1.5 rounded-xl bg-paper p-4">
+            <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatINR(order.subtotalPaise)}</dd></div>
+            {order.discountPaise > 0 && <div className="flex justify-between"><dt>Discount</dt><dd>−{formatINR(order.discountPaise)}</dd></div>}
+            {order.deliveryFeePaise > 0 && <div className="flex justify-between"><dt>Delivery</dt><dd>{formatINR(order.deliveryFeePaise)}</dd></div>}
+            {tax.enabled && order.taxPaise > 0 && (
+              <>
+                <div className="flex justify-between text-ink/80"><dt>CGST {halfRate}%{tax.inclusive ? " (incl.)" : ""}</dt><dd>{formatINR(Math.floor(order.taxPaise / 2))}</dd></div>
+                <div className="flex justify-between text-ink/80"><dt>SGST {halfRate}%{tax.inclusive ? " (incl.)" : ""}</dt><dd>{formatINR(Math.ceil(order.taxPaise / 2))}</dd></div>
+              </>
+            )}
+            <div className="flex justify-between border-t border-ink/20 pt-2 text-lg font-semibold text-berry"><dt>Total</dt><dd>{formatINR(order.totalPaise)}</dd></div>
+          </dl>
+        </div>
+
+        <footer className="border-t border-line bg-paper px-6 py-4 text-xs text-ink/80 sm:px-8">
           {paid && (
             <p>
-              Paid online{paid.method ? ` by ${paid.method}` : ""} · Ref {paid.razorpayPaymentId}
-              {order.paymentState === "refunded" ? " · Refunded" : order.paymentState === "partially_refunded" ? " · Partly refunded" : ""}
+              Paid online{paid.method ? ` by ${paid.method}` : ""}, reference <span className="tabular">{paid.razorpayPaymentId}</span>
             </p>
           )}
           {!isTaxInvoice && <p className="mt-1">This is a bill of sale, not a GST tax invoice.</p>}
-          <p className="mt-1">Thank you for eating clean with us.</p>
+          <p className="mt-1 flex flex-wrap justify-between gap-2">
+            <span>Thank you for eating clean with us.</span>
+            <span>{site}{store.instagram ? `  ·  @${store.instagram}` : ""}</span>
+          </p>
         </footer>
       </article>
     </div>

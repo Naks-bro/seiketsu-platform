@@ -3,17 +3,20 @@ import { requireStaff } from "@/lib/server/auth";
 import { orderIssuer } from "@/lib/server/order-view";
 import { getStore } from "@/lib/server/catalog";
 import { loadOrder } from "@/lib/server/order-view";
-import { businessLabel } from "@/lib/legal";
+import { businessLabel, LEGAL } from "@/lib/legal";
 import { formatDateTime, formatINR } from "@/lib/format";
 import { AutoPrint } from "./auto-print";
 
 const PAY_LABEL: Record<string, string> = { cash: "Cash", counter_upi: "UPI", counter_card: "Card", razorpay: "Paid online" };
 
-/** 80 mm thermal receipt. Monospace-friendly, no colours, fits 72 mm print width. */
-export default async function ReceiptPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ print?: string }> }) {
+/** Thermal receipt: 80 mm paper by default, 58 mm with ?w=58. Monospace-friendly, no colours. */
+export default async function ReceiptPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ print?: string; w?: string }> }) {
   const staff = await requireStaff();
   const { id } = await params;
-  const { print } = await searchParams;
+  const { print, w } = await searchParams;
+  const narrow = w === "58";
+  const paperMm = narrow ? 58 : 80;
+  const printMm = narrow ? 48 : 72;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const view = await loadOrder({ id });
   if (!view || view.order.outletId !== staff.outletId) notFound();
@@ -23,14 +26,15 @@ export default async function ReceiptPage({ params, searchParams }: { params: Pr
   const tax = order.taxSnapshot;
 
   return (
-    <div className="receipt mx-auto w-[72mm] bg-white p-2 font-mono text-[12px] leading-tight text-black">
-      <style>{`@page { size: 80mm auto; margin: 4mm; } @media print { body { background: white } .receipt { width: 72mm } }`}</style>
+    <div className={`receipt mx-auto bg-white p-2 font-mono leading-tight text-black ${narrow ? "w-[48mm] text-[10.5px]" : "w-[72mm] text-[12px]"}`}>
+      <style>{`@page { size: ${paperMm}mm auto; margin: ${narrow ? 3 : 4}mm; } @media print { body { background: white } .receipt { width: ${printMm}mm } }`}</style>
       <AutoPrint enabled={print === "1"} />
       <div className="text-center">
         <p className="text-[15px] font-bold">{businessLabel(store.name)}</p>
         {store.addressLines.map((l) => <p key={l}>{l}</p>)}
         {store.phone && <p>Ph {store.phone}</p>}
         {tax.enabled && tax.gstin && <p>GSTIN {tax.gstin}</p>}
+        <p>{LEGAL.fssaiLabel} {LEGAL.fssai}</p>
       </div>
       <p className="my-1 border-t border-dashed border-black" />
       <p className="text-center font-bold">{tax.enabled && tax.gstin ? "TAX INVOICE" : "BILL"}</p>
@@ -59,7 +63,8 @@ export default async function ReceiptPage({ params, searchParams }: { params: Pr
           <p className="flex justify-between"><span>SGST {tax.rateBps / 200}%</span><span>{formatINR(Math.ceil(order.taxPaise / 2))}</span></p>
         </>
       )}
-      <p className="flex justify-between text-[14px] font-bold"><span>TOTAL</span><span>{formatINR(order.totalPaise)}</span></p>
+      <p className="my-1 border-t border-black" />
+      <p className={`flex justify-between font-bold ${narrow ? "text-[13px]" : "text-[16px]"}`}><span>TOTAL</span><span>{formatINR(order.totalPaise)}</span></p>
       {paid && <p>Paid: {PAY_LABEL[paid.provider] ?? paid.provider}</p>}
       {order.paymentState === "refunded" && <p className="font-bold">REFUNDED</p>}
       <p className="my-1 border-t border-dashed border-black" />
