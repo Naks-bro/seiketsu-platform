@@ -96,10 +96,10 @@ export function Lifestyle() {
                       tabIndex={on ? 0 : -1}
                       onClick={() => choose(i)}
                       className={`group relative flex shrink-0 items-baseline gap-3 rounded-full border px-4 py-2 text-left transition md:rounded-none md:border-0 md:border-b md:border-ink/15 md:px-0 md:py-4 ${
-                        on ? "border-berry bg-berry text-cream md:bg-transparent md:text-ink" : "border-line text-ink/60 hover:text-ink"
+                        on ? "border-berry bg-berry text-cream md:bg-transparent md:text-ink" : "border-line text-ink/75 hover:text-ink"
                       }`}
                     >
-                      <span className={`hidden font-display text-sm tabular md:inline ${on ? "text-berry" : "text-ink/35"}`}>0{i + 1}</span>
+                      <span aria-hidden className={`hidden font-display text-sm tabular md:inline ${on ? "text-berry" : "text-ink/55"}`}>0{i + 1}</span>
                       <span className="whitespace-nowrap font-display text-lg md:text-2xl">{x.who}</span>
                       {/* Fills as you scroll through this person's turn. */}
                       {story && (

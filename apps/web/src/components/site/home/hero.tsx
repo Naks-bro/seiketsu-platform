@@ -22,7 +22,7 @@ export function Hero() {
               Bringing together hydroponically grown greens and vegetables, fresh ingredients and thoughtfully crafted recipes, Seiketsu
               makes eating well an experience to look forward to.
             </p>
-            <p className="text-cream/70">
+            <p className="text-cream/90">
               From wholesome salads and wraps to nourishing bowls, fresh-pressed juices and smoothies, discover a better way to eat every day.
             </p>
           </div>
@@ -43,7 +43,7 @@ export function Hero() {
           <div className="rise relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-berry-deep shadow-[0_40px_90px_-35px_rgb(0_0_0/0.7)] ring-1 ring-cream/15">
             <HeroVideo src="/landing/hero.mp4" poster="/landing/hero-poster.webp" label="Seiketsu reel: sandwiches, wraps and bowls, the art of clean eating" />
           </div>
-          <figcaption className="mt-3 flex items-center justify-between text-xs text-cream/65">
+          <figcaption className="mt-3 flex items-center justify-between text-xs text-cream/90">
             <span>@sei_ketsu</span>
             <a href={REEL_URL} target="_blank" rel="noreferrer" className="font-medium text-cream/85 underline-offset-4 hover:text-cream hover:underline">
               Watch on Instagram
@@ -51,7 +51,7 @@ export function Hero() {
           </figcaption>
         </figure>
       </div>
-      <a href="#lifestyle" className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[11px] text-cream/60 hover:text-cream md:flex">
+      <a href="#lifestyle" className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[11px] text-cream/90 hover:text-cream md:flex">
         Scroll
         <span aria-hidden className="relative h-10 w-px overflow-hidden bg-cream/25">
           <span className="absolute inset-x-0 top-0 h-1/2 animate-[scroll-cue_1.8s_ease-in-out_infinite] bg-cream" />

@@ -59,7 +59,7 @@ export function HowWeMakeIt() {
       <h2 id="how-h" className="mt-3 max-w-2xl font-display text-3xl leading-[1.04] sm:text-5xl">
         From Thoughtful Ingredients to <em className="italic text-butter">Feel-Good Meals.</em>
       </h2>
-      <p className="mt-3 max-w-md text-sm text-cream/75 sm:mt-4 sm:text-base">Every Seiketsu meal begins with an idea: eating well should be simple, enjoyable and accessible.</p>
+      <p className="mt-3 max-w-md text-sm text-cream/90 sm:mt-4 sm:text-base">Every Seiketsu meal begins with an idea: eating well should be simple, enjoyable and accessible.</p>
     </>
   );
 
@@ -77,7 +77,7 @@ export function HowWeMakeIt() {
                 <div className="relative max-w-[62%] sm:max-w-md">
                   <p aria-hidden className="font-display text-6xl leading-none text-cream/20">{s.n}</p>
                   <h3 className="-mt-6 font-display text-3xl leading-tight">{s.title}</h3>
-                  <p className="mt-2 text-cream/80">{s.body}</p>
+                  <p className="mt-2 text-cream/90">{s.body}</p>
                 </div>
               </li>
             ))}
@@ -127,9 +127,9 @@ export function HowWeMakeIt() {
                 aria-hidden={i !== step}
                 className={`col-start-1 row-start-1 max-w-[17rem] transition-[transform,opacity] duration-700 sm:max-w-md ${i === step ? "translate-y-0 opacity-100" : i < step ? "-translate-y-8 opacity-0" : "translate-y-8 opacity-0"}`}
               >
-                <p className="font-display text-[4.5rem] leading-none text-cream/15 md:text-[7rem]">{s.n}</p>
+                <p aria-hidden className="font-display text-[4.5rem] leading-none text-cream/15 md:text-[7rem]">{s.n}</p>
                 <h3 className="-mt-7 font-display text-4xl leading-[1.05] md:-mt-10 md:text-5xl lg:text-6xl">{s.title}</h3>
-                <p className="mt-3 leading-relaxed text-cream/80 md:mt-4 md:text-xl">{s.body}</p>
+                <p className="mt-3 leading-relaxed text-cream/90 md:mt-4 md:text-xl">{s.body}</p>
               </div>
             ))}
           </div>
@@ -137,7 +137,7 @@ export function HowWeMakeIt() {
           {/* Where you are in the story. */}
           <ol aria-hidden className="flex gap-5 text-sm">
             {STEPS.map((s, i) => (
-              <li key={s.n} className={`flex items-center gap-2 transition-opacity duration-500 ${i === step ? "opacity-100" : "opacity-45"}`}>
+              <li key={s.n} className={`flex items-center gap-2 transition-opacity duration-500 ${i === step ? "opacity-100" : "opacity-80"}`}>
                 <span className="tabular">{s.n}</span>
                 <span className="relative h-px w-10 overflow-hidden bg-cream/25">
                   <span className={`absolute inset-0 origin-left bg-butter transition-transform duration-500 ${i <= step ? "scale-x-100" : "scale-x-0"}`} />

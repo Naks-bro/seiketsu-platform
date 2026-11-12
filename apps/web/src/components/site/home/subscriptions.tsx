@@ -82,7 +82,7 @@ export function Subscriptions({ plans }: { plans: PlanCard[] }) {
             Good food shouldn’t be an occasional choice. Make fresh, wholesome eating a part of your everyday routine with Seiketsu
             subscription plans.
           </p>
-          <p data-reveal className="mt-4 leading-relaxed text-cream/70">
+          <p data-reveal className="mt-4 leading-relaxed text-cream/90">
             Whether it’s your everyday lunch, a healthy meal at work or a regular dose of fresh goodness, find a plan that fits your
             lifestyle.
           </p>

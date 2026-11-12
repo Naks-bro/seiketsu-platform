@@ -67,7 +67,7 @@ export function SeiketsuPromise() {
 
             <div className="space-y-6">
               <div>
-                <p className="text-sm font-semibold text-ink/60">It’s not about</p>
+                <p className="text-sm font-semibold text-ink/75">It’s not about</p>
                 <ul className="mt-1">
                   {NOT.map((t, i) => (
                     <li key={t} className={`font-display text-2xl transition-colors duration-500 sm:text-3xl ${at(i + 1) ? "text-ink/35" : "text-ink"}`}>
@@ -80,7 +80,7 @@ export function SeiketsuPromise() {
                 </ul>
               </div>
               <div className={`transition duration-500 ${at(3) ? "opacity-100" : "opacity-0"}`}>
-                <p className="text-sm font-semibold text-ink/60">It’s about</p>
+                <p className="text-sm font-semibold text-ink/75">It’s about</p>
                 <ol className="mt-2 space-y-2">
                   {IS.map((t, i) => (
                     <li key={t} className={`flex items-baseline gap-4 transition duration-500 ${at(3 + i) ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0"}`}>
