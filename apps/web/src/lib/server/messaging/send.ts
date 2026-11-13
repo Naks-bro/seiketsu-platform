@@ -11,6 +11,9 @@ import {
 } from "@seiketsu/core/messaging";
 import { channelReady, deliver, NotConfigured, providerName, type Channel } from "./providers";
 import { TEMPLATES, type TemplateKind } from "./templates";
+import { orderUpdateText } from "@seiketsu/core/whatsapp-replies";
+import { env } from "../env";
+import { sendFreeText, serviceWindowOpen } from "../whatsapp-inbox";
 
 export async function getMessagingSettings(outletId: string | null): Promise<MessagingSettings> {
   if (!outletId) return withMessagingDefaults(null);
@@ -96,6 +99,17 @@ export async function sendMessage(a: SendArgs): Promise<SendOutcome> {
     const [row] = await db.insert(messageLog).values({ ...base, status: "skipped", error: reason }).returning({ id: messageLog.id });
     return { id: row.id, channel, status: "skipped", error: reason };
   };
+
+  // Meta WhatsApp: a free reply when the customer messaged us in the last 24 hours. Otherwise a paid template,
+  // only if the owner switched those on; by default the message is skipped so WhatsApp never costs anything.
+  if (channel === "whatsapp" && env.messaging.mode === "live" && env.messaging.meta && !a.fallbackOf) {
+    const phone = a.to.replace(/\D/g, "").slice(-10);
+    const free = orderUpdateText(a.kind, a.vars) ?? (a.kind === "staff_alert" ? t.text(a.vars) : null);
+    if (free && (await serviceWindowOpen(phone))) {
+      return sendFreeText({ to: phone, body: free, kind: a.kind, outletId: a.outletId, orderId: a.orderId, customerId: a.customerId });
+    }
+    if (!env.messaging.paidTemplates) return skip("outside the free 24-hour WhatsApp reply window");
+  }
 
   if (!channelReady(channel, a.kind)) return skip(`${channel} not configured for ${a.kind}`);
   if (!a.ignoreBudget && t.category !== "authentication" && (await budgetState(settings)).blocked) {

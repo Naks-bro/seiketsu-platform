@@ -54,7 +54,7 @@ export default async function AccountPage() {
         <PhoneLogin
           widget={env.messaging.otpWidget}
           whatsapp={whatsappLoginReady()}
-          codes={env.messaging.mode !== "disabled" || !!env.messaging.otpWidget}
+          codes={(env.messaging.mode !== "disabled" && env.messaging.codesAvailable) || !!env.messaging.otpWidget}
         />
       </div>
     );

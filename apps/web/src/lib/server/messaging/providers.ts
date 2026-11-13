@@ -103,6 +103,19 @@ async function metaWhatsApp(to: string, kind: TemplateKind, vars: Record<string,
   return { providerMessageId: messages?.[0]?.id ?? null };
 }
 
+/** A plain WhatsApp text (Meta). Free only as a reply within 24 hours of the customer's last message; callers check. */
+export async function metaWhatsAppText(to: string, body: string): Promise<SendResult> {
+  const meta = env.messaging.meta;
+  if (!meta) throw new NotConfigured("WhatsApp Cloud API not configured");
+  const json = await postJson(
+    `https://graph.facebook.com/v23.0/${meta.phoneNumberId}/messages`,
+    { messaging_product: "whatsapp", recipient_type: "individual", to: intl(to), type: "text", text: { preview_url: true, body } },
+    { Authorization: `Bearer ${meta.accessToken}` },
+  );
+  const messages = json.messages as { id?: string }[] | undefined;
+  return { providerMessageId: messages?.[0]?.id ?? null };
+}
+
 async function msg91Sms(to: string, kind: TemplateKind, vars: Record<string, string>): Promise<SendResult> {
   const templateId = env.messaging.template("SMS", kind);
   if (!templateId) throw new NotConfigured(`SMS template for ${kind} not configured`);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { Ticket } from "@/lib/server/active-orders";
 import { useLive } from "@/lib/live";
+import { useOrderAlerts } from "@/lib/order-alerts";
 import { bumpOrderAction } from "./actions";
 
 const COLUMNS: { key: string; title: string; statuses: Ticket["status"][] }[] = [
@@ -40,27 +41,13 @@ function useNow(intervalMs = 15_000) {
   return now;
 }
 
-function chime(ctx: AudioContext) {
-  for (const [i, f] of [880, 1175, 1568].entries()) {
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.frequency.value = f;
-    g.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.16);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.16 + 0.35);
-    o.connect(g).connect(ctx.destination);
-    o.start(ctx.currentTime + i * 0.16);
-    o.stop(ctx.currentTime + i * 0.16 + 0.35);
-  }
-}
-
 export function KitchenBoard({ tickets, outletId, prepMinutes, staffName }: { tickets: Ticket[]; outletId: string; prepMinutes: number; staffName: string }) {
   const router = useRouter();
   const now = useNow();
-  const [sound, setSound] = useState(false);
+  const { sound, unlocked, permission, toggle, askPermission, alert } = useOrderAlerts();
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
-  const ctx = useRef<AudioContext | null>(null);
   const seen = useRef(new Set(tickets.filter((t) => t.status === "placed").map((t) => t.id)));
 
   useLive(`outlet-${outletId}`, () => router.refresh());
@@ -69,8 +56,8 @@ export function KitchenBoard({ tickets, outletId, prepMinutes, staffName }: { ti
   useEffect(() => {
     const fresh = tickets.filter((t) => t.status === "placed" && !seen.current.has(t.id));
     fresh.forEach((t) => seen.current.add(t.id));
-    if (fresh.length && sound && ctx.current) chime(ctx.current);
-  }, [tickets, sound]);
+    if (fresh.length) void alert(`New order${fresh.length > 1 ? `s (${fresh.length})` : ""}`, fresh.map((t) => t.orderNumber).join(", "));
+  }, [tickets, alert]);
 
   function bump(t: Ticket, to: string) {
     setPendingId(t.id);
@@ -89,18 +76,18 @@ export function KitchenBoard({ tickets, outletId, prepMinutes, staffName }: { ti
         <h1 className="font-display text-2xl">Kitchen</h1>
         <span className="text-sm text-white/60">{tickets.length} open · {staffName}</span>
         <div className="ml-auto flex items-center gap-2">
+          {permission === "default" && (
+            <button type="button" onClick={() => void askPermission()} className="min-h-11 rounded-full bg-white/10 px-4 text-sm font-semibold hover:bg-white/20">
+              Allow notifications
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => {
-              ctx.current ??= new AudioContext();
-              void ctx.current.resume();
-              if (!sound) chime(ctx.current);
-              setSound((s) => !s);
-            }}
+            onClick={toggle}
             aria-pressed={sound}
-            className={`min-h-11 rounded-full px-4 text-sm font-semibold ${sound ? "bg-[#2f7d32] text-white" : "bg-[#f68a31] text-[#1d1a17]"}`}
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold ${sound && unlocked ? "bg-[#2f7d32] text-white" : "bg-[#f68a31] text-[#1d1a17]"}`}
           >
-            {sound ? "Sound on" : "Tap to turn on sound"}
+            {!sound ? "Sound off" : unlocked ? "Sound on" : "Sound on · tap anywhere to start"}
           </button>
           <Link href="/admin/orders" className="min-h-11 rounded-full border border-white/20 px-4 py-2.5 text-sm hover:bg-white/10">All orders</Link>
         </div>

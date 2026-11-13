@@ -2,6 +2,7 @@ import { getDb, webhookEvents } from "@seiketsu/db";
 import { verifyMetaSignature, webhookChallenge, whatsappEventId, whatsappEventLabel } from "@seiketsu/core/whatsapp-webhook";
 import { env } from "@/lib/server/env";
 import { applyDeliveryReport } from "@/lib/server/messaging/send";
+import { handleInbound } from "@/lib/server/whatsapp-inbox";
 
 /** Meta calls this once when the callback URL is saved, to check the verify token. */
 export function GET(req: Request) {
@@ -24,10 +25,13 @@ export async function POST(req: Request) {
     return new Response("bad json", { status: 400 });
   }
   const db = await getDb();
-  await db
+  const inserted = await db
     .insert(webhookEvents)
     .values({ id: whatsappEventId(raw), event: whatsappEventLabel(body), payload: body, processedAt: new Date() })
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning({ id: webhookEvents.id });
+  // Auto-replies once per delivery (Meta retries are ignored). A failed reply must not make Meta resend.
+  if (inserted.length) await handleInbound(body).catch((err) => console.error("[whatsapp] auto-reply failed:", err));
   type Status = { id?: string; status?: string; errors?: { title?: string; message?: string }[] };
   for (const entry of (body as { entry?: { changes?: { value?: { statuses?: Status[] } }[] }[] }).entry ?? []) {
     for (const change of entry.changes ?? []) {

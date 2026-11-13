@@ -50,6 +50,13 @@ const messaging = {
   mode: messagingMode,
   /** Meta WhatsApp Cloud API, when set up. Takes over WhatsApp from MSG91. */
   meta: metaWhatsApp,
+  /**
+   * Off by default: WhatsApp then only sends free replies, inside 24 hours of the customer's last message, and
+   * never a paid template. WHATSAPP_PAID_TEMPLATES=on also sends approved templates outside that window.
+   */
+  paidTemplates: optional("WHATSAPP_PAID_TEMPLATES") === "on",
+  /** Can a login code be sent to any phone? Not when WhatsApp is free-replies-only and there is no MSG91. */
+  codesAvailable: messagingMode === "log" || !!msg91AuthKey || (!!metaWhatsApp && optional("WHATSAPP_PAID_TEMPLATES") === "on"),
   msg91: {
     authKey: msg91AuthKey,
     /** WhatsApp number connected in MSG91, with country code, e.g. 917977697408 */

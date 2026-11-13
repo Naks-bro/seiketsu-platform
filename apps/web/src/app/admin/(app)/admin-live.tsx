@@ -1,49 +1,42 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useLive } from "@/lib/live";
+import { useOrderAlerts } from "@/lib/order-alerts";
 
 /**
- * Keeps admin pages fresh and chimes when new paid orders arrive.
- * Browsers only allow sound after a click, so staff tap "Turn on sound" once per shift.
+ * Keeps admin pages fresh and alerts staff when new paid orders arrive: chime, vibration and a system
+ * notification. Sound is on by default; the first tap anywhere on the page lets the browser play it.
  */
 export function AdminLive({ outletId, newCount }: { outletId: string; newCount: number }) {
   const router = useRouter();
-  const [sound, setSound] = useState(false);
-  const ctx = useRef<AudioContext | null>(null);
+  const { sound, unlocked, permission, toggle, askPermission, alert } = useOrderAlerts();
   const last = useRef(newCount);
 
   useLive(`outlet-${outletId}`, () => router.refresh());
 
   useEffect(() => {
-    if (newCount > last.current && sound && ctx.current) {
-      const c = ctx.current;
-      for (const [i, f] of [880, 1175].entries()) {
-        const o = c.createOscillator();
-        const g = c.createGain();
-        o.frequency.value = f;
-        g.gain.setValueAtTime(0.2, c.currentTime + i * 0.18);
-        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.18 + 0.3);
-        o.connect(g).connect(c.destination);
-        o.start(c.currentTime + i * 0.18);
-        o.stop(c.currentTime + i * 0.18 + 0.3);
-      }
-    }
+    const added = newCount - last.current;
+    if (added > 0) void alert(added > 1 ? `${added} new orders` : "New order", "Open Seiketsu admin to accept it.");
     last.current = newCount;
-  }, [newCount, sound]);
+  }, [newCount, alert]);
 
   return (
-    <button
-      type="button"
-      onClick={() => {
-        ctx.current ??= new AudioContext();
-        void ctx.current.resume();
-        setSound((s) => !s);
-      }}
-      className={`no-print rounded-full border px-3 py-1.5 text-xs font-medium ${sound ? "border-veg bg-veg/10 text-veg" : "border-line text-muted"}`}
-    >
-      {sound ? "Sound on for new orders" : "Turn on sound"}
-    </button>
+    <span className="no-print inline-flex flex-wrap items-center gap-2">
+      {permission === "default" && (
+        <button type="button" onClick={() => void askPermission()} className="rounded-full border border-berry/40 px-3 py-1.5 text-xs font-medium text-berry hover:bg-paper">
+          Allow notifications
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={toggle}
+        aria-pressed={sound}
+        className={`rounded-full border px-3 py-1.5 text-xs font-medium ${sound && unlocked ? "border-veg bg-veg/10 text-veg" : sound ? "border-amber-500 bg-amber-50 text-amber-800" : "border-line text-muted"}`}
+      >
+        {!sound ? "Sound off" : unlocked ? "Sound on for new orders" : "Sound on · tap anywhere to start"}
+      </button>
+    </span>
   );
 }
