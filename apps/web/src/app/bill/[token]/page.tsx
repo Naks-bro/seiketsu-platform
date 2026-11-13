@@ -9,7 +9,7 @@ import { getStore } from "@/lib/server/catalog";
 import { env } from "@/lib/server/env";
 import { businessLabel, LEGAL } from "@/lib/legal";
 import { rupeesInWords } from "@/lib/amount-words";
-import { formatDateTime, formatINR } from "@/lib/format";
+import { formatBillDate, formatINR } from "@/lib/format";
 import { PrintButton } from "./print-button";
 
 export const metadata: Metadata = { title: "Bill", robots: { index: false } };
@@ -67,7 +67,7 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
 
         <dl className="mx-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:mx-8 sm:grid-cols-4">
           {[
-            ["Date", formatDateTime(order.placedAt ?? order.createdAt)],
+            ["Date", formatBillDate(order.placedAt ?? order.createdAt)],
             ["Order", order.orderNumber],
             ["Type", order.fulfilment === "delivery" ? "Delivery" : order.fulfilment === "pickup" ? "Pickup" : "Dine in"],
             ["Payment", paidLabel ?? "Pending"],
@@ -119,7 +119,7 @@ export default async function BillPage({ params }: { params: Promise<{ token: st
             <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatINR(order.subtotalPaise)}</dd></div>
             {order.discountPaise > 0 && <div className="flex justify-between"><dt>Discount</dt><dd>−{formatINR(order.discountPaise)}</dd></div>}
             {order.deliveryFeePaise > 0 && <div className="flex justify-between"><dt>Delivery</dt><dd>{formatINR(order.deliveryFeePaise)}</dd></div>}
-            {tax.enabled && order.taxPaise > 0 && (
+            {isTaxInvoice && order.taxPaise > 0 && (
               <>
                 <div className="flex justify-between text-ink/80"><dt>CGST {halfRate}%{tax.inclusive ? " (incl.)" : ""}</dt><dd>{formatINR(Math.floor(order.taxPaise / 2))}</dd></div>
                 <div className="flex justify-between text-ink/80"><dt>SGST {halfRate}%{tax.inclusive ? " (incl.)" : ""}</dt><dd>{formatINR(Math.ceil(order.taxPaise / 2))}</dd></div>

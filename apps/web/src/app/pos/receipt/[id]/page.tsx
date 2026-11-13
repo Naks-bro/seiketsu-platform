@@ -57,7 +57,7 @@ export default async function ReceiptPage({ params, searchParams }: { params: Pr
       <p className="flex justify-between"><span>Subtotal</span><span>{formatINR(order.subtotalPaise)}</span></p>
       {order.discountPaise > 0 && <p className="flex justify-between"><span>Discount</span><span>-{formatINR(order.discountPaise)}</span></p>}
       {order.deliveryFeePaise > 0 && <p className="flex justify-between"><span>Delivery</span><span>{formatINR(order.deliveryFeePaise)}</span></p>}
-      {tax.enabled && order.taxPaise > 0 && (
+      {tax.enabled && tax.gstin && order.taxPaise > 0 && (
         <>
           <p className="flex justify-between"><span>CGST {tax.rateBps / 200}%</span><span>{formatINR(Math.floor(order.taxPaise / 2))}</span></p>
           <p className="flex justify-between"><span>SGST {tax.rateBps / 200}%</span><span>{formatINR(Math.ceil(order.taxPaise / 2))}</span></p>

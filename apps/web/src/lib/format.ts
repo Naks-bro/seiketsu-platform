@@ -13,5 +13,9 @@ export function fromPrice(prices: number[]) {
 const dt = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 const t = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit" });
 
+const dty = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
+
+/** With the year, for bills and invoices. */
+export const formatBillDate = (d: Date | string) => dty.format(new Date(d));
 export const formatDateTime = (d: Date | string) => dt.format(new Date(d));
 export const formatTimeOnly = (d: Date | string) => t.format(new Date(d));

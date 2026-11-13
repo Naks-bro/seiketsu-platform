@@ -74,7 +74,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ token:
 
         <dl className="tabular ml-auto mt-4 w-full max-w-xs space-y-1">
           <div className="flex justify-between"><dt>{tax.enabled && inv.taxPaise > 0 ? "Taxable value" : "Subtotal"}</dt><dd>{formatINR(inv.taxablePaise)}</dd></div>
-          {tax.enabled && inv.taxPaise > 0 && (
+          {gst && inv.taxPaise > 0 && (
             <>
               <div className="flex justify-between text-muted"><dt>CGST {halfRate}%</dt><dd>{formatINR(Math.floor(inv.taxPaise / 2))}</dd></div>
               <div className="flex justify-between text-muted"><dt>SGST {halfRate}%</dt><dd>{formatINR(Math.ceil(inv.taxPaise / 2))}</dd></div>
