@@ -17,7 +17,7 @@
     "@electric-sql/pglite": "^0.5.14",
     "@seiketsu/core": "*",
     "drizzle-orm": "^0.45.4",
-    "postgres": "^4.0.0"
+    "postgres": "3.4.9"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.11"
