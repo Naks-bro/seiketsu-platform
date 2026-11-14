@@ -90,9 +90,9 @@ export default async function MessagesPage() {
 
   const kinds = Object.keys(TEMPLATES) as TemplateKind[];
   const modeLabel = {
-    live: env.messaging.meta ? "Live: WhatsApp via Meta" : "Live: MSG91",
+    live: "Live: WhatsApp via Meta",
     log: "Dev log only — nothing is really sent",
-    disabled: "Off — no WhatsApp or MSG91 set up",
+    disabled: "Off — WhatsApp is not set up",
   }[env.messaging.mode];
 
   return (
@@ -100,7 +100,7 @@ export default async function MessagesPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl text-berry">Messages & costs</h1>
-          <p className="text-sm text-muted">Costs are estimates from the rates below. Check your MSG91 and Razorpay dashboards for exact bills.</p>
+          <p className="text-sm text-muted">Costs are estimates from the rates below. Check Meta Billing and your Razorpay dashboard for exact bills.</p>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${env.messaging.mode === "live" ? "bg-veg/15 text-veg" : "bg-butter"}`}>{modeLabel}</span>
       </div>
@@ -122,19 +122,18 @@ export default async function MessagesPage() {
 
       <section className="rounded-2xl border border-line bg-white p-5">
         <h2 className="font-display text-xl">Templates</h2>
-        <p className="mb-3 text-sm text-muted">Each message needs an approved template in MSG91. Set the names/IDs as environment variables.</p>
+        <p className="mb-3 text-sm text-muted">Login codes always use their template. Other messages go free inside the 24-hour reply window, and use templates outside it only when WHATSAPP_PAID_TEMPLATES=on.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-muted">
-              <tr><th className="py-1.5">Message</th><th>Type</th><th>WhatsApp (MSG91_WA_TPL_…)</th><th>SMS (MSG91_SMS_TPL_…)</th></tr>
+              <tr><th className="py-1.5">Message</th><th>Type</th><th>WhatsApp Manager template name</th></tr>
             </thead>
             <tbody>
               {kinds.map((k) => (
                 <tr key={k} className="border-t border-line">
                   <td className="py-1.5 font-mono text-xs">{k}</td>
                   <td className="capitalize">{TEMPLATES[k].category}</td>
-                  <td>{env.messaging.template("WA", k) ? "✓ set" : <span className="text-muted">not set</span>}</td>
-                  <td>{!TEMPLATES[k].sms ? <span className="text-muted">not used</span> : env.messaging.template("SMS", k) ? "✓ set" : <span className="text-muted">not set</span>}</td>
+                  <td className="font-mono text-xs">{env.messaging.meta?.template(k) ?? `seiketsu_${k}`}</td>
                 </tr>
               ))}
             </tbody>

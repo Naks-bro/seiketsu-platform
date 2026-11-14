@@ -80,7 +80,7 @@ export async function sendMessage(a: SendArgs): Promise<SendOutcome> {
   const t = TEMPLATES[a.kind];
   const settings = await getMessagingSettings(a.outletId ?? null);
   let channel: Channel = a.channel ?? "whatsapp";
-  if (channel === "whatsapp" && !channelReady("whatsapp", a.kind) && t.sms && channelReady("sms", a.kind)) channel = "sms";
+  if (channel === "whatsapp" && !channelReady("whatsapp") && t.sms && channelReady("sms")) channel = "sms";
 
   const base = {
     outletId: a.outletId ?? null,
@@ -108,10 +108,11 @@ export async function sendMessage(a: SendArgs): Promise<SendOutcome> {
     if (free && (await serviceWindowOpen(phone))) {
       return sendFreeText({ to: phone, body: free, kind: a.kind, outletId: a.outletId, orderId: a.orderId, customerId: a.customerId });
     }
-    if (!env.messaging.paidTemplates) return skip("outside the free 24-hour WhatsApp reply window");
+    // Login codes always go out: the customer is waiting for one and may never have messaged us.
+    if (!env.messaging.paidTemplates && t.category !== "authentication") return skip("outside the free 24-hour WhatsApp reply window");
   }
 
-  if (!channelReady(channel, a.kind)) return skip(`${channel} not configured for ${a.kind}`);
+  if (!channelReady(channel)) return skip(`${channel} not configured for ${a.kind}`);
   if (!a.ignoreBudget && t.category !== "authentication" && (await budgetState(settings)).blocked) {
     return skip("messaging budget reached");
   }

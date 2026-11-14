@@ -198,14 +198,12 @@ describe("phone login", () => {
 });
 describe("test logins", () => {
   it("sign in with the fixed code, send nothing, and reject other codes", async () => {
-    expect(auth.isTestPhone("6000000001")).toBe(true);
-    expect(auth.isTestPhone("9876543210")).toBe(false);
-    await expect(auth.verifyTestLogin({ phone: "6000000001", code: "000000", ip: "5.5.5.5" })).rejects.toThrow(/not right/);
-    await expect(auth.verifyTestLogin({ phone: "9876543210", code: "482915", ip: "5.5.5.5" })).rejects.toThrow(/not right/);
-    const c = await auth.verifyTestLogin({ phone: "6000000001", code: "482915", ip: "5.5.5.5" });
+    // A wrong code is rejected, the fixed code signs in, and no message is ever sent.
+    const w = await auth.requestOtp({ phone: "6000000001", ip: "5.5.5.5" });
+    await expect(auth.verifyOtp({ challengeId: w.challengeId, code: "000000", ip: "5.5.5.5" })).rejects.toThrow(/not right/);
+    const c = await auth.verifyOtp({ challengeId: w.challengeId, code: "482915", ip: "5.5.5.5" });
     expect(c.phone).toBe("6000000001");
 
-    // The own-OTP path also accepts them without sending a message.
     const r = await auth.requestOtp({ phone: "6000000002", ip: "5.5.5.6" });
     await auth.verifyOtp({ challengeId: r.challengeId, code: "731604", ip: "5.5.5.6" });
     expect((await db.select().from(messageLog).where(eq(messageLog.recipient, "6000000002"))).length).toBe(0);

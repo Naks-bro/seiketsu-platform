@@ -9,17 +9,16 @@ if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
 /**
  * Content-Security-Policy. Scripts/frames are limited to our own origin plus
- * the two third parties the site needs: Razorpay Checkout and the MSG91 OTP
- * widget (and the captcha it may load). Inline scripts are needed by Next.js.
+ * the third party the site needs: Razorpay Checkout. Inline scripts are needed by Next.js.
  */
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://*.razorpay.com https://verify.msg91.com https://*.msg91.com https://*.hostnsoft.com https://www.google.com https://www.gstatic.com https://*.hcaptcha.com https://hcaptcha.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.msg91.com https://*.hostnsoft.com",
+  "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://*.razorpay.com https://www.google.com https://www.gstatic.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self' https://*.razorpay.com https://*.msg91.com https://*.hostnsoft.com https://*.supabase.co wss://*.supabase.co https://*.hcaptcha.com",
-  "frame-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com https://*.msg91.com https://*.hostnsoft.com https://www.google.com https://*.hcaptcha.com",
+  "connect-src 'self' https://*.razorpay.com https://*.supabase.co wss://*.supabase.co",
+  "frame-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com https://www.google.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",

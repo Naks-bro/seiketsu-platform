@@ -2,9 +2,8 @@ import "server-only";
 import type { MessageCategory } from "@seiketsu/core/messaging";
 
 /**
- * Every message the platform sends. WhatsApp templates and SMS (DLT) templates
- * are approved in MSG91 with variables in exactly this order; their names/IDs
- * come from env (MSG91_WA_TPL_<KIND>, MSG91_SMS_TPL_<KIND>). See README.
+ * Every message the platform sends. WhatsApp templates are approved in WhatsApp Manager with variables in exactly
+ * this order, named seiketsu_<kind> (or WHATSAPP_TPL_<KIND>). See docs/whatsapp-templates.md.
  */
 export type TemplateKind =
   | "otp"

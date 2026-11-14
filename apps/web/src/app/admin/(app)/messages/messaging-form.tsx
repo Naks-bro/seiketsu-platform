@@ -58,7 +58,7 @@ export function MessagingForm({ s }: { s: MessagingSettings }) {
 
       <fieldset className={`${section} lg:col-span-2`}>
         <legend className="px-1 font-display text-xl">Cost per message (₹, estimate)</legend>
-        <p className="text-sm text-muted">Used to estimate spend. Copy the rates from your MSG91 plan; they include MSG91&apos;s margin.</p>
+        <p className="text-sm text-muted">Used to estimate spend. Copy the per-message rates from Meta&apos;s WhatsApp pricing for India.</p>
         <div className="grid gap-3 text-sm sm:grid-cols-5">
           {RATES.map(([k, label]) => (
             <label key={k} className="space-y-1">{label}<input name={`rate_${k}`} inputMode="decimal" defaultValue={toRupees(s.rates[k])} className={box} /></label>

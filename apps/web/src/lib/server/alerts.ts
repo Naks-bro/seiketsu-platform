@@ -51,7 +51,7 @@ export async function checkAlerts() {
       const more = low.length > 8 ? ` and ${low.length - 8} more` : "";
       if (await alertOwner(id, "low-stock", 12 * 3600, `Running low: ${list}${more}.`)) fired.push("stock");
     }
-    if (total >= 5 && failed / total > 0.2 && (await alertOwner(id, "failures", 6 * 3600, `${failed} of ${total} messages failed in the last hour. Check MSG91.`))) fired.push("failures");
+    if (total >= 5 && failed / total > 0.2 && (await alertOwner(id, "failures", 6 * 3600, `${failed} of ${total} messages failed in the last hour. Check WhatsApp Manager.`))) fired.push("failures");
   }
   const otps = await otpCountSince(new Date(Date.now() - 3600_000));
   if (otps >= OTP_SPIKE_PER_HOUR && outletRows[0] && (await alertOwner(outletRows[0].id, "otp-spike", 3 * 3600, `${otps} login codes were requested in the last hour. This may be abuse.`))) fired.push("otp");

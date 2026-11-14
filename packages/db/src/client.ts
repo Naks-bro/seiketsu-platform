@@ -44,7 +44,7 @@ async function connect(url: string): Promise<Conn> {
       // Settings > Database > SSL certificate) in DATABASE_SSL_CA so verification can succeed.
       ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: true, ...(sslCa() ? { ca: sslCa() } : {}) } : undefined,
     });
-    return { db: drizzlePg(sql, { schema }), close: () => sql.end(), kind: "postgres" };
+    return { db: drizzlePg(sql, { schema }), close: () => sql.end({ timeout: 5 }), kind: "postgres" };
   }
   const raw = url.replace(/^pglite:/, "") || "./.data/pglite";
   const { PGlite } = await import("@electric-sql/pglite");
@@ -61,12 +61,28 @@ async function connect(url: string): Promise<Conn> {
   return { db, close: () => client.close(), kind: "pglite" };
 }
 
-const g = globalThis as unknown as { __seiketsuDb?: Promise<Conn> };
+const g = globalThis as unknown as { __seiketsuDb?: Promise<Conn>; __seiketsuDbUsed?: number };
+
+/**
+ * Serverless instances are frozen between requests. Sockets that were open when an instance froze are often dead
+ * when it wakes, and a query sent on one waits for the OS to give up (minutes), not for Postgres. So after a quiet
+ * spell a Postgres pool is replaced before use; connecting again costs a few tens of milliseconds. The old pool
+ * gets 5 seconds to finish anything still running on it.
+ */
+const STALE_AFTER_MS = 15_000;
 
 /** Shared connection for the app (kept across hot reloads). */
 export function getConn(): Promise<Conn> {
   if (process.env.NODE_ENV === "production") assertProductionConfig(process.env);
-  g.__seiketsuDb ??= connect(servingDatabaseUrl(databaseUrlFrom(process.env)) || "pglite:./.data/pglite");
+  const url = servingDatabaseUrl(databaseUrlFrom(process.env)) || "pglite:./.data/pglite";
+  const now = Date.now();
+  const old = g.__seiketsuDb;
+  if (old && /^postgres(ql)?:\/\//.test(url) && now - (g.__seiketsuDbUsed ?? now) > STALE_AFTER_MS) {
+    g.__seiketsuDb = undefined;
+    void old.then((c) => c.close()).catch(() => {});
+  }
+  g.__seiketsuDbUsed = now;
+  g.__seiketsuDb ??= connect(url);
   return g.__seiketsuDb;
 }
 

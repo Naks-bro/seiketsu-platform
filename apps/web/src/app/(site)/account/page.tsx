@@ -16,7 +16,6 @@ import { formatDateTime, formatINR } from "@/lib/format";
 import { PhoneLogin } from "./phone-login";
 import { ProfileForm } from "./profile-form";
 import { customerLogoutAction, setConsentAction } from "./actions";
-import { whatsappLoginReady } from "@/lib/server/whatsapp-login";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false } };
 
@@ -51,11 +50,11 @@ export default async function AccountPage() {
         <p className="mb-8 mt-3 max-w-md text-muted">
           Use your mobile number to see your orders and save your details for next time. No password needed. You can always order as a guest.
         </p>
-        <PhoneLogin
-          widget={env.messaging.otpWidget}
-          whatsapp={whatsappLoginReady()}
-          codes={(env.messaging.mode !== "disabled" && env.messaging.codesAvailable) || !!env.messaging.otpWidget}
-        />
+        {env.messaging.mode !== "disabled" && env.messaging.codesAvailable ? (
+          <PhoneLogin />
+        ) : (
+          <p className="max-w-sm rounded-2xl border border-line bg-white p-5 text-sm text-muted">Sign-in is not available right now. You can still order as a guest.</p>
+        )}
       </div>
     );
   }

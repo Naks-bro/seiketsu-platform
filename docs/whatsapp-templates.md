@@ -30,6 +30,22 @@ You cannot keep a window open without the customer: it only restarts when they m
 
 Order updates (confirmed, ready, out for delivery, completed, cancelled, refunded) go out as free replies when the window is open.
 
+## Login code (needed now)
+
+Customers sign in by typing their mobile number and the 6-digit code we send them on WhatsApp. This is the one
+message that always goes out as a template, because someone signing in may never have messaged us. Meta charges
+its authentication rate for India for each code.
+
+WhatsApp Manager → Message templates → Create template:
+- Category: **Authentication**
+- Name: **`seiketsu_otp`**
+- Language: **English** (`en`)
+- Code delivery: **Copy code** button
+- Tick "Add security recommendation" and set the expiry to **10 minutes**
+
+Meta writes the message text itself ("*123456* is your verification code…"). After it is approved, sign-in works
+with no further setting.
+
 ## Templates for later (paid)
 
 Create these only if you decide to message customers who have not written to you. WhatsApp Manager → Message templates → Create template. Language: **English** (`en`, matching `WHATSAPP_TEMPLATE_LANG`). Then set `WHATSAPP_PAID_TEMPLATES=on` in Vercel.

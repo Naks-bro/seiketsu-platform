@@ -26,12 +26,10 @@ const paymentsMode: PaymentsMode =
 
 /**
  * live     - real messages: WhatsApp through Meta's Cloud API (WHATSAPP_ACCESS_TOKEN + WHATSAPP_PHONE_NUMBER_ID)
- *            and/or WhatsApp and SMS through MSG91 (MSG91_AUTH_KEY)
  * log      - development: messages are printed to the server console and logged
  * disabled - nothing is sent (production without a provider, or MESSAGING_MODE=disabled)
  */
 export type MessagingMode = "live" | "log" | "disabled";
-const msg91AuthKey = optional("MSG91_AUTH_KEY");
 const metaWhatsApp =
   optional("WHATSAPP_ACCESS_TOKEN") && optional("WHATSAPP_PHONE_NUMBER_ID")
     ? {
@@ -44,34 +42,23 @@ const metaWhatsApp =
       }
     : null;
 const messagingMode: MessagingMode =
-  process.env.MESSAGING_MODE === "disabled" ? "disabled" : msg91AuthKey || metaWhatsApp ? "live" : isProd ? "disabled" : "log";
+  process.env.MESSAGING_MODE === "disabled" ? "disabled" : metaWhatsApp ? "live" : isProd ? "disabled" : "log";
 
 const messaging = {
   mode: messagingMode,
-  /** Meta WhatsApp Cloud API, when set up. Takes over WhatsApp from MSG91. */
+  /** Meta WhatsApp Cloud API, when set up. */
   meta: metaWhatsApp,
   /**
-   * Off by default: WhatsApp then only sends free replies, inside 24 hours of the customer's last message, and
-   * never a paid template. WHATSAPP_PAID_TEMPLATES=on also sends approved templates outside that window.
+   * Off by default: order updates and alerts then go only as free replies, inside 24 hours of the customer's last
+   * message. WHATSAPP_PAID_TEMPLATES=on also sends them as approved templates outside that window. Login codes are
+   * always sent (as the paid authentication template), because a customer signing in may never have messaged us.
    */
   paidTemplates: optional("WHATSAPP_PAID_TEMPLATES") === "on",
-  /** Can a login code be sent to any phone? Not when WhatsApp is free-replies-only and there is no MSG91. */
-  codesAvailable: messagingMode === "log" || !!msg91AuthKey || (!!metaWhatsApp && optional("WHATSAPP_PAID_TEMPLATES") === "on"),
-  msg91: {
-    authKey: msg91AuthKey,
-    /** WhatsApp number connected in MSG91, with country code, e.g. 917977697408 */
-    whatsappNumber: optional("MSG91_WA_NUMBER"),
-    /** Shared secret in the delivery-report webhook URL (?token=...) */
-    webhookToken: optional("MSG91_WEBHOOK_TOKEN"),
-  },
-  /** MSG91 OTP widget (public IDs). Used for phone login when set together with MSG91_AUTH_KEY. */
-  otpWidget:
-    msg91AuthKey && optional("NEXT_PUBLIC_MSG91_WIDGET_ID") && optional("NEXT_PUBLIC_MSG91_WIDGET_TOKEN")
-      ? { widgetId: optional("NEXT_PUBLIC_MSG91_WIDGET_ID")!, tokenAuth: optional("NEXT_PUBLIC_MSG91_WIDGET_TOKEN")! }
-      : null,
+  /** Can a login code be sent to any phone? */
+  codesAvailable: messagingMode === "log" || !!metaWhatsApp,
   /**
    * Temporary test logins that skip SMS: TEST_LOGINS="6000000001:482915,6000000002:731604".
-   * For testing before MSG91 delivery works. Delete the variable before launch.
+   * Local development only; ignored in production.
    */
   testLogins: new Map(
     (!isProd ? optional("TEST_LOGINS") ?? "" : "")
@@ -82,8 +69,6 @@ const messaging = {
   ),
   resendApiKey: optional("RESEND_API_KEY"),
   emailFrom: optional("EMAIL_FROM"),
-  /** Template name/ID for a message kind, e.g. MSG91_WA_TPL_ORDER_PLACED / MSG91_SMS_TPL_OTP */
-  template: (channel: "WA" | "SMS", kind: string) => optional(`MSG91_${channel}_TPL_${kind.toUpperCase()}`),
 };
 
 export const SIMULATOR_SECRET = "seiketsu-local-simulator-secret";
