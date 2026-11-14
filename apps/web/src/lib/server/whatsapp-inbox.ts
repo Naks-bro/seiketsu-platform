@@ -4,6 +4,8 @@ import { getDb, messageLog, orders, webhookEvents } from "@seiketsu/db";
 import { STATUS_LABEL } from "@seiketsu/core/order-status";
 import { phoneFromWhatsApp } from "@seiketsu/core/whatsapp-login";
 import {
+  autoReplyText,
+  helpText,
   incomingMessages,
   intentOf,
   orderNotFoundText,
@@ -72,7 +74,7 @@ export async function sendFreeText(a: FreeSend) {
 async function replyContext(): Promise<ReplyContext> {
   const store = await getStore();
   const digits = store.whatsapp?.replace(/\D/g, "") ?? "";
-  return { siteUrl: env.siteUrl, mapUrl: store.mapUrl, helpNumber: digits.length === 10 ? `91${digits}` : digits || null };
+  return { siteUrl: env.siteUrl, mapUrl: store.mapUrl, helpNumber: digits.length === 10 ? `91${digits}` : digits || null, phone: store.phone };
 }
 
 /**
@@ -102,9 +104,15 @@ export async function handleInbound(payload: unknown) {
         ? trackText({ orderNumber: o.orderNumber, statusLabel: STATUS_LABEL[o.status], link: `${env.siteUrl}/order/${o.publicToken}` })
         : orderNotFoundText(intent.orderNumber, ctx);
       await sendFreeText({ to: phone, body, kind: "auto_track", outletId: o?.outletId, orderId: o?.id, customerId: o?.customerId });
+    } else if (intent.kind === "help") {
+      // Always answered; the limit only stops a loop with another bot.
+      if (await rateLimit(`wa-help:${phone}`, 5, 10 * 60)) await sendFreeText({ to: phone, body: helpText(ctx), kind: "auto_help" });
     } else if (await rateLimit(`wa-welcome:${phone}`, 1, 6 * 60 * 60)) {
       // One welcome per customer every few hours, so a chatty conversation is not answered with the menu each time.
       await sendFreeText({ to: phone, body: welcomeText(ctx), kind: "auto_welcome" });
+    } else if (await rateLimit(`wa-auto:${phone}`, 1, 60 * 60)) {
+      // After the welcome, anything else gets an honest "this number is automatic" note, at most hourly.
+      await sendFreeText({ to: phone, body: autoReplyText(ctx), kind: "auto_reply" });
     }
   }
 }

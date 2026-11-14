@@ -8,14 +8,16 @@ import { findLoginCode } from "./whatsapp-login";
 /** A little under Meta's 24 hours, so a reply never lands just after the window shuts. */
 export const SERVICE_WINDOW_MS = 23.5 * 60 * 60 * 1000;
 
-export type InboundIntent = { kind: "login" } | { kind: "track"; orderNumber: string } | { kind: "hello" };
+export type InboundIntent = { kind: "login" } | { kind: "track"; orderNumber: string } | { kind: "help" } | { kind: "hello" };
 
 const ORDER_RE = /\bSK-?(\d{3,7})\b/i;
+const HELP_RE = /\b(help|menu|options|what can (you|u) do|how (does|do) (this|it) work)\b|^\s*\?+\s*$/i;
 
 export function intentOf(text: string): InboundIntent {
   if (/login/i.test(text) && findLoginCode(text)) return { kind: "login" };
   const m = ORDER_RE.exec(text);
   if (m) return { kind: "track", orderNumber: `SK-${m[1]}` };
+  if (HELP_RE.test(text)) return { kind: "help" };
   return { kind: "hello" };
 }
 
@@ -34,7 +36,7 @@ export function incomingMessages(payload: Payload): { from: string; text: string
   return out;
 }
 
-export type ReplyContext = { siteUrl: string; mapUrl?: string | null; helpNumber?: string | null };
+export type ReplyContext = { siteUrl: string; mapUrl?: string | null; helpNumber?: string | null; phone?: string | null };
 
 const help = (c: ReplyContext) => (c.helpNumber ? `\n\nNeed a person? Message us at wa.me/${c.helpNumber}` : "");
 
@@ -50,6 +52,40 @@ export function welcomeText(c: ReplyContext): string {
     "Reply with your order number, like _SK-1006_",
     ...(c.mapUrl ? ["", "📍 *Find us*", c.mapUrl] : []),
   ].join("\n") + help(c);
+}
+
+/** How to reach a person. This number is answered automatically, so people are pointed elsewhere. */
+function person(c: ReplyContext): string[] {
+  const ways = [
+    ...(c.helpNumber ? [`💬 WhatsApp: wa.me/${c.helpNumber}`] : []),
+    ...(c.phone ? [`📞 Call: ${c.phone}`] : []),
+  ];
+  return ways.length ? ["", "🙋 *Talk to a person*", ...ways] : [];
+}
+
+/** Sent for "help", "menu", "what can you do". */
+export function helpText(c: ReplyContext): string {
+  return [
+    "*Here's what I can do* 🌿",
+    "",
+    "🥗 *Menu & ordering*",
+    `${c.siteUrl}/menu`,
+    "",
+    "📦 *Track an order*",
+    "Send your order number, like _SK-1006_",
+    ...(c.mapUrl ? ["", "📍 *Find us*", c.mapUrl] : []),
+    ...person(c),
+  ].join("\n");
+}
+
+/** Anything else, once the welcome has gone out: an honest note that this number is automatic. */
+export function autoReplyText(c: ReplyContext): string {
+  return [
+    "Thanks for your message 🙏",
+    "",
+    "This number replies automatically, so I can only share the menu and track orders. Send _help_ to see how.",
+    ...person(c),
+  ].join("\n");
 }
 
 export const signedInText = () =>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { incomingMessages, intentOf, orderUpdateText, welcomeText } from "./whatsapp-replies";
+import { autoReplyText, helpText, incomingMessages, intentOf, orderUpdateText, welcomeText } from "./whatsapp-replies";
 
 describe("whatsapp replies", () => {
   it("reads what the customer wants", () => {
@@ -8,6 +8,17 @@ describe("whatsapp replies", () => {
     expect(intentOf("where is sk1006?")).toEqual({ kind: "track", orderNumber: "SK-1006" });
     expect(intentOf("hi")).toEqual({ kind: "hello" });
     expect(intentOf("")).toEqual({ kind: "hello" });
+    for (const t of ["Help", "What can u do", "what can you do?", "menu pls", "?"]) expect(intentOf(t)).toEqual({ kind: "help" });
+    expect(intentOf("helpful staff, thanks")).toEqual({ kind: "hello" });
+  });
+
+  it("points people to a human, since this number is automatic", () => {
+    const c = { siteUrl: "https://www.seiketsu.co.in", helpNumber: "919000000000", phone: "+91 90000 00000" };
+    expect(helpText(c)).toContain("https://www.seiketsu.co.in/menu");
+    expect(helpText(c)).toContain("wa.me/919000000000");
+    expect(autoReplyText(c)).toContain("replies automatically");
+    expect(autoReplyText(c)).toContain("+91 90000 00000");
+    expect(autoReplyText({ siteUrl: "x" })).not.toContain("Talk to a person");
   });
 
   it("collects every incoming message, with text when there is some", () => {
