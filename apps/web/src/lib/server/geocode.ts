@@ -34,7 +34,7 @@ function toPlace(f: Feature, withName = true): Place | null {
   // A dropped pin lands on whatever shop is nearest; its name is not the customer's address.
   const name = withName && p.name && p.name !== p.street ? p.name : "";
   // Locality ("Seven Bungalows") reads better than the municipal ward ("K/W Ward") that Mumbai districts carry.
-  const area = [p.locality, p.suburb, p.district].find((a) => a && !/ward$/i.test(a)) ?? "";
+  const area = [p.locality, p.suburb, p.district].find((a) => a && !/\bward$/i.test(a)) ?? "";
   const city = p.city || p.county || p.state || "";
   const line = [name, street].filter(Boolean).join(", ") || area || city;
   const label = [line, area !== line ? area : "", city].filter(Boolean).join(", ");
