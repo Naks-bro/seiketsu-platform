@@ -14,6 +14,8 @@ import { progress, SUB_STATUS_LABEL, type SubStatus } from "@seiketsu/core/subsc
 import { env } from "@/lib/server/env";
 import { formatDateTime, formatINR } from "@/lib/format";
 import { PhoneLogin } from "./phone-login";
+import { WhatsAppVerify } from "./whatsapp-verify";
+import { codeLoginReady, whatsappLoginReady } from "@/lib/server/whatsapp-login";
 import { ProfileForm } from "./profile-form";
 import { customerLogoutAction, setConsentAction } from "./actions";
 
@@ -50,8 +52,11 @@ export default async function AccountPage() {
         <p className="mb-8 mt-3 max-w-md text-muted">
           Use your mobile number to see your orders and save your details for next time. No password needed. You can always order as a guest.
         </p>
-        {env.messaging.mode !== "disabled" && env.messaging.codesAvailable ? (
+        {env.messaging.mode !== "disabled" && env.messaging.codesAvailable && (await codeLoginReady()) ? (
           <PhoneLogin />
+        ) : whatsappLoginReady() ? (
+          // Until Meta lets us send codes, the customer sends one to us instead.
+          <WhatsAppVerify />
         ) : (
           <p className="max-w-sm rounded-2xl border border-line bg-white p-5 text-sm text-muted">Sign-in is not available right now. You can still order as a guest.</p>
         )}

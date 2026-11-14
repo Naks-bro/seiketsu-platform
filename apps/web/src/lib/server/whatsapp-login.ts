@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { jwtVerify, SignJWT } from "jose";
 import { and, eq, gte, sql } from "drizzle-orm";
-import { getDb, webhookEvents } from "@seiketsu/db";
+import { getDb, messageLog, webhookEvents } from "@seiketsu/db";
 import { findLoginCode, incomingTexts, loginMessage, newLoginCode, phoneFromWhatsApp } from "@seiketsu/core/whatsapp-login";
 import { AuthError, signInVerifiedPhone } from "./customer-auth";
 import { env, sessionSecret } from "./env";
@@ -68,4 +68,42 @@ export async function checkWhatsAppLogin(ip: string) {
     }
   }
   return { status: "waiting" as const };
+}
+
+const CODE_LOGIN_TTL_MS = 5 * 60_000;
+let codeLoginCache: { at: number; ready: boolean } | null = null;
+
+type ChangeValue = { decision?: string; event?: string; message_template_name?: string };
+const changeValue = (p: unknown) => ((p as { entry?: { changes?: { value?: ChangeValue }[] }[] })?.entry?.[0]?.changes?.[0]?.value ?? {}) as ChangeValue;
+
+/**
+ * Can the site send sign-in codes yet? Meta blocks every template, the code included, until the display name is
+ * approved, and the code template itself must be approved too. Both approvals arrive as webhook events, so the
+ * login screen switches over by itself; a code that was actually delivered also counts. WHATSAPP_CODE_LOGIN=on or
+ * off overrides the check.
+ */
+export async function codeLoginReady(): Promise<boolean> {
+  const forced = process.env.WHATSAPP_CODE_LOGIN?.trim();
+  if (forced === "on") return true;
+  if (forced === "off" || !env.messaging.meta) return false;
+  if (codeLoginCache && Date.now() - codeLoginCache.at < CODE_LOGIN_TTL_MS) return codeLoginCache.ready;
+
+  const db = await getDb();
+  const latest = async (event: string, match?: string) => {
+    const [row] = await db
+      .select({ payload: webhookEvents.payload })
+      .from(webhookEvents)
+      .where(and(eq(webhookEvents.event, event), match ? sql`${webhookEvents.payload}::text like ${`%${match}%`}` : sql`true`))
+      .orderBy(sql`${webhookEvents.receivedAt} desc`)
+      .limit(1);
+    return row ? changeValue(row.payload) : null;
+  };
+  const [name, template, delivered] = await Promise.all([
+    latest("whatsapp:phone_number_name_update:other"),
+    latest("whatsapp:message_template_status_update:other", `"${env.messaging.meta.template("otp")}"`),
+    db.select({ n: sql<number>`count(*)::int` }).from(messageLog).where(and(eq(messageLog.kind, "otp"), eq(messageLog.status, "sent"), eq(messageLog.provider, "meta"))),
+  ]);
+  const ready = (delivered[0]?.n ?? 0) > 0 || (name?.decision === "APPROVED" && template?.event === "APPROVED");
+  codeLoginCache = { at: Date.now(), ready };
+  return ready;
 }
