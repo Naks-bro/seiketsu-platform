@@ -200,7 +200,7 @@ export function CartDrawer({ pricing, pickupFrom }: { pricing: CartPricing; pick
           className="flex items-center gap-2 border-b border-line bg-paper/60 px-5 py-2.5 text-left text-sm hover:bg-paper"
         >
           <span className="text-muted">{!location ? "Delivery or pickup?" : location.mode === "pickup" ? "Pickup from" : "Delivering to"}</span>
-          <span className="font-semibold">{!location ? "Choose" : location.mode === "pickup" ? pickupFrom : location.pincode}</span>
+          <span className="font-semibold">{!location ? "Choose" : location.mode === "pickup" ? pickupFrom : location.area || location.pincode || "your pin"}</span>
           <span className="ml-auto font-medium text-berry">Change</span>
         </button>
 

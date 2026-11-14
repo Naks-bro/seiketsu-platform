@@ -17,7 +17,12 @@ export default async function PrivacyPage() {
       <h2>What we collect</h2>
       <ul>
         <li>Your name and mobile number, to prepare your order and contact you about it.</li>
-        <li>Your delivery address, if you choose delivery.</li>
+        <li>
+          Your delivery address and its pin on the map, if you choose delivery. If you have an account you can save addresses
+          to reuse; you can edit or delete them any time under Your account → Addresses. We use your phone&apos;s location only
+          when you tap &ldquo;Use my current location&rdquo;, only to place the pin, and we don&apos;t keep a history of it.
+          Address search goes through our own server to a free OpenStreetMap service; the map pictures themselves load from OpenFreeMap, which sees your device&apos;s internet address like any website would.
+        </li>
         <li>Your order details and any notes you add.</li>
         <li>
           If you ask to be told when we deliver to your area: your name, mobile number, area, pincode and, if you give it, your email. We

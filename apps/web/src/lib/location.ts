@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { isPincode } from "@seiketsu/core/delivery-area";
+import { isLatLng, type LatLng } from "@seiketsu/core/delivery-zones";
 
 /**
  * Where the customer wants their food: delivery to a pincode, or pickup.
@@ -9,7 +10,7 @@ import { isPincode } from "@seiketsu/core/delivery-area";
  * pincode on the server). The sheet that asks for it is opened through
  * requestLocation(), which resolves once the customer has chosen.
  */
-export type Location = { mode: "delivery"; pincode: string } | { mode: "pickup"; pincode: null };
+export type Location = { mode: "delivery"; pincode: string; point?: LatLng; area?: string } | { mode: "pickup"; pincode: null };
 
 const KEY = "seiketsu.location.v1";
 const listeners = new Set<() => void>();
@@ -22,7 +23,12 @@ function read(): Location | null {
   try {
     const v = JSON.parse(localStorage.getItem(KEY) ?? "null");
     if (v?.mode === "pickup") return { mode: "pickup", pincode: null };
-    if (v?.mode === "delivery" && typeof v.pincode === "string" && isPincode(v.pincode)) return { mode: "delivery", pincode: v.pincode };
+    if (v?.mode === "delivery") {
+      const point = isLatLng(v.point) ? { lat: v.point.lat, lng: v.point.lng } : undefined;
+      const pincode = typeof v.pincode === "string" && isPincode(v.pincode) ? v.pincode : "";
+      // A map pin (with delivery zones) or a pincode (without them) is enough.
+      if (point || pincode) return { mode: "delivery", pincode, ...(point ? { point } : {}), ...(typeof v.area === "string" && v.area ? { area: v.area.slice(0, 80) } : {}) };
+    }
   } catch {}
   return null;
 }

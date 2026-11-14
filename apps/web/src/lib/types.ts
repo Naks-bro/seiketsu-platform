@@ -1,4 +1,5 @@
 /** Data shapes passed from server to client components. */
+import type { DeliveryZone, LatLng } from "@seiketsu/core/delivery-zones";
 import type { Diet } from "@seiketsu/core/menu-parse";
 import type { WeeklyHours } from "@seiketsu/core/store-hours";
 import type { PricingSettings } from "@seiketsu/core/pricing";
@@ -49,6 +50,10 @@ export type StoreDTO = {
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
   deliveryPincodes: string[];
+  /** The café on the map; centre of radius zones. */
+  location: LatLng | null;
+  /** Active delivery zones. When there are none, the pincode list decides. */
+  zones: DeliveryZone[];
   prepTimeMinutes: number;
   pricing: PricingSettings;
   paymentsMode: "razorpay" | "simulator" | "disabled";

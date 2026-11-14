@@ -25,7 +25,7 @@ import { cartLineSchema, indianMobile, type CheckoutData } from "@seiketsu/core/
 import { z } from "zod";
 import { checkTransition, REFUND_ON, type OrderStatus } from "@seiketsu/core/order-status";
 import { computeQuote } from "@seiketsu/core/pricing";
-import { isServiceable } from "@seiketsu/core/delivery-area";
+import { checkDelivery } from "@seiketsu/core/delivery-zones";
 import { evaluateCoupon, loyaltySettings, pointsForPhone, redeemable, releaseRewardsIn, settleLoyaltyIn, type RewardDb } from "./rewards";
 import { pointsEarned } from "@seiketsu/core/loyalty";
 import { eventForStatus, type CustomerEvent } from "@seiketsu/core/messaging";
@@ -202,20 +202,40 @@ export async function createCheckout(input: CheckoutData, opts: { sessionPhone?:
   const store = await getStore();
   if (!store.isOpenNow) throw new OrderError("We are not taking online orders right now.", 409);
   if (input.fulfilment === "pickup" && !store.pickupEnabled) throw new OrderError("Pickup is not available right now.");
+  // Delivery terms come from the zone the map pin falls in (or the pincode list when no zones are set up).
+  let pricing = store.pricing;
+  let zone: { id: string; name: string } | null = null;
   if (input.fulfilment === "delivery") {
     if (!store.deliveryEnabled) throw new OrderError("Delivery is not available right now.");
-    const pin = input.address!.pincode;
-    if (!isServiceable(pin, store.deliveryPincodes)) {
-      throw new OrderError(`Sorry, we do not deliver to ${pin} yet.`);
+    const a = input.address!;
+    const check = checkDelivery({
+      point: a.lat != null && a.lng != null ? { lat: a.lat, lng: a.lng } : null,
+      pincode: a.pincode,
+      zones: store.zones,
+      outlet: store.location,
+      pincodes: store.deliveryPincodes,
+      storeFeePaise: store.pricing.deliveryFeePaise,
+      storeMinOrderPaise: store.pricing.minOrderPaise,
+    });
+    if (!check.ok) {
+      throw new OrderError(
+        check.reason === "no_location"
+          ? "Please set your delivery location on the map."
+          : check.reason === "outside"
+            ? "Sorry, we don't deliver to that location yet."
+            : `Sorry, we do not deliver to ${a.pincode} yet.`,
+      );
     }
+    pricing = { ...store.pricing, deliveryFeePaise: check.feePaise, minOrderPaise: check.minOrderPaise };
+    zone = check.zone ? { id: check.zone.id, name: check.zone.name } : null;
   }
 
   const db = await getDb();
   const lines = await resolveLines(db, input.lines, store.outletId);
 
-  const baseQuote = quoteFor(lines, store.pricing, input.fulfilment);
+  const baseQuote = quoteFor(lines, pricing, input.fulfilment);
   if (baseQuote.belowMinimum) {
-    throw new OrderError(`Minimum order is \u20b9${store.pricing.minOrderPaise / 100}.`);
+    throw new OrderError(`Minimum order is \u20b9${pricing.minOrderPaise / 100}.`);
   }
   const settings = await db.query.storeSettings.findFirst({ where: (s, { eq }) => eq(s.outletId, store.outletId) });
   const expiresAt = new Date(Date.now() + (settings?.paymentExpiryMinutes ?? 30) * 60_000);
@@ -229,7 +249,7 @@ export async function createCheckout(input: CheckoutData, opts: { sessionPhone?:
       .returning();
     // The upsert locks this customer until commit; coupon allocation is locked in rewardsFor.
     const rewards = await rewardsFor(store.outletId, baseQuote.subtotalPaise, input.customer.phone, input.couponCode, input.usePoints, opts.sessionPhone ?? null, tx);
-    const quote = quoteFor(lines, store.pricing, input.fulfilment, rewards.couponPaise + rewards.pointsPaise);
+    const quote = quoteFor(lines, pricing, input.fulfilment, rewards.couponPaise + rewards.pointsPaise);
     if (quote.totalPaise <= 0) throw new OrderError("Please leave a positive amount payable after discounts.");
     // Ticking a box opts in; leaving it unticked never removes an earlier opt-in.
     const optIns = [
@@ -257,7 +277,7 @@ export async function createCheckout(input: CheckoutData, opts: { sessionPhone?:
         customerEmail: email,
         source: input.source,
         fulfilment: input.fulfilment,
-        address: input.fulfilment === "delivery" ? input.address! : null,
+        address: input.fulfilment === "delivery" ? { ...input.address!, ...(zone ? { zoneId: zone.id, zoneName: zone.name } : {}) } : null,
         notes: input.notes || null,
         subtotalPaise: quote.subtotalPaise,
         discountPaise: quote.discountPaise,

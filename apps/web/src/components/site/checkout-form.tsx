@@ -11,7 +11,11 @@ import { orderSource, unitTotal, useCart } from "@/lib/cart";
 import { DietMark } from "@/components/diet-mark";
 import { usePayment, type PaymentParams } from "./use-payment";
 import { isPincode, isServiceable } from "@seiketsu/core/delivery-area";
+import { addressLine } from "@seiketsu/core/address";
+import { checkDelivery } from "@seiketsu/core/delivery-zones";
 import { useLocation } from "@/lib/location";
+import type { SavedAddress } from "@/lib/server/addresses";
+import { DeliveryAddress, type ChosenAddress } from "./delivery-address";
 
 type FieldErrors = Record<string, string>;
 type Rewards = { couponPaise: number; couponCode: string | null; couponError: string | null; loyalty: null | { balance: number; points: number; valuePaise: number } };
@@ -34,7 +38,7 @@ function Field({ id, label, error, hint, children }: { id: string; label: string
 
 type SignedIn = { name: string; phone: string; email: string | null; marketingWhatsapp: boolean; marketingEmail: boolean } | null;
 
-export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu: CategoryDTO[]; customer: SignedIn }) {
+export function CheckoutForm({ store, menu, customer, saved = [] }: { store: StoreDTO; menu: CategoryDTO[]; customer: SignedIn; saved?: SavedAddress[] }) {
   const router = useRouter();
   const { lines, ready, reconcile, clear, removedNames: removed } = useCart();
   const [fulfilment, setFulfilment] = useState<Fulfilment>(store.pickupEnabled ? "pickup" : "delivery");
@@ -68,6 +72,18 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
     }
   }
   const pinOutside = fulfilment === "delivery" && isPincode(form.pincode) && !isServiceable(form.pincode, store.deliveryPincodes);
+
+  // With delivery zones, the address is a map pin (a saved address or one picked here) and the zone sets the fee.
+  const usesZones = store.zones.length > 0 && !!store.location;
+  const pickerStore = { zones: store.zones, location: store.location, deliveryPincodes: store.deliveryPincodes, deliveryFeePaise: store.pricing.deliveryFeePaise, minOrderPaise: store.pricing.minOrderPaise };
+  const [chosen, setChosen] = useState<ChosenAddress | null>(() => saved.find((a) => a.isDefault) ?? saved[0] ?? null);
+  const zoneCheck = usesZones && chosen ? checkDelivery({ point: { lat: chosen.lat, lng: chosen.lng }, pincode: chosen.pincode, zones: store.zones, outlet: store.location, pincodes: store.deliveryPincodes, storeFeePaise: store.pricing.deliveryFeePaise, storeMinOrderPaise: store.pricing.minOrderPaise }) : null;
+  const zoneFee = zoneCheck?.ok ? zoneCheck.feePaise : null;
+  const zoneMin = zoneCheck?.ok ? zoneCheck.minOrderPaise : null;
+  const pricing = useMemo(
+    () => (zoneFee === null || zoneMin === null ? store.pricing : { ...store.pricing, deliveryFeePaise: zoneFee, minOrderPaise: zoneMin }),
+    [store.pricing, zoneFee, zoneMin],
+  );
 
   useEffect(() => {
     if (ready) reconcile(menu);
@@ -106,11 +122,11 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
     if (lines.length === 0) return null;
     return computeQuote(
       lines.map((l) => ({ unitPricePaise: l.unitPricePaise, addOnPricesPaise: l.addOns.map((a) => a.pricePaise), quantity: l.quantity })),
-      store.pricing,
+      pricing,
       fulfilment,
       couponPaise + pointsPaise,
     );
-  }, [lines, store.pricing, fulfilment, couponPaise, pointsPaise]);
+  }, [lines, pricing, fulfilment, couponPaise, pointsPaise]);
 
   const canOrder = store.isOpenNow && store.paymentsMode !== "disabled";
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -120,6 +136,11 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (fulfilment === "delivery" && usesZones && !chosen) {
+      setErrors({ address: "Add your delivery address" });
+      setFormError("Add your delivery address.");
+      return;
+    }
     setBusy(true);
     setErrors({});
     setFormError(null);
@@ -132,9 +153,19 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
           customer: { name: form.name, phone: form.phone, email: form.email },
           fulfilment,
           address:
-            fulfilment === "delivery"
-              ? { line1: form.line1, landmark: form.landmark || undefined, pincode: form.pincode, instructions: form.instructions || undefined }
-              : undefined,
+            fulfilment !== "delivery"
+              ? undefined
+              : usesZones && chosen
+                ? {
+                    line1: addressLine(chosen),
+                    landmark: chosen.landmark || undefined,
+                    pincode: chosen.pincode,
+                    instructions: chosen.instructions || undefined,
+                    lat: chosen.lat,
+                    lng: chosen.lng,
+                    label: chosen.label,
+                  }
+                : { line1: form.line1, landmark: form.landmark || undefined, pincode: form.pincode, instructions: form.instructions || undefined },
           notes: form.notes || undefined,
           source: orderSource(),
           marketing,
@@ -214,7 +245,15 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
                   <input type="radio" name="fulfilment" value={f} disabled={!enabled} checked={fulfilment === f} onChange={() => setFulfilment(f)} className="sr-only" />
                   <span className="block font-semibold capitalize">{f}</span>
                   <span className="text-sm text-muted">
-                    {!enabled ? "Not available right now" : f === "pickup" ? `Ready in about ${store.prepTimeMinutes} min` : store.pricing.deliveryFeePaise ? `${formatINR(store.pricing.deliveryFeePaise)} delivery` : "Free delivery"}
+                    {!enabled
+                      ? "Not available right now"
+                      : f === "pickup"
+                        ? `Ready in about ${store.prepTimeMinutes} min`
+                        : usesZones && !zoneCheck?.ok
+                          ? "To your door"
+                          : pricing.deliveryFeePaise
+                            ? `${formatINR(pricing.deliveryFeePaise)} delivery`
+                            : "Free delivery"}
                   </span>
                 </label>
               );
@@ -224,6 +263,16 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
             <p className="text-sm text-muted">
               Collect from {store.addressLines.join(", ")}.{today ? ` Today ${formatHours(today)}.` : ""}
             </p>
+          ) : usesZones ? (
+            <DeliveryAddress
+              store={pickerStore}
+              signedIn={!!customer}
+              saved={saved}
+              value={chosen}
+              onChange={setChosen}
+              error={err("address")}
+              startAt={location?.mode === "delivery" && location.point ? { ...location.point, pincode: location.pincode } : null}
+            />
           ) : (
             <div className="space-y-4">
               <Field id="line1" label="Delivery address" error={err("address.line1") ?? err("address")}>
@@ -364,7 +413,7 @@ export function CheckoutForm({ store, menu, customer }: { store: StoreDTO; menu:
             <div className="flex justify-between border-t border-line pt-2 text-base font-semibold"><dt>Total</dt><dd>{formatINR(quote.totalPaise)}</dd></div>
           </dl>
         )}
-        {quote?.belowMinimum && <p className="text-sm text-nonveg">Minimum order is {formatINR(store.pricing.minOrderPaise)}.</p>}
+        {quote?.belowMinimum && <p className="text-sm text-nonveg">Minimum order is {formatINR(pricing.minOrderPaise)}.</p>}
         {formError && <p role="alert" className="rounded-lg bg-nonveg/10 p-3 text-sm text-nonveg">{formError}</p>}
         {canOrder ? (
           <button

@@ -5,6 +5,7 @@ import {
   addonGroups,
   addons,
   categories,
+  deliveryZones,
   getDb,
   menuItemAddonGroups,
   menuItems,
@@ -14,6 +15,7 @@ import {
   storeSettings,
 } from "@seiketsu/db";
 import { isOpenAt } from "@seiketsu/core/store-hours";
+import type { DeliveryZone } from "@seiketsu/core/delivery-zones";
 import type { CategoryDTO, MenuItemDTO, StoreDTO } from "../types";
 import { env } from "./env";
 
@@ -23,7 +25,22 @@ import { env } from "./env";
  * (orders, payments, subscriptions, admin) always read fresh. Off outside production, so tests see changes at once.
  */
 const STORE_TTL_MS = process.env.NODE_ENV === "production" ? 30_000 : 0;
-type StoreRow = { outlets: typeof outlets.$inferSelect; store_settings: typeof storeSettings.$inferSelect };
+type StoreRow = { outlets: typeof outlets.$inferSelect; store_settings: typeof storeSettings.$inferSelect; zones: DeliveryZone[] };
+
+export function toZone(z: typeof deliveryZones.$inferSelect): DeliveryZone {
+  return {
+    id: z.id,
+    name: z.name,
+    kind: z.kind,
+    radiusM: z.radiusM,
+    polygon: z.polygon ?? null,
+    feePaise: z.feePaise,
+    minOrderPaise: z.minOrderPaise,
+    etaMinutes: z.etaMinutes,
+    active: z.isActive,
+    sort: z.sort,
+  };
+}
 const storeRows = new Map<string, { row: StoreRow; at: number }>();
 
 /** One retry for a momentary database stall (timeout or dropped connection). */
@@ -44,13 +61,19 @@ export async function getStore(outletId?: string): Promise<StoreDTO> {
   let row: StoreRow | undefined = hit && Date.now() - hit.at < STORE_TTL_MS ? hit.row : undefined;
   if (!row) {
     const db = await getDb();
-    [row] = await withRetry(() =>
+    const [found] = await withRetry(() =>
       db
         .select()
         .from(outlets)
         .innerJoin(storeSettings, eq(storeSettings.outletId, outlets.id))
         .where(outletId ? eq(outlets.id, outletId) : eq(outlets.slug, slug!)),
     );
+    if (found) {
+      const zones = await withRetry(() =>
+        db.select().from(deliveryZones).where(and(eq(deliveryZones.outletId, found.outlets.id), eq(deliveryZones.isActive, true))).orderBy(asc(deliveryZones.sort)),
+      );
+      row = { ...found, zones: zones.map(toZone) };
+    }
     if (row && slug && STORE_TTL_MS) storeRows.set(slug, { row, at: Date.now() });
   }
   if (!row) throw new Error(`Outlet "${outletId ?? env.outletSlug}" not found. Run npm run db:seed.`);
@@ -72,6 +95,8 @@ export async function getStore(outletId?: string): Promise<StoreDTO> {
     pickupEnabled: s.pickupEnabled,
     deliveryEnabled: s.deliveryEnabled,
     deliveryPincodes: s.deliveryPincodes,
+    location: o.lat != null && o.lng != null ? { lat: o.lat, lng: o.lng } : null,
+    zones: row.zones,
     prepTimeMinutes: s.prepTimeMinutes,
     pricing: {
       tax: { enabled: s.taxEnabled, rateBps: s.taxRateBps, inclusive: s.taxInclusive },

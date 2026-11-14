@@ -6,9 +6,21 @@ import { isPincode, isServiceable, pickOutletForPincode } from "@seiketsu/core/d
 import { chooseOutletAction } from "@/app/(site)/outlet-actions";
 import { closeLocationSheet, openLocationSheet, setLocation, useLocation } from "@/lib/location";
 import { useModal } from "./use-modal";
+import { AddressPicker, type PickerStore } from "./map/address-picker";
+import { PlaceSearch, type Place } from "./map/place-search";
+import { checkDelivery } from "@seiketsu/core/delivery-zones";
 
 type Outlet = { slug: string; area: string; address: string; pickupEnabled: boolean; deliveryEnabled: boolean; pincodes: string[] };
-type Props = { pincodes: string[]; deliveryEnabled: boolean; pickupEnabled: boolean; pickupFrom: string; outlets?: Outlet[]; current?: string | null };
+type Props = {
+  pincodes: string[];
+  deliveryEnabled: boolean;
+  pickupEnabled: boolean;
+  pickupFrom: string;
+  outlets?: Outlet[];
+  current?: string | null;
+  /** Delivery zones on a map: delivery is then chosen with a pin instead of a pincode. */
+  map?: PickerStore | null;
+};
 
 function PinIcon({ className = "size-4" }: { className?: string }) {
   return (
@@ -22,12 +34,12 @@ function PinIcon({ className = "size-4" }: { className?: string }) {
 /** Header pill: where we are delivering, or a prompt to set it. */
 export function LocationPill({ pickupFrom }: { pickupFrom: string }) {
   const { location } = useLocation();
-  const label = !location ? "Check delivery" : location.mode === "pickup" ? `Pickup · ${pickupFrom}` : `Deliver to ${location.pincode}`;
+  const label = !location ? "Check delivery" : location.mode === "pickup" ? `Pickup · ${pickupFrom}` : `Deliver to ${location.area || location.pincode || "your pin"}`;
   return (
     <button
       type="button"
       onClick={openLocationSheet}
-      className="flex min-h-10 min-w-10 max-w-44 items-center justify-center gap-1.5 truncate rounded-full border border-cream/25 px-3 text-xs font-medium hover:bg-berry-deep sm:text-sm"
+      className="flex min-h-10 min-w-10 max-w-[8.5rem] items-center sm:max-w-44 justify-center gap-1.5 truncate rounded-full border border-cream/25 px-3 text-xs font-medium hover:bg-berry-deep sm:text-sm"
       aria-label={`${label}. Change`}
     >
       <PinIcon />
@@ -43,7 +55,7 @@ export function LocationSheet(props: Props) {
   return <Sheet {...props} />;
 }
 
-function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom, outlets = [], current = null }: Props) {
+function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom, outlets = [], current = null, map = null }: Props) {
   const router = useRouter();
   const { location } = useLocation();
   const panel = useRef<HTMLDivElement>(null);
@@ -57,6 +69,18 @@ function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom, outlets =
   const [pickupAt, setPickupAt] = useState(current ?? pickupOutlets[0]?.slug ?? null);
   const anyDelivery = many ? outlets.some((o) => o.deliveryEnabled) : deliveryEnabled;
   const anyPickup = many ? pickupOutlets.length > 0 : pickupEnabled;
+  const onMap = !many && !!map && map.zones.length > 0 && !!map.location;
+  const [picking, setPicking] = useState(false);
+  const [outside, setOutside] = useState<Place | null>(null);
+
+  // Typing an area is enough: if we deliver there, that's the location; the map is for fine-tuning.
+  function pickPlace(p: Place) {
+    if (!map) return;
+    const check = checkDelivery({ point: { lat: p.lat, lng: p.lng }, pincode: p.pincode, zones: map.zones, outlet: map.location, pincodes: map.deliveryPincodes, storeFeePaise: map.deliveryFeePaise, storeMinOrderPaise: map.minOrderPaise });
+    if (!check.ok) return setOutside(p);
+    setOutside(null);
+    setLocation({ mode: "delivery", pincode: p.pincode, point: { lat: p.lat, lng: p.lng }, area: p.line || p.area || undefined });
+  }
 
   async function moveTo(slug: string | null) {
     if (slug && slug !== current) {
@@ -108,7 +132,7 @@ function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom, outlets =
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${id}-t`}
-        className="animate-sheet-up relative w-full max-w-md rounded-t-3xl bg-cream p-6 shadow-2xl outline-none sm:rounded-3xl"
+        className="animate-sheet-up relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-cream p-6 shadow-2xl outline-none sm:rounded-3xl"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -125,7 +149,49 @@ function Sheet({ pincodes, deliveryEnabled, pickupEnabled, pickupFrom, outlets =
           {tab("pickup", "Pickup", anyPickup)}
         </div>
 
-        {mode === "delivery" ? (
+        {mode === "delivery" && onMap ? (
+          <div className="mt-5 space-y-3">
+            {location?.mode === "delivery" && location.point && (
+              <div className="flex items-start gap-3 rounded-2xl border border-line bg-white p-4">
+                <PinIcon className="mt-0.5 size-5 text-berry" />
+                <div className="min-w-0">
+                  <p className="font-semibold">Delivering to</p>
+                  <p className="truncate text-sm text-muted">{location.area || location.pincode || "Your pin on the map"}</p>
+                </div>
+              </div>
+            )}
+            <PlaceSearch near={map!.location} onPick={pickPlace} placeholder="Type your area, street or building" autoFocus />
+            {outside && (
+              <p role="alert" className="rounded-xl bg-nonveg/10 p-3 text-sm text-nonveg">
+                We don&apos;t deliver to {outside.line || outside.area} yet.{" "}
+                <a href={`/coming-soon${outside.pincode ? `?pin=${outside.pincode}` : ""}`} className="font-semibold underline">
+                  Tell us you&apos;re there
+                </a>
+              </p>
+            )}
+            <div className="flex items-center gap-3 text-xs text-muted" aria-hidden="true">
+              <span className="h-px flex-1 bg-line" />
+              or
+              <span className="h-px flex-1 bg-line" />
+            </div>
+            <button type="button" onClick={() => setPicking(true)} className="flex w-full items-center justify-center gap-2 rounded-full border border-berry/40 bg-white py-3 font-semibold text-berry hover:bg-paper">
+              <PinIcon className="size-5" />
+              {location?.mode === "delivery" && location.point ? "Adjust on the map" : "Use my location or the map"}
+            </button>
+            {picking && (
+              <AddressPicker
+                mode="locate"
+                store={map!}
+                initial={location?.mode === "delivery" && location.point ? { ...location.point, pincode: location.pincode } : null}
+                onClose={() => setPicking(false)}
+                onConfirm={(a) => {
+                  setPicking(false);
+                  setLocation({ mode: "delivery", pincode: a.pincode, point: { lat: a.lat, lng: a.lng }, area: a.area.split(",")[0]?.trim() || undefined });
+                }}
+              />
+            )}
+          </div>
+        ) : mode === "delivery" ? (
           <form onSubmit={checkPin} className="mt-5 space-y-3" noValidate>
             <label htmlFor={`${id}-pin`} className="block text-sm font-medium">Your pincode</label>
             <div className="flex gap-2">

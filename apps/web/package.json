@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copy-map-worker.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/copy-map-worker.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -14,6 +16,7 @@
     "@seiketsu/db": "*",
     "@supabase/supabase-js": "^2.118.0",
     "jose": "^6.2.15",
+    "maplibre-gl": "^6.18.0",
     "next": "16.4.3",
     "postgres": "3.4.9",
     "qrcode": "^1.5.4",

@@ -30,6 +30,10 @@ export const checkoutSchema = z
         landmark: z.string().trim().max(120).optional(),
         pincode: z.string().trim().regex(/^\d{6}$/, "Enter a 6-digit pincode"),
         instructions: z.string().trim().max(200).optional(),
+        /** Map pin. Required once the outlet has delivery zones; the server checks it. */
+        lat: z.number().min(-90).max(90).optional(),
+        lng: z.number().min(-180).max(180).optional(),
+        label: z.string().trim().max(40).optional(),
       })
       .optional(),
     notes: z.string().trim().max(300).optional(),

@@ -576,3 +576,35 @@ describe("financial recovery and isolation regressions", () => {
     expect(rows).toHaveLength(4);
   });
 });
+
+describe("delivery zones", () => {
+  it("prices delivery by the zone the pin is in, and refuses pins outside every zone", async () => {
+    const { deliveryZones, outlets } = await import("@seiketsu/db");
+    const cafe = { lat: 19.1307, lng: 72.8195 };
+    await db.update(outlets).set(cafe).where(eq(outlets.id, outletId));
+    await db.update(storeSettings).set({ deliveryEnabled: true, deliveryFeePaise: 1000, minOrderPaise: 0 }).where(eq(storeSettings.outletId, outletId));
+    const [zone] = await db.insert(deliveryZones).values({ outletId, name: "Near", kind: "radius", radiusM: 1500, feePaise: 3000 }).returning();
+    try {
+      const [v] = await db.select().from(menuItemVariants).limit(1);
+      const order = (point: { lat: number; lng: number } | null) =>
+        orderSvc.createCheckout({
+          lines: [{ menuItemId: v.menuItemId, variantId: v.id, addOnIds: [], quantity: 1 }],
+          customer: { ...customer },
+          fulfilment: "delivery",
+          source: "web",
+          address: { line1: "4B Sea Breeze, JP Road", pincode: "400061", ...(point ?? {}) },
+        });
+
+      const inside = await order({ lat: 19.1335, lng: 72.8195 });
+      const o = await orderByToken(inside.token);
+      expect(o.deliveryFeePaise).toBe(3000);
+      expect(o.address).toMatchObject({ zoneId: zone.id, zoneName: "Near", lat: 19.1335 });
+
+      await expect(order({ lat: 19.2, lng: 72.8195 })).rejects.toThrow(/don't deliver to that location/);
+      await expect(order(null)).rejects.toThrow(/delivery location on the map/);
+    } finally {
+      await db.update(deliveryZones).set({ isActive: false }).where(eq(deliveryZones.id, zone.id));
+      await db.update(storeSettings).set({ deliveryEnabled: false }).where(eq(storeSettings.outletId, outletId));
+    }
+  });
+});

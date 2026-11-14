@@ -63,7 +63,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           deliveryEnabled: store.deliveryEnabled,
         }}
       />}
-      {!LANDING_ONLY && <LocationSheet pincodes={store.deliveryPincodes} deliveryEnabled={store.deliveryEnabled} pickupEnabled={store.pickupEnabled} pickupFrom={PICKUP_FROM} outlets={outletList.map((o) => ({ slug: o.slug, area: o.area, address: o.addressLines.join(", "), pickupEnabled: o.pickupEnabled, deliveryEnabled: o.deliveryEnabled, pincodes: o.pincodes }))} current={here} />}
+      {!LANDING_ONLY && <LocationSheet pincodes={store.deliveryPincodes} deliveryEnabled={store.deliveryEnabled} pickupEnabled={store.pickupEnabled} pickupFrom={PICKUP_FROM} outlets={outletList.map((o) => ({ slug: o.slug, area: o.area, address: o.addressLines.join(", "), pickupEnabled: o.pickupEnabled, deliveryEnabled: o.deliveryEnabled, pincodes: o.pincodes }))} current={here} map={{ zones: store.zones, location: store.location, deliveryPincodes: store.deliveryPincodes, deliveryFeePaise: store.pricing.deliveryFeePaise, minOrderPaise: store.pricing.minOrderPaise }} />}
       <Toaster />
       {!LANDING_ONLY && <MobileCartBar />}
       <RevealOnScroll />

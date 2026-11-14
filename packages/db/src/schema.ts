@@ -10,6 +10,7 @@ import {
   bigint,
   date,
   bigserial,
+  doublePrecision,
   boolean,
   index,
   integer,
@@ -58,9 +59,34 @@ export const outlets = pgTable("outlets", {
   whatsapp: text("whatsapp"),
   instagram: text("instagram"),
   mapUrl: text("map_url"),
+  /** Where the café is on the map: the centre of radius delivery zones. */
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: createdAt(),
 }).enableRLS();
+
+/** Where an outlet delivers: a circle around it or a drawn area, each with its own fee, minimum and time. */
+export const deliveryZones = pgTable(
+  "delivery_zones",
+  {
+    id: id(),
+    outletId: uuid("outlet_id").notNull().references(() => outlets.id),
+    name: text("name").notNull(),
+    kind: text("kind", { enum: ["radius", "polygon"] }).notNull(),
+    radiusM: integer("radius_m"),
+    /** [lng, lat] points of the outline */
+    polygon: jsonb("polygon").$type<[number, number][] | null>(),
+    feePaise: integer("fee_paise").notNull().default(0),
+    minOrderPaise: integer("min_order_paise").notNull().default(0),
+    etaMinutes: integer("eta_minutes"),
+    isActive: boolean("is_active").notNull().default(true),
+    sort: integer("sort").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("delivery_zones_outlet").on(t.outletId, t.sort)],
+).enableRLS();
 
 export const storeSettings = pgTable("store_settings", {
   outletId: uuid("outlet_id").primaryKey().references(() => outlets.id),
@@ -209,7 +235,44 @@ export const customers = pgTable("customers", {
   updatedAt: updatedAt(),
 }).enableRLS();
 
-export type OrderAddress = { line1: string; landmark?: string; pincode: string; instructions?: string };
+export type OrderAddress = {
+  line1: string;
+  landmark?: string;
+  pincode: string;
+  instructions?: string;
+  /** Map pin, and the zone it fell in when the order was placed. Missing on orders from before zones. */
+  lat?: number;
+  lng?: number;
+  zoneId?: string;
+  zoneName?: string;
+  label?: string;
+};
+
+/** A customer's saved delivery address. The map pin decides delivery; the text tells the rider where to go. */
+export const customerAddresses = pgTable(
+  "customer_addresses",
+  {
+    id: id(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    /** Home, Work, or the customer's own name for it */
+    label: text("label").notNull(),
+    house: text("house").notNull(),
+    building: text("building"),
+    area: text("area").notNull(),
+    landmark: text("landmark"),
+    pincode: text("pincode").notNull(),
+    city: text("city"),
+    lat: doublePrecision("lat").notNull(),
+    lng: doublePrecision("lng").notNull(),
+    instructions: text("instructions"),
+    isDefault: boolean("is_default").notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("customer_addresses_customer").on(t.customerId)],
+).enableRLS();
 export type TaxSnapshot = { enabled: boolean; rateBps: number; inclusive: boolean; gstin: string | null };
 
 export const orders = pgTable(

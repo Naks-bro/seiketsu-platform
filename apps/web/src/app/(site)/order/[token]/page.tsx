@@ -10,6 +10,7 @@ import { env } from "@/lib/server/env";
 import { formatDateTime, formatINR, formatTimeOnly, whatsappLink } from "@/lib/format";
 import { DietMark } from "@/components/diet-mark";
 import { LiveRefresh, PayNow } from "@/components/site/order-live";
+import { ReorderButton } from "@/components/site/reorder-button";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 
@@ -72,6 +73,16 @@ export default async function OrderPage({ params }: { params: Promise<{ token: s
                 ? "Your refund is being processed. We will message you if we need anything."
                 : ""}
           </p>
+        </div>
+      )}
+
+      {(order.status === "completed" || order.status === "rejected" || order.status === "cancelled") && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5">
+          <div>
+            <p className="font-semibold">{order.status === "completed" ? "Loved it? Have it again." : "Still hungry? Order these again."}</p>
+            <p className="text-sm text-muted">We&apos;ll check today&apos;s menu and prices, then you review the cart before paying.</p>
+          </div>
+          <ReorderButton token={token} />
         </div>
       )}
 

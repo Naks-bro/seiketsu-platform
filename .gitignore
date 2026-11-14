@@ -17,3 +17,7 @@ next-env.d.ts
 .env*
 
 .hallmark/
+
+# MapLibre worker, copied in at build time
+apps/web/public/maplibre/
+apps/web/.next-qa*/

@@ -120,6 +120,13 @@
       "when": 1794307568778,
       "tag": "0016_wrap_watermelon_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794648218971,
+      "tag": "0017_delivery_zones_addresses",
+      "breakpoints": true
     }
   ]
 }
